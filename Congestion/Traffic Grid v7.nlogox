@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<model version="NetLogo 7.0.2" snapToGrid="false">
+<model version="NetLogo 7.0.3" snapToGrid="false">
   <code><![CDATA[extensions [table csv]
 
 globals
@@ -84,6 +84,9 @@ globals
   cbd-top-y
   cbd-bottom-y
 
+  ;; ----- Q-learning (RL) -----
+  cbd-congestion-level   ;; 0 = low, 1 = medium, 2 = high (social signal)
+  population-avg-q       ;; list of 30 Q-values (population average for inheritance)
 ]
 
 turtles-own
@@ -102,6 +105,13 @@ turtles-own
   avoid-cbd?          ;; this car currently wants to avoid CBD at the gate
   waiting-at-gate?    ;; true if it's queued on a CBD gate waiting for the non-CBD exit
 
+  ;; ----- Q-learning (RL) -----
+  q-table              ;; list of 30 values: Q(state * 2 + action)
+  trip-start-tick      ;; tick when current gate decision was made
+  trip-toll-paid       ;; toll accumulated during current trip
+  last-state           ;; state index (0-14) when decision was made
+  last-action          ;; 0 = avoid, 1 = enter
+  has-pending-update?  ;; true if waiting to compute reward after gate decision
 ]
 
 patches-own
@@ -162,6 +172,14 @@ to setup
     setup-cars
     set-car-color
     record-data
+
+    ;; Q-learning init
+    set q-table init-q-table-zeros
+    set trip-start-tick 0
+    set trip-toll-paid 0
+    set last-state 0
+    set last-action 0
+    set has-pending-update? false
   ]
 
   ;; give the turtles an initial speed
@@ -171,7 +189,11 @@ to setup
   ]
   
   load-capacity-csv "csv/explored_data/capacity_per_road.csv"
-  
+
+  ;; Q-learning globals
+  set cbd-congestion-level 0
+  set population-avg-q init-q-table-zeros
+
   set road-flow-run table:make
   set road-flow-window table:make
   set road-car-sum table:make
@@ -954,11 +976,19 @@ to add-cars [n]
     set in-cbd? false
     set entered-cbd-this-window? false
     set toll-paid 0
-    
+
     set was-at-intersection? false
     set decided-gate-this-step? false
     set avoid-cbd? false
-    set waiting-at-gate? false    
+    set waiting-at-gate? false
+
+    ;; Q-learning: inherit population knowledge (social learning)
+    set q-table init-q-table-from-population
+    set trip-start-tick 0
+    set trip-toll-paid 0
+    set last-state 0
+    set last-action 0
+    set has-pending-update? false
   ]
 end
 
@@ -1037,6 +1067,10 @@ to setup-day
   set toll-revenue-day 0
   set last-day-index 0
 
+  ;; ---- Q-learning globals ----
+  set cbd-congestion-level 0
+  if not is-list? population-avg-q [ set population-avg-q init-q-table-zeros ]
+
   ;; create starting cars based on chosen hour
   if current-target-cars > count roads [
     user-message "Too many cars for the amount of road."
@@ -1054,6 +1088,14 @@ to setup-day
     set in-cbd? false
     set entered-cbd-this-window? false
     set toll-paid 0
+
+    ;; Q-learning init
+    set q-table init-q-table-from-population
+    set trip-start-tick 0
+    set trip-toll-paid 0
+    set last-state 0
+    set last-action 0
+    set has-pending-update? false
   ]
 
 end
@@ -1087,6 +1129,11 @@ to go-day
   update-cbd-entry-flags
   cbd-charge-step
 
+  ;; ---- Q-learning: check reward triggers ----
+  if use-learning? [
+    ask turtles [ check-reward-trigger ]
+  ]
+
   ;; accumulate total car presence in this vc-window
   set car-count-sum (car-count-sum + count turtles)
   set car-count-ticks (car-count-ticks + 1)
@@ -1099,6 +1146,12 @@ to go-day
   if vc-tick-counter >= vc-window [
     update-vc-and-capacity
     set vc-tick-counter 0
+
+    ;; ---- Q-learning: update social signal + population avg ----
+    if use-learning? [
+      update-cbd-congestion-level
+      compute-population-avg-q
+    ]
   ]
 
   next-phase
@@ -1168,7 +1221,8 @@ to setup-day-batch
   set toll-revenue-day 0
   set last-day-index 0
 
-
+  ;; ---- Q-learning: keep population-avg-q across days (persistent learning) ----
+  set cbd-congestion-level 0
 
   if current-target-cars > count roads [
     user-message "Too many cars for the amount of road."
@@ -1186,6 +1240,14 @@ create-turtles current-target-cars [
   set in-cbd? false
   set entered-cbd-this-window? false
   set toll-paid 0
+
+  ;; Q-learning init
+  set q-table init-q-table-from-population
+  set trip-start-tick 0
+  set trip-toll-paid 0
+  set last-state 0
+  set last-action 0
+  set has-pending-update? false
 ]
 
 end
@@ -1193,6 +1255,7 @@ end
 
 to run-20-days-and-export
   set vc-history-rows []
+  set population-avg-q init-q-table-zeros  ;; fresh learning across days
 
   set day-index 1
   while [ day-index <= 20 ] [
@@ -1278,6 +1341,7 @@ to update-cbd-entry-flags
 
         ;; CHARGE IMMEDIATELY
         set toll-paid toll-paid + charge-fee
+        set trip-toll-paid trip-toll-paid + charge-fee  ;; track for Q-learning reward
         set total-toll-revenue total-toll-revenue + charge-fee
         set toll-revenue-window toll-revenue-window + charge-fee
         set toll-revenue-hour   toll-revenue-hour   + charge-fee
@@ -1323,6 +1387,7 @@ end
 to run-20-days-continuous-and-export
   ;; fresh VC storage
   set vc-history-rows []
+  set population-avg-q init-q-table-zeros  ;; fresh learning across days
 
   ;; reset day tracking
   set day-index 1
@@ -1513,6 +1578,10 @@ to setup-flow-density-run
   ;; ----------------------------------
   setup-hourly-traffic
 
+  ;; ---- Q-learning globals ----
+  set cbd-congestion-level 0
+  if not is-list? population-avg-q [ set population-avg-q init-q-table-zeros ]
+
   ;; create initial cars for starting hour
   if current-target-cars > count roads [
     user-message "Too many cars for the amount of road."
@@ -1525,6 +1594,14 @@ to setup-flow-density-run
     set-car-color
     set was-on-camera? false
     record-data
+
+    ;; Q-learning init
+    set q-table init-q-table-from-population
+    set trip-start-tick 0
+    set trip-toll-paid 0
+    set last-state 0
+    set last-action 0
+    set has-pending-update? false
   ]
 end
 
@@ -1547,6 +1624,11 @@ to go-flow-density
   record-road-density
   record-road-speed
 
+  ;; ---- Q-learning: check reward triggers ----
+  if use-learning? [
+    ask turtles [ check-reward-trigger ]
+  ]
+
   ;; average total cars
   set car-count-sum (car-count-sum + count turtles)
   set car-count-ticks (car-count-ticks + 1)
@@ -1561,6 +1643,12 @@ to go-flow-density
   if flow-density-window-counter >= flow-density-window-ticks [
     record-flow-density-window
     set flow-density-window-counter 0
+
+    ;; ---- Q-learning: update social signal + population avg ----
+    if use-learning? [
+      update-cbd-congestion-level
+      compute-population-avg-q
+    ]
   ]
 
   next-phase
@@ -1569,6 +1657,7 @@ end
 
 to run-20-day-flow-density-experiment
   set flow-density-records []
+  set population-avg-q init-q-table-zeros  ;; fresh learning across runs
 
   set current-run-id 1
   while [ current-run-id <= 20 ] [
@@ -1619,6 +1708,160 @@ to record-road-speed
   ]
 end
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Q-Learning Procedures    ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Map hour (0-23) to time-period bucket (0-4)
+to-report time-period-bucket [h]
+  if h >= 0 and h <= 5  [ report 0 ]  ;; night
+  if h >= 6 and h <= 9  [ report 1 ]  ;; am-peak
+  if h >= 10 and h <= 16 [ report 2 ] ;; midday
+  if h >= 17 and h <= 21 [ report 3 ] ;; pm-peak
+  report 4                             ;; evening (22-23)
+end
+
+;; Compute current state index (0-14) from time-period and congestion-level
+to-report current-state-index
+  report (time-period-bucket current-hour) * 3 + cbd-congestion-level
+end
+
+;; Index into flat Q-table list: state * 2 + action
+to-report q-index [s a]
+  report s * 2 + a
+end
+
+;; Create a fresh Q-table (list of 30 zeros)
+to-report init-q-table-zeros
+  report n-values 30 [0]
+end
+
+;; Create a Q-table initialized from population averages (social inheritance)
+to-report init-q-table-from-population
+  if not is-list? population-avg-q [ report init-q-table-zeros ]
+  if empty? population-avg-q [ report init-q-table-zeros ]
+  report population-avg-q
+end
+
+;; Update the global cbd-congestion-level based on average CBD road density
+to update-cbd-congestion-level
+  ;; guard: cbd-patches must exist
+  if not is-agentset? cbd-patches [ stop ]
+
+  ;; compute average density across CBD roads
+  let cbd-road-ids []
+  ask cbd-patches with [ road-id != "" ] [
+    if not member? road-id cbd-road-ids [
+      set cbd-road-ids lput road-id cbd-road-ids
+    ]
+  ]
+
+  let avg-density 0
+  if not empty? cbd-road-ids [
+    let total 0
+    foreach cbd-road-ids [ rid ->
+      set total total + density-of-road rid
+    ]
+    set avg-density total / length cbd-road-ids
+  ]
+
+  ;; bucket into 0/1/2
+  ifelse avg-density < 0.3 [
+    set cbd-congestion-level 0
+  ] [
+    ifelse avg-density < 0.6 [
+      set cbd-congestion-level 1
+    ] [
+      set cbd-congestion-level 2
+    ]
+  ]
+end
+
+;; Compute population-average Q-values across all living turtles
+to compute-population-avg-q
+  if not any? turtles [ stop ]
+
+  let n count turtles
+  let sums n-values 30 [0]
+
+  ask turtles [
+    if is-list? q-table and length q-table = 30 [
+      let i 0
+      while [i < 30] [
+        set sums replace-item i sums ((item i sums) + (item i q-table))
+        set i i + 1
+      ]
+    ]
+  ]
+
+  set population-avg-q map [ x -> x / n ] sums
+end
+
+;; Epsilon-greedy action selection: returns 0 (avoid) or 1 (enter)
+to-report choose-action-rl  ;; turtle procedure
+  let s current-state-index
+
+  ;; exploration
+  if random-float 1 < epsilon [
+    report random 2
+  ]
+
+  ;; exploitation: pick action with higher Q
+  let q-avoid item (q-index s 0) q-table
+  let q-enter item (q-index s 1) q-table
+
+  ifelse q-enter > q-avoid [
+    report 1
+  ] [
+    ifelse q-enter < q-avoid [
+      report 0
+    ] [
+      report random 2  ;; tie-break randomly
+    ]
+  ]
+end
+
+;; Update Q-value after receiving reward
+to update-q-value [reward]  ;; turtle procedure
+  if not has-pending-update? [ stop ]
+
+  let idx q-index last-state last-action
+  let old-q item idx q-table
+  let new-q old-q + learning-rate * (reward - old-q)
+  set q-table replace-item idx q-table new-q
+
+  set has-pending-update? false
+end
+
+;; Check if a car that made a gate decision should now receive its reward
+to check-reward-trigger  ;; turtle procedure
+  if not has-pending-update? [ stop ]
+  if not use-learning? [ stop ]
+
+  ;; Guard: cbd-patches must exist
+  if not is-agentset? cbd-patches [ stop ]
+
+  ;; Reward triggers:
+  ;; (A) Car chose to ENTER (last-action = 1): reward when it exits CBD
+  ;; (B) Car chose to AVOID (last-action = 0): reward when it leaves the gate intersection
+
+  ifelse last-action = 1 [
+    ;; entered CBD: reward when no longer in CBD
+    if not (member? patch-here cbd-patches) and in-cbd? = false [
+      let trip-time (ticks - trip-start-tick)
+      let reward (- (trip-toll-paid + time-cost-weight * trip-time))
+      update-q-value reward
+    ]
+  ] [
+    ;; avoided CBD: reward as soon as car moves off the gate intersection
+    if not [cbd-gate?] of patch-here [
+      let trip-time (ticks - trip-start-tick)
+      let reward (- (time-cost-weight * trip-time))  ;; no toll paid
+      update-q-value reward
+    ]
+  ]
+end
+
 to maybe-turn-at-intersection  ;; turtle procedure
   if not intersection? [
     set was-at-intersection? false
@@ -1627,7 +1870,8 @@ to maybe-turn-at-intersection  ;; turtle procedure
     stop
   ]
 
-  ;; Only handle CBD gates
+  ;; Only handle CBD gates (guard: cbd-entry-intersections may not exist in some modes)
+  if not is-agentset? cbd-entry-intersections [ stop ]
   if not member? patch-here cbd-entry-intersections [
     ;; normal intersection behaviour: no turning logic
     if not was-at-intersection? [ set was-at-intersection? true ]
@@ -1717,7 +1961,21 @@ if waiting-at-gate? and avoid-cbd? [
   if not was-at-intersection? [
     set was-at-intersection? true
 
-    let want-enter? (random-float 1 < cbd-entry-probability)
+    ;; Decision: RL-based or original probability-based
+    let want-enter? false
+    ifelse use-learning? [
+      let chosen-action choose-action-rl
+      set want-enter? (chosen-action = 1)
+
+      ;; record state/action for later Q-update
+      set last-state current-state-index
+      set last-action chosen-action
+      set trip-start-tick ticks
+      set trip-toll-paid 0
+      set has-pending-update? true
+    ] [
+      set want-enter? (random-float 1 < cbd-entry-probability)
+    ]
     set avoid-cbd? (not want-enter?)
 
     ;; If we want to avoid CBD:
@@ -1884,12 +2142,8 @@ end
     <slider x="12" step="0.1" y="124" max="1" width="155" display="speed-limit" height="61" min="0.1" direction="Horizontal" default="1.0" variable="speed-limit"></slider>
     <slider x="11" step="1" y="193" max="100" width="155" display="ticks-per-cycle" height="50" min="1" direction="Horizontal" default="20.0" variable="ticks-per-cycle"></slider>
     <slider x="174" step="1" y="191" max="99" width="158" display="current-phase" height="50" min="0" direction="Horizontal" default="0.0" variable="current-phase" units="%"></slider>
-    <button x="174" y="293" height="35" disableUntilTicks="true" forever="true" kind="Observer" width="158" display="Select intersection">choose-current</button>
     <switch x="174" y="247" height="40" on="true" variable="current-auto?" width="158" display="current-auto?"></switch>
     <switch x="10" y="247" height="40" on="true" variable="power?" width="158" display="power?"></switch>
-    <button x="10" y="334" height="35" disableUntilTicks="false" forever="false" kind="Observer" width="85" display="Setup">setup</button>
-    <button x="10" y="292" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="158" display="Change light">change-current</button>
-    <button x="101" y="335" height="35" disableUntilTicks="true" forever="true" kind="Observer" width="85" display="Go">go</button>
     <monitor x="687" precision="17" y="134" height="60" fontSize="11" width="134" display="(0, 1) density">precision (density-of-road "(0,1)") 2</monitor>
     <monitor x="688" precision="17" y="67" height="60" fontSize="11" width="132" display="(0, 0) density">precision (density-of-road "(0,0)") 2</monitor>
     <monitor x="687" precision="17" y="199" height="60" fontSize="11" width="134" display="(0, 2) density">precision (density-of-road "(0,2)") 2</monitor>
@@ -1931,7 +2185,6 @@ end
     <button x="774" y="442" height="40" disableUntilTicks="false" forever="true" kind="Observer" width="77">go-day</button>
     <monitor x="807" precision="17" y="3" height="60" fontSize="11" width="100" display="Time">current-time</monitor>
     <slider x="911" step="1" y="4" max="23" width="179" display="start-hour" height="57" min="0" direction="Horizontal" default="4.0" variable="start-hour"></slider>
-    <button x="864" y="443" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="59">go-day</button>
     <button x="688" y="488" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="150">run-20-days-and-export</button>
     <slider x="1094" step="1" y="5" max="24" width="178" display="charge-hour" height="53" min="1" direction="Horizontal" default="12.0" variable="charge-hour"></slider>
     <slider x="964" step="0.5" y="68" max="20" width="250" display="charge-fee" height="50" min="0" direction="Horizontal" default="3.0" variable="charge-fee"></slider>
@@ -1943,6 +2196,31 @@ end
     <slider x="967" step="0.01" y="198" max="1" width="250" display="to-cbd-rate" height="50" min="0" direction="Horizontal" default="1.0" variable="to-cbd-rate"></slider>
     <slider x="968" step="0.1" y="259" max="5" width="250" display="beta-charge" height="50" min="0" direction="Horizontal" default="1.2" variable="beta-charge"></slider>
     <slider x="968" step="0.01" y="317" max="1" width="250" display="min-cbd-entry" height="50" min="0" direction="Horizontal" default="0.01" variable="min-cbd-entry"></slider>
+    <switch x="968" y="375" height="40" on="false" variable="use-learning?" width="250" display="use-learning?"></switch>
+    <slider x="968" step="0.01" y="420" max="1" width="250" display="learning-rate" height="50" min="0.01" direction="Horizontal" default="0.2" variable="learning-rate"></slider>
+    <slider x="968" step="0.01" y="475" max="1" width="250" display="epsilon" height="50" min="0" direction="Horizontal" default="0.1" variable="epsilon"></slider>
+    <slider x="968" step="0.005" y="530" max="0.5" width="250" display="time-cost-weight" height="50" min="0" direction="Horizontal" default="0.05" variable="time-cost-weight"></slider>
+    <monitor x="1230" precision="17" y="375" height="60" fontSize="11" width="140" display="CBD congestion level">cbd-congestion-level</monitor>
+    <plot x="1230" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Avg Q-value" y="440" xMin="0.0" height="150" legend="true" xMax="100.0" yMin="0.0" width="250" xAxis="Ticks" display="Q-values: Enter vs Avoid CBD">
+      <setup></setup>
+      <update></update>
+      <pen interval="100.0" mode="0" display="Q(enter)" color="-2674135" legend="true">
+        <setup></setup>
+        <update>if any? turtles and use-learning? [
+  let s current-state-index
+  let avg-q-enter mean [item (q-index s 1) q-table] of turtles
+  plotxy ticks avg-q-enter
+]</update>
+      </pen>
+      <pen interval="100.0" mode="0" display="Q(avoid)" color="-13345367" legend="true">
+        <setup></setup>
+        <update>if any? turtles and use-learning? [
+  let s current-state-index
+  let avg-q-avoid mean [item (q-index s 0) q-table] of turtles
+  plotxy ticks avg-q-avoid
+]</update>
+      </pen>
+    </plot>
   </widgets>
   <info><![CDATA[## WHAT IS IT?
 
