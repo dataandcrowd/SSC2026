@@ -1,0 +1,462 @@
+breed [vehicles vehicle] ; Define a new breed called "vehicles"
+
+vehicles-own [
+  location            ; Current location of the vehicle (origin node on current link)
+  destination         ; Destination of the vehicle (destination node on current link)
+  location-time       ; Time step at which the vehicle was at the loaction
+  destination-time    ; Time step at which the vehicle reached the destination
+  top-speed           ; Maximum speed of the vehicle
+  speed               ; Current speed of the vehicle
+  speed-restriction   ; Local speed restriction
+  progress            ; Total distance of the current progress on a road (total distance from origin to reach the destination)
+  remaining-progress  ; Remaining distance of the current progress on a road (remaining distance from origin to reach the destination)
+  trip                ; the path to ultimate destination is a list of roads
+  active?             ; if vehicle has not finished all its required trips
+  at-activity?        ; whether the vehicle is at a b-destination for an activity or not
+  v-home              ; home of vehicle
+  b-destinations      ; the list of all the building destinations (in order)
+  b-destination       ; the destination building for the vehicle
+  i-destination       ; the index of the destination building in the b-destinations
+  activity            ; the list of the types of the activities signposted using integers (in order)
+  activity-weight     ; the list of the weights given to each activity
+  target-times        ; the target time steps to reach each destination
+  times               ; the time steps at which the vehicle reached its destinations
+  delays              ; the delay periods (comparing times to target-times)
+  expected-periods    ; the expected time steps to be taken to reach the destinations
+  buffer-period       ; the number of time steps the vehicle moves earlier than it should to achieve its target-times
+  periods             ; the list of the periods taken to reach each b-destination
+  tolerance           ; the tolerance of individuals for long trips
+  modify?             ; whether the agent requests an activity modification or not
+  initial-step?       ; whether the vehicle is at the initial trip from home or not
+]
+
+globals [
+  activity-record
+  delay-record
+  threshold-record
+  weight-record
+  period-record
+]
+
+to vehicles-init [number-of-vehicles]
+  set activity-record (list)
+  set delay-record (list)
+  set threshold-record (list)
+  set weight-record (list)
+  set period-record (list)
+  create-vehicles number-of-vehicles [
+    set color red                     ; Set vehicle color
+    set shape "default"               ; Set vehicle shape
+    set size 2
+    set modify? false
+    set initial-step? true
+    set at-activity? true
+;    set intolerance 1 + random-float 9
+;    set tolerance truncated-normal 1 20 mean-tolerance 1
+    set tolerance truncated-normal 0 1 mean-tolerance 0.3
+    set buffer-period random max-buffer-period
+    set v-home one-of buildings with [ b-type = "home" ]     ; Select a random starting point
+    set location v-home
+    move-to location
+    set top-speed ( random-float ( 1.0 - slowest-vehicle ) ) + ( 1.0 * slowest-vehicle ) ; Set random maximum speed
+    set speed top-speed                  ; Set initial speed to maximum speed
+    set periods (list)
+    
+    ;; create the activities (randomly select activities ID with no repititions)
+    let activity-options (list)
+    let a-id 1
+    repeat max-n-activities [
+      set activity-options lput a-id activity-options
+      set a-id a-id + 1
+    ]
+    
+    ;; initialise parameters
+    set b-destinations (list)
+    set activity (list)
+    set activity-weight (list)
+    set target-times (list)
+    set expected-periods (list)
+    set times (list)
+    set delays (list)
+    set active? true
+    set top-speed ( random-float ( 1.0 - slowest-vehicle ) ) + ( 1.0 * slowest-vehicle ) ; Set random maximum speed
+    set speed top-speed                  ; Set initial speed to maximum speed
+    ;; generate the required number of trips
+    let n-trips (random max-n-activities) + 1
+    let temp-building nobody
+    ;; iterate through the trips to allocate parameter values
+    repeat n-trips [
+      set temp-building one-of buildings with [ b-type != "home" and not member? self [b-destinations] of myself ]
+      set b-destinations lput temp-building b-destinations
+      let a one-of activity-options
+      set activity lput a activity
+      set activity-options remove a activity-options
+
+      ;; generate weights
+      let mean-list (list w1 w2 w3 w4)
+      let a-index a - 1
+      let w-mean item a-index mean-list
+      let minimum 0
+      let maximum 1 - sum activity-weight
+      let w -1
+      while [w < 0] [
+;        type "mean = " type w-mean type ", minimum = " type minimum type ", maximum = " type maximum type "\n"
+        set w truncated-normal minimum maximum w-mean w-std
+      ]
+      set activity-weight lput w activity-weight
+    ]
+    ;; add the home as the final trip if required
+    if return-home? = true [
+      set b-destinations lput v-home b-destinations
+      set activity lput 0 activity
+      set activity-weight lput 1 activity-weight
+    ]
+    ;; allocate first bulding in b-destinations list as the next b-destination
+    set b-destination item 0 b-destinations
+    ;; generate the trip to the first b-destination
+    let trip-temp nobody
+    let o [nearest-node] of v-home
+    let d [nearest-node] of b-destination
+    ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+    ;; If no path found, set trip to empty list
+    ifelse is-list? trip-temp [ ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ] ] [ set trip [] ]
+    ;; set the target times and expected periods to reach b-destinations
+    foreach b-destinations [ 
+      b -> 
+      let target-time report-target-time b
+      set target-times lput target-time target-times
+      let expected-period report-expected-period b
+      set expected-periods lput expected-period expected-periods
+    ]
+    
+;    type self type "location = " type location type "\n" 
+  ]
+end
+
+;; set the target times to reach an input building as a destination
+to-report report-target-time [input-destination]
+  ;; find the index of the input destination in b-destinations
+  let i position input-destination b-destinations
+  ;; generate the target time for the trip
+  ;; if this is the first b-destination, move from home
+  let o nobody ;; origin
+  let d [nearest-node] of input-destination ;; destination
+  ifelse i = 0
+  [set o [nearest-node] of v-home] ;; if the b-destination is the first, move from home
+  [set o [nearest-node] of item (i - 1) b-destinations] ;; else, move from the prior destination
+  let trip-temp nobody
+  ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+  let expected-period-temp 0
+  ;; Check if path exists (not false)
+  if is-list? trip-temp [
+    foreach trip-temp [ r -> set expected-period-temp expected-period-temp + [current_period] of r ] ;; find the total expected period
+  ]
+  let target-time 0
+  ;    type self type " | expected-period-temp = " type expected-period-temp type ", trip-temp = " type trip-temp type "\n"
+;  type "expected-period-temp = " type expected-period-temp type "\n"
+  ifelse length target-times = 0
+  [set target-time 0                   + expected-period-temp + random max-activity-duration] ;; if this is the first target time
+  [set target-time (last target-times) + expected-period-temp + random max-activity-duration] ;; if this not the first target time, start the calculation from the last time
+  report int target-time
+end
+
+to-report report-expected-period [input-destination]
+  ;; find the index of the input destination in b-destinations
+  let i position input-destination b-destinations
+  ;; generate the target time for the trip
+  ;; if this is the first b-destination, move from home
+  let o nobody ;; origin
+  let d [nearest-node] of input-destination ;; destination
+  ifelse i = 0
+  [set o [nearest-node] of v-home] ;; if the b-destination is the first, move from home
+  [set o [nearest-node] of item (i - 1) b-destinations] ;; else, move from the prior destination
+  let trip-temp nobody
+  ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+  let expected-period-temp 0
+  ;; Check if path exists (not false)
+  if is-list? trip-temp [
+    foreach trip-temp [ r -> set expected-period-temp expected-period-temp + [current_period] of r ] ;; find the total expected period
+  ]
+  report expected-period-temp
+end
+
+to vehicles-travel
+  ;; generate the trip
+  ;;  assure the trip is not empty
+  ;; find the expected period for the trip
+  ifelse at-activity? [
+    ;; iterate through the b-destinations until you find one with a lengthy trip
+    while [length trip = 0 and i-destination + 1 < length b-destinations] [
+      move-to b-destination
+      set i-destination i-destination + 1
+      set b-destination item i-destination b-destinations
+      let o [nearest-node] of location ;; origin is location because vehicle is at an activity
+      let d [nearest-node] of item i-destination b-destinations
+      let trip-temp nobody
+      ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+      ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ]
+    ]
+    ;; if the vehicle is targeting the last b-destination and the destination is very close
+    if b-destination = last b-destinations and length trip = 0 [
+      move-to b-destination
+      set active? false
+    ]
+    ;; find the expected period of the next trip
+    let expected-period 0
+    foreach trip [ r -> set expected-period expected-period + [current_period] of r]
+    set expected-periods replace-item i-destination expected-periods expected-period
+    ;; find the target time and remove from activity if the trip must start
+    let target-time item i-destination target-times
+    if ticks + buffer-period + expected-period >= target-time [
+      let o-node nobody
+      ifelse i-destination = 0 [set o-node [nearest-node] of v-home]
+      [set o-node [nearest-node] of item (i-destination - 1) b-destinations]
+      if not any? (vehicles-on o-node) with [at-activity? = false] [
+        move-to o-node
+        set-destination o-node
+        set remaining-progress progress   ; Set initial remaining progress
+        set at-activity? false
+        update-colour
+      ]
+    ]
+  ]
+  ; RESUME HERE 12/06/2025 (make sure the vehicles move every tick until they reach the next destination)
+  [
+    ;; set default speed
+    set speed top-speed
+    ;; color based on the number of the b-destination
+    set color 64 - i-destination
+    
+    ; see what vehicles there are ahead
+    let c check-ahead
+    if destination = 0 [type "1\n"]
+    move-at-correct-speed
+    
+    ; If the vehicle reaches end of road, start on the next road of the trip if there is one
+    if distance location >= progress and not empty? trip [
+      if check-ahead [
+        set destination-time ticks ; update the destination time
+        ask road [who] of location [who] of destination [ ; allocate the period to the road link
+          set current_period [destination-time] of myself - [location-time] of myself
+        ]
+        set location-time ticks ; update the new location time
+        let difference distance location - progress ; Calculate remaining distance
+                                                    ; remove current trip link and proceed to the next link (new origin is the old destination)
+        set-destination destination ; the input to set-destination is the new origin
+        set speed difference
+        set c check-ahead  
+        if destination = 0 [type "2\n"]
+        move-at-correct-speed
+      ]
+    ]
+    
+    
+    ;;
+    ; If the vehicle reaches end of road and it is the last road link in the trip
+    if distance location >= progress and empty? trip [
+      set destination-time ticks ; update the destination time
+      ask road [who] of location [who] of destination [ ; allocate the period to the road link
+        set current_period [destination-time] of myself - [location-time] of myself
+      ]
+      set location-time ticks ; update the new location time
+      set location b-destination
+      move-to b-destination
+      ;; update periods and check if there is a need to modify the activity
+      set times lput ticks times
+      let current-period (ticks - sum periods)
+      set periods lput current-period periods
+      let current-activity-weight item i-destination activity-weight
+      ;; update delays and check if there is a need to modify the activity
+      let current-delay ticks - item i-destination target-times
+      set delays lput current-delay delays
+      if current-delay > delay-threshold tolerance current-activity-weight min-delay-threshold [
+        set modify? true
+        set activity-record lput (item i-destination activity) (activity-record)
+        set delay-record lput current-delay delay-record
+        set threshold-record lput (delay-threshold tolerance current-activity-weight min-delay-threshold) (threshold-record)
+        set weight-record lput (item i-destination activity-weight) weight-record
+        set period-record lput current-period period-record
+      ]
+      
+      ;; proceed to the next trip if possible
+      ;; if the vehicle reached a bdestination that is not its last b-destination
+      ifelse b-destination != last b-destinations [
+        set i-destination i-destination + 1
+        set b-destination item i-destination b-destinations
+        set at-activity? true
+        update-colour
+        let o [nearest-node] of location ;; origin is location because vehicle is at an activity
+        let d [nearest-node] of b-destination
+        let trip-temp nobody
+        ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+        ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ]
+      ]
+      [ ;; if the vehicle reached its last b-destination
+        set at-activity? true
+        set active? false
+        move-to b-destination
+        update-colour
+      ]
+      
+    ]
+  ]
+end
+
+to update-colour
+  ifelse at-activity? [set color black]
+  [set color 64 - i-destination]
+end
+
+to vehicles-move
+;  ifelse v-home = location and b-destination != v-home and moving = true [
+  if active? = true [vehicles-travel]
+end
+
+
+to-report check-ahead
+  let ahead nearest-vehicle-traverling-in-same-direction
+  ; if there is a vehicle ahead
+  if ahead != nobody [
+    ; check if it is close
+    if [ speed ] of ahead = 0 [
+      set speed 0 ; Stop if too close
+      set color red ; Indicate stopped
+      report False
+    ]
+    ifelse distance ahead < speed * 2 [  
+      set speed 0 ; Stop if too close
+      set color red ; Indicate stopped
+      report False
+    ][
+      ;; if it is not too close check if it is near
+      ;; if it is set speed to that of the close vehicle
+      if distance ahead < 3 * speed [
+        let ahead-speed [speed] of ahead ; Get the speed of the vehicle ahead
+        if ahead-speed <= speed [
+          set speed ahead-speed  ; Reduce speed to avoid collision
+        ]
+        set color orange ; Indicate reduced speed
+        report True
+      ]
+    ]
+  ] report True
+end
+
+to move-at-correct-speed
+  ; check if the speed of the vehicle is greater than the speed limit for the road
+  if speed > speed-restriction [
+    set speed speed-restriction
+  ]
+  fd speed ; Move forward
+  if destination = 0 [type self type " | b-destinations = " type b-destinations type "\n"]
+  set remaining-progress distance destination ; Update remaining progress distance
+end
+
+
+; Returns the nearest vehicle that is traveling in the same direction as the calling vehicle and 
+;; has a shorter remaining progress to its destination. It does this by filtering other vehicles 
+;; based on having the same destination, a shorter remaining progress, and the same heading. 
+;; It then reports the minimum distance to the nearest vehicle that meets all these conditions. 
+to-report nearest-vehicle-traverling-in-same-direction
+  let local-turtles vehicles-here
+  let d1 min-one-of other local-turtles   with [  
+    at-activity? = false and ; Not at an activity (i.e., on the road)
+    destination = [destination] of myself and  ; Same destination
+    remaining-progress < [remaining-progress] of myself and  ; Shorter remaining progress
+    heading = [heading] of myself ; Same direction
+  ] [distance myself]
+  let neighbor-turtles vehicles-on neighbors
+  let d2  min-one-of other local-turtles   with [  
+    at-activity? = false and ; Not at an activity (i.e., on the road)
+    destination = [destination] of myself and  ; Same destination
+    remaining-progress < [remaining-progress] of myself and  ; Shorter remaining progress
+    heading = [heading] of myself ; Same direction
+  ] [distance myself]
+  ifelse d1 = nobody [
+    if d2 = nobody [
+      report nobody
+    ]
+    report d2
+  ][
+    report d1
+  ]
+end
+
+;; Moves to the next link once called
+;; `new-location` refers to the new origin of the trip,
+;; when called by a vehicle, this `new-location` (new origin) is the vehicle's previous `destination` (old destination)
+to set-destination [new-location]
+  
+  let new-road first trip
+  set trip but-first trip
+  let new-destination 0
+  
+  ; Select the correct end of the road for the new destination
+  ask  new-road [  
+    ifelse end1 = new-location[
+      set new-destination end2
+    ][
+      set new-destination end1
+    ]
+  ]
+  set speed-restriction [speed_limmit] of new-road
+  set location new-location
+  set destination new-destination
+  move-to location                   ; Move to the new location
+  face destination                   ; Face the new destination
+  set progress distance destination
+end
+
+to-report delay-threshold [my-tolerance my-activity-weight my-min-delay-threshold]
+  report (my-min-delay-threshold * my-tolerance) / (my-activity-weight)
+end
+
+to-report truncated-normal [min-value max-value mean-value std]
+  if min-value = 0 and max-value = 0 [report 0]
+  let value nobody
+  let max-loops 1
+  while [((value = nobody) or (value < min-value or value > max-value)) and max-loops <= 1000] [
+    set value random-normal mean-value std
+    set max-loops max-loops + 1
+  ]
+  ifelse max-loops = 1000 [report max-value]
+  [report value]
+end
+
+to-report trip-distance []
+  let dist 0
+  foreach [trip] of self [
+    r -> 
+    set dist dist + [distance_to_destination] of r
+  ]
+  report dist
+end
+
+to-report trip-period []
+  ;; period
+  let p 0
+  foreach [trip] of self [
+    ;; road
+    r ->
+    set p p + ([distance_to_destination] of r / [speed_limmit] of r)
+  ]
+  report p
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

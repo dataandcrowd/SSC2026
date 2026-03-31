@@ -1,0 +1,2692 @@
+id,start,end,maxspeed,streetName,junction
+l_0,n_id326,n_id335,30 km/h,Hepburn Street,None
+l_1,n_id240,n_id243,40 km/h,Ponsonby Road,None
+l_2,n_id727,n_id751,30 km/h,Cook Street,None
+l_3,n_id607,n_id558,50 km/h,Newton Road,None
+l_4,n_id193,n_id172,50 km/h,Williamson Avenue,None
+l_5,n_id288,n_id297,50 km/h,Great North Road,None
+l_6,n_id114,n_id135,50 km/h,Richmond Road,None
+l_7,n_id43,n_id45,50 km/h,Great North Road,None
+l_8,n_id983,n_id978,30 km/h,Mayoral Drive,None
+l_9,n_id291,n_id304,50 km/h,College Hill,None
+l_10,n_id289,n_id291,50 km/h,College Hill,None
+l_11,n_id1510,n_id1503,50 km/h,Saint Stephens Avenue,None
+l_12,n_id1005,n_id1013,30 km/h,Quay Street,None
+l_13,n_id673,n_id684,50 km/h,Upper Queen Street,None
+l_14,n_id1313,n_id1290,50 km/h,Khyber Pass Road,None
+l_15,n_id732,n_id743,50 km/h,Upper Queen Street,None
+l_16,n_id201,n_id203,40 km/h,Ponsonby Road,None
+l_17,n_id1250,n_id1249,30 km/h,Anzac Avenue,None
+l_18,n_id1084,n_id1080,30 km/h,Customs Street E,None
+l_19,n_id304,n_id305,50 km/h,College Hill,None
+l_20,n_id825,n_id799,50 km/h,Mount Eden Road,None
+l_21,n_id244,n_id221,50 km/h,Williamson Avenue,None
+l_22,n_id1161,n_id1142,30 km/h,Customs Street E,None
+l_23,n_id1248,n_id1216,30 km/h,Beach Road,None
+l_24,n_id1217,n_id1213,30 km/h,Grafton Road,None
+l_25,n_id448,n_id482,30 km/h,Karangahape Road,None
+l_26,n_id639,n_id607,50 km/h,Newton Road,None
+l_27,n_id1294,n_id1284,30 km/h,Beach Road,None
+l_28,n_id330,n_id337,50 km/h,New North Road,None
+l_29,n_id740,n_id734,50 km/h,Newton Road,None
+l_30,n_id248,n_id252,40 km/h,Ponsonby Road,None
+l_31,n_id562,n_id561,30 km/h,Wellesley Street W,None
+l_32,n_id721,n_id678,60 km/h,Ian McKinnon Drive,None
+l_33,n_id426,n_id439,30 km/h,Karangahape Road,None
+l_34,n_id51,n_id47,50 km/h,Williamson Avenue,None
+l_35,n_id272,n_id276,50 km/h,Great North Road,None
+l_36,n_id1360,n_id1355,50 km/h,Khyber Pass Road,None
+l_37,n_id1447,n_id1444,50 km/h,Parnell Road,None
+l_38,n_id734,n_id715,50 km/h,Newton Road,None
+l_39,n_id1436,n_id1435,50 km/h,Parnell Road,None
+l_40,n_id261,n_id272,50 km/h,Great North Road,None
+l_41,n_id939,n_id954,30 km/h,Albert Street,None
+l_42,n_id945,n_id951,50 km/h,Grafton Road,None
+l_43,n_id793,n_id798,30 km/h,Upper Queen Street,None
+l_44,n_id1451,n_id1454,50 km/h,Parnell Road,None
+l_45,n_id1521,n_id1524,50 km/h,Gladstone Road,None
+l_46,n_id1308,n_id1294,30 km/h,Beach Road,None
+l_47,n_id1525,n_id1526,50 km/h,Gladstone Road,None
+l_48,n_id1466,n_id1457,50 km/h,Parnell Road,None
+l_49,n_id299,n_id307,50 km/h,Great North Road,None
+l_50,n_id968,n_id971,30 km/h,Symonds Street,None
+l_51,n_id1253,n_id1250,30 km/h,Anzac Avenue,None
+l_52,n_id1270,n_id1266,30 km/h,Beach Road,None
+l_53,n_id27,n_id30,50 km/h,Jervois Road,None
+l_54,n_id555,n_id573,30 km/h,Karangahape Road,None
+l_55,n_id1027,n_id1011,30 km/h,Victoria Street E,None
+l_56,n_id233,n_id238,40 km/h,Ponsonby Road,None
+l_57,n_id297,n_id299,50 km/h,Great North Road,None
+l_58,n_id183,n_id187,50 km/h,Great North Road,None
+l_59,n_id238,n_id240,40 km/h,Ponsonby Road,None
+l_60,n_id284,n_id293,40 km/h,Ponsonby Road,None
+l_61,n_id857,n_id840,50 km/h,Khyber Pass Road,None
+l_62,n_id1489,n_id1492,50 km/h,Gladstone Road,None
+l_63,n_id1482,n_id1489,50 km/h,Gladstone Road,None
+l_64,n_id1371,n_id1363,50 km/h,Carlton Gore Road,None
+l_65,n_id1518,n_id1519,50 km/h,Gladstone Road,None
+l_66,n_id804,n_id823,30 km/h,Karangahape Road,None
+l_67,n_id1473,n_id1475,50 km/h,Parnell Road,None
+l_68,n_id1424,n_id1419,50 km/h,Parnell Road,None
+l_69,n_id1089,n_id1074,50 km/h,Khyber Pass Road,None
+l_70,n_id1519,n_id1521,50 km/h,Gladstone Road,None
+l_71,n_id266,n_id244,50 km/h,Williamson Avenue,None
+l_72,n_id135,n_id164,50 km/h,Richmond Road,None
+l_73,n_id368,n_id373,50 km/h,Great North Road,None
+l_74,n_id520,n_id539,50 km/h,New North Road,None
+l_75,n_id1378,n_id1371,50 km/h,Carlton Gore Road,None
+l_76,n_id1489,n_id1492,50 km/h,Gladstone Road,None
+l_77,n_id1524,n_id1525,50 km/h,Gladstone Road,None
+l_78,n_id1249,n_id1248,30 km/h,Anzac Avenue,None
+l_79,n_id30,n_id33,50 km/h,Jervois Road,None
+l_80,n_id798,n_id802,30 km/h,Upper Queen Street,None
+l_81,n_id334,n_id345,50 km/h,Great North Road,None
+l_82,n_id20,n_id27,50 km/h,Jervois Road,None
+l_83,n_id1018,n_id1020,30 km/h,Queen Street,None
+l_84,n_id669,n_id677,30 km/h,Cook Street,None
+l_85,n_id712,n_id722,50 km/h,Upper Queen Street,None
+l_86,n_id1031,n_id1085,30 km/h,Symonds Street,None
+l_87,n_id1435,n_id1432,50 km/h,Parnell Road,None
+l_88,n_id10,n_id22,50 km/h,Richmond Road,None
+l_89,n_id1475,n_id1478,50 km/h,Parnell Road,None
+l_90,n_id108,n_id87,50 km/h,Williamson Avenue,None
+l_91,n_id1197,n_id1200,50 km/h,Park Road,None
+l_92,n_id285,n_id294,50 km/h,New North Road,None
+l_93,n_id131,n_id151,50 km/h,Great North Road,None
+l_94,n_id684,n_id712,50 km/h,Upper Queen Street,None
+l_95,n_id831,n_id851,30 km/h,Victoria Street W,None
+l_96,n_id156,n_id175,50 km/h,Jervois Road,None
+l_97,n_id1457,n_id1447,50 km/h,Parnell Road,None
+l_98,n_id1470,n_id1461,50 km/h,Ayr Street,None
+l_99,n_id657,n_id669,30 km/h,Cook Street,None
+l_100,n_id682,n_id704,30 km/h,Vincent Street,None
+l_101,n_id658,n_id668,50 km/h,New North Road,None
+l_102,n_id22,n_id28,50 km/h,Richmond Road,None
+l_103,n_id72,n_id73,50 km/h,Richmond Road,None
+l_104,n_id164,n_id173,50 km/h,Richmond Road,None
+l_105,n_id1098,n_id1089,50 km/h,Khyber Pass Road,None
+l_106,n_id1046,n_id1050,50 km/h,Grafton Road,None
+l_107,n_id814,n_id823,30 km/h,Upper Queen Street,None
+l_108,n_id688,n_id682,30 km/h,Pitt Street,None
+l_109,n_id317,n_id323,40 km/h,Ponsonby Road,None
+l_110,n_id337,n_id343,50 km/h,New North Road,None
+l_111,n_id749,n_id740,50 km/h,Newton Road,None
+l_112,n_id162,n_id171,50 km/h,Great North Road,None
+l_113,n_id300,n_id296,40 km/h,Williamson Avenue,None
+l_114,n_id1262,n_id1248,30 km/h,Beach Road,None
+l_115,n_id629,n_id640,50 km/h,New North Road,None
+l_116,n_id679,n_id720,50 km/h,New North Road,None
+l_117,n_id668,n_id679,50 km/h,New North Road,None
+l_118,n_id753,n_id766,50 km/h,New North Road,None
+l_119,n_id271,n_id273,50 km/h,New North Road,None
+l_120,n_id313,n_id325,50 km/h,New North Road,None
+l_121,n_id1426,n_id1424,50 km/h,Parnell Road,None
+l_122,n_id693,n_id688,30 km/h,Pitt Street,None
+l_123,n_id73,n_id75,50 km/h,Richmond Road,None
+l_124,n_id101,n_id103,50 km/h,Curran Street,None
+l_125,n_id1275,n_id1280,30 km/h,Anzac Avenue,None
+l_126,n_id702,n_id699,30 km/h,Pitt Street,None
+l_127,n_id664,n_id637,30 km/h,Hopetoun Street,None
+l_128,n_id682,n_id664,30 km/h,Hopetoun Street,None
+l_129,n_id124,n_id120,50 km/h,Shelly Beach Road,None
+l_130,n_id449,n_id436,30 km/h,Beaumont Street,None
+l_131,n_id286,n_id274,50 km/h,Picton Street,None
+l_132,n_id349,n_id352,30 km/h,Hepburn Street,None
+l_133,n_id1484,n_id1482,50 km/h,The Strand,None
+l_134,n_id1029,n_id1039,30 km/h,Queen Street,None
+l_135,n_id1474,n_id1467,50 km/h,The Strand,None
+l_136,n_id1149,n_id1153,50 km/h,Grafton Road,None
+l_137,n_id490,n_id514,30 km/h,Karangahape Road,None
+l_138,n_id231,n_id233,40 km/h,Ponsonby Road,None
+l_139,n_id1402,n_id1405,50 km/h,Broadway,None
+l_140,n_id1390,n_id1383,50 km/h,The Strand,None
+l_141,n_id826,n_id824,30 km/h,Mayoral Drive,None
+l_142,n_id564,n_id592,50 km/h,New North Road,None
+l_143,n_id1094,n_id1084,30 km/h,Customs Street E,None
+l_144,n_id401,n_id398,30 km/h,Beaumont Street,None
+l_145,n_id747,n_id762,30 km/h,Victoria Street W,None
+l_146,n_id772,n_id775,50 km/h,Symonds Street,None
+l_147,n_id766,n_id772,50 km/h,Symonds Street,None
+l_148,n_id69,n_id72,50 km/h,Richmond Road,None
+l_149,n_id768,n_id766,50 km/h,Mount Eden Road,None
+l_150,n_id1041,n_id1046,50 km/h,Grafton Road,None
+l_151,n_id298,n_id308,50 km/h,New North Road,None
+l_152,n_id844,n_id828,30 km/h,Mayoral Drive,None
+l_153,n_id307,n_id315,50 km/h,Great North Road,None
+l_154,n_id800,n_id755,50 km/h,Alex Evans Street,None
+l_155,n_id1107,n_id1098,50 km/h,Khyber Pass Road,None
+l_156,n_id331,n_id348,40 km/h,Ponsonby Road,None
+l_157,n_id940,n_id923,30 km/h,Mayoral Drive,None
+l_158,n_id960,n_id968,30 km/h,Symonds Street,None
+l_159,n_id1405,n_id1406,50 km/h,Broadway,None
+l_160,n_id1537,n_id1536,50 km/h,Tamaki Drive,None
+l_161,n_id1536,n_id1535,50 km/h,Tamaki Drive,None
+l_162,n_id67,n_id69,50 km/h,Richmond Road,None
+l_163,n_id53,n_id58,50 km/h,Great North Road,None
+l_164,n_id997,n_id1005,30 km/h,Quay Street,None
+l_165,n_id1528,n_id1523,50 km/h,Saint Stephens Avenue,None
+l_166,n_id1312,n_id1310,30 km/h,Beach Road,None
+l_167,n_id1310,n_id1308,30 km/h,Beach Road,None
+l_168,n_id739,n_id760,30 km/h,Wellesley Street W,None
+l_169,n_id1327,n_id1330,30 km/h,Beach Road,None
+l_170,n_id1329,n_id1325,30 km/h,Beach Road,None
+l_171,n_id1323,n_id1327,30 km/h,Beach Road,None
+l_172,n_id828,n_id826,30 km/h,Mayoral Drive,None
+l_173,n_id1257,n_id1264,30 km/h,Symonds Street,None
+l_174,n_id726,n_id739,30 km/h,Wellesley Street W,None
+l_175,n_id263,n_id264,50 km/h,New North Road,None
+l_176,n_id264,n_id271,50 km/h,New North Road,None
+l_177,n_id1264,n_id1258,30 km/h,Waterloo Quadrant,None
+l_178,n_id83,n_id85,50 km/h,Curran Street,None
+l_179,n_id85,n_id89,50 km/h,Curran Street,None
+l_180,n_id566,n_id562,30 km/h,Halsey Street,None
+l_181,n_id914,n_id919,40 km/h,Fanshawe Street,None
+l_182,n_id562,n_id588,30 km/h,Victoria Street W,None
+l_183,n_id954,n_id956,30 km/h,Albert Street,None
+l_184,n_id567,n_id566,30 km/h,Halsey Street,None
+l_185,n_id927,n_id932,30 km/h,Albert Street,None
+l_186,n_id923,n_id902,30 km/h,Mayoral Drive,None
+l_187,n_id1013,n_id1023,30 km/h,Quay Street,None
+l_188,n_id274,n_id270,50 km/h,Picton Street,None
+l_189,n_id205,n_id213,50 km/h,Great North Road,None
+l_190,n_id724,n_id747,30 km/h,Victoria Street W,None
+l_191,n_id259,n_id263,50 km/h,New North Road,None
+l_192,n_id846,n_id861,30 km/h,Karangahape Road,None
+l_193,n_id802,n_id814,30 km/h,Upper Queen Street,None
+l_194,n_id813,n_id831,30 km/h,Victoria Street W,None
+l_195,n_id1478,n_id1477,50 km/h,Parnell Road,None
+l_196,n_id258,n_id261,50 km/h,Great North Road,None
+l_197,n_id1006,n_id1009,30 km/h,Queen Street,None
+l_198,n_id791,n_id813,30 km/h,Victoria Street W,None
+l_199,n_id1119,n_id1109,30 km/h,Customs Street E,None
+l_200,n_id1315,n_id1312,30 km/h,Beach Road,None
+l_201,n_id762,n_id791,30 km/h,Victoria Street W,None
+l_202,n_id405,n_id401,30 km/h,Beaumont Street,None
+l_203,n_id1192,n_id1180,30 km/h,Customs Street E,None
+l_204,n_id287,n_id288,50 km/h,Great North Road,None
+l_205,n_id1034,n_id1027,30 km/h,Victoria Street E,None
+l_206,n_id28,n_id34,50 km/h,Richmond Road,None
+l_207,n_id482,n_id490,30 km/h,Karangahape Road,None
+l_208,n_id604,n_id620,30 km/h,Karangahape Road,None
+l_209,n_id651,n_id639,50 km/h,Newton Road,None
+l_210,n_id221,n_id193,50 km/h,Williamson Avenue,None
+l_211,n_id243,n_id248,40 km/h,Ponsonby Road,None
+l_212,n_id663,n_id708,30 km/h,Karangahape Road,None
+l_213,n_id203,n_id206,40 km/h,Ponsonby Road,None
+l_214,n_id136,n_id124,50 km/h,Shelly Beach Road,None
+l_215,n_id33,n_id36,50 km/h,Jervois Road,None
+l_216,n_id1011,n_id996,30 km/h,Victoria Street E,None
+l_217,n_id87,n_id71,50 km/h,Williamson Avenue,None
+l_218,n_id282,n_id266,50 km/h,Williamson Avenue,None
+l_219,n_id1052,n_id1057,30 km/h,Queen Street,None
+l_220,n_id1216,n_id1192,30 km/h,Beach Road,None
+l_221,n_id932,n_id939,30 km/h,Albert Street,None
+l_222,n_id722,n_id732,50 km/h,Upper Queen Street,None
+l_223,n_id256,n_id255,50 km/h,Bond Street,None
+l_224,n_id1454,n_id1455,50 km/h,Parnell Road,None
+l_225,n_id1024,n_id1012,50 km/h,Khyber Pass Road,None
+l_226,n_id1207,n_id1199,50 km/h,Khyber Pass Road,None
+l_227,n_id1199,n_id1183,50 km/h,Khyber Pass Road,None
+l_228,n_id253,n_id260,40 km/h,Richmond Road,None
+l_229,n_id563,n_id587,30 km/h,Cook Street,None
+l_230,n_id318,n_id321,30 km/h,Hepburn Street,None
+l_231,n_id213,n_id228,50 km/h,Great North Road,None
+l_232,n_id1016,n_id1003,30 km/h,Customs Street W,None
+l_233,n_id1085,n_id1102,30 km/h,Symonds Street,None
+l_234,n_id991,n_id999,30 km/h,Symonds Street,None
+l_235,n_id1455,n_id1458,50 km/h,Parnell Road,None
+l_236,n_id1442,n_id1445,50 km/h,Parnell Road,None
+l_237,n_id792,n_id804,30 km/h,Karangahape Road,None
+l_238,n_id708,n_id725,30 km/h,Karangahape Road,None
+l_239,n_id1459,n_id1462,50 km/h,Parnell Road,None
+l_240,n_id254,n_id259,50 km/h,Sandringham Road,None
+l_241,n_id1534,n_id1528,50 km/h,Saint Stephens Avenue,None
+l_242,n_id1523,n_id1510,50 km/h,Saint Stephens Avenue,None
+l_243,n_id411,n_id402,50 km/h,Newton Road,None
+l_244,n_id1142,n_id1129,30 km/h,Customs Street E,None
+l_245,n_id1384,n_id1378,50 km/h,Carlton Gore Road,None
+l_246,n_id720,n_id736,50 km/h,New North Road,None
+l_247,n_id1136,n_id1134,50 km/h,Wellesley Street E,None
+l_248,n_id1458,n_id1459,50 km/h,Parnell Road,None
+l_249,n_id1461,n_id1458,50 km/h,Ayr Street,None
+l_250,n_id222,n_id257,50 km/h,College Hill,None
+l_251,n_id215,n_id222,50 km/h,College Hill,None
+l_252,n_id1145,n_id1149,50 km/h,Grafton Road,None
+l_253,n_id950,n_id960,30 km/h,Symonds Street,None
+l_254,n_id255,n_id251,50 km/h,Bond Street,None
+l_255,n_id204,n_id195,50 km/h,Bond Street,None
+l_256,n_id138,n_id136,50 km/h,Shelly Beach Road,None
+l_257,n_id294,n_id298,50 km/h,New North Road,None
+l_258,n_id58,n_id60,50 km/h,Great North Road,None
+l_259,n_id111,n_id117,50 km/h,Great North Road,None
+l_260,n_id1204,n_id1201,30 km/h,Grafton Road,None
+l_261,n_id1195,n_id1202,30 km/h,Symonds Street,None
+l_262,n_id259,n_id256,50 km/h,Bond Street,None
+l_263,n_id1389,n_id1392,50 km/h,Broadway,None
+l_264,n_id1187,n_id1195,30 km/h,Symonds Street,None
+l_265,n_id115,n_id116,50 km/h,Jervois Road,None
+l_266,n_id989,n_id957,50 km/h,Khyber Pass Road,None
+l_267,n_id879,n_id869,50 km/h,Khyber Pass Road,None
+l_268,n_id120,n_id116,50 km/h,Shelly Beach Road,None
+l_269,n_id116,n_id118,50 km/h,Jervois Road,None
+l_270,n_id755,n_id735,50 km/h,Ian McKinnon Drive,None
+l_271,n_id683,n_id666,50 km/h,Newton Road,None
+l_272,n_id743,n_id755,50 km/h,Upper Queen Street,None
+l_273,n_id861,n_id866,30 km/h,Karangahape Road,None
+l_274,n_id869,n_id857,50 km/h,Khyber Pass Road,None
+l_275,n_id190,n_id199,50 km/h,College Hill,None
+l_276,n_id666,n_id673,50 km/h,Upper Queen Street,None
+l_277,n_id260,n_id262,40 km/h,Ponsonby Road,None
+l_278,n_id308,n_id313,50 km/h,New North Road,None
+l_279,n_id325,n_id330,50 km/h,New North Road,None
+l_280,n_id773,n_id765,50 km/h,Newton Road,None
+l_281,n_id176,n_id183,50 km/h,Great North Road,None
+l_282,n_id296,n_id292,50 km/h,Williamson Avenue,None
+l_283,n_id394,n_id444,30 km/h,Wellington Street,None
+l_284,n_id18,n_id19,50 km/h,Jervois Road,None
+l_285,n_id15,n_id18,50 km/h,Jervois Road,None
+l_286,n_id19,n_id20,50 km/h,Jervois Road,None
+l_287,n_id173,n_id188,50 km/h,Richmond Road,None
+l_288,n_id82,n_id90,50 km/h,Richmond Road,None
+l_289,n_id90,n_id114,50 km/h,Richmond Road,None
+l_290,n_id648,n_id655,30 km/h,Wellesley Street W,None
+l_291,n_id1406,n_id1411,50 km/h,Broadway,None
+l_292,n_id88,n_id102,50 km/h,Great North Road,None
+l_293,n_id122,n_id108,50 km/h,Williamson Avenue,None
+l_294,n_id1391,n_id1384,50 km/h,Carlton Gore Road,None
+l_295,n_id1334,n_id1332,30 km/h,Beach Road,None
+l_296,n_id1304,n_id1307,30 km/h,Alten Road,None
+l_297,n_id17,n_id21,50 km/h,Great North Road,None
+l_298,n_id283,n_id289,50 km/h,College Hill,None
+l_299,n_id152,n_id149,50 km/h,Shelly Beach Road,None
+l_300,n_id292,n_id290,50 km/h,Williamson Avenue,None
+l_301,n_id290,n_id282,50 km/h,Williamson Avenue,None
+l_302,n_id1502,n_id1500,50 km/h,Ayr Street,None
+l_303,n_id1298,n_id1304,30 km/h,Alten Road,None
+l_304,n_id50,n_id53,50 km/h,Great North Road,None
+l_305,n_id1444,n_id1440,50 km/h,Parnell Road,None
+l_306,n_id1440,n_id1436,50 km/h,Parnell Road,None
+l_307,n_id339,n_id336,30 km/h,Beaumont Street,None
+l_308,n_id872,n_id854,30 km/h,Mayoral Drive,None
+l_309,n_id854,n_id844,30 km/h,Mayoral Drive,None
+l_310,n_id314,n_id286,50 km/h,Picton Street,None
+l_311,n_id321,n_id326,30 km/h,Hepburn Street,None
+l_312,n_id1476,n_id1474,50 km/h,The Strand,None
+l_313,n_id1363,n_id1351,50 km/h,Carlton Gore Road,None
+l_314,n_id674,n_id692,30 km/h,Wellesley Street W,None
+l_315,n_id624,n_id631,30 km/h,Cook Street,None
+l_316,n_id695,n_id694,30 km/h,Pitt Street,None
+l_317,n_id694,n_id693,30 km/h,Pitt Street,None
+l_318,n_id611,n_id606,30 km/h,Hopetoun Street,None
+l_319,n_id707,n_id703,30 km/h,Pitt Street,None
+l_320,n_id708,n_id707,30 km/h,Pitt Street,None
+l_321,n_id703,n_id702,30 km/h,Pitt Street,None
+l_322,n_id1427,n_id1433,50 km/h,Parnell Road,None
+l_323,n_id1433,n_id1438,50 km/h,Parnell Road,None
+l_324,n_id354,n_id358,40 km/h,Ponsonby Road,None
+l_325,n_id1438,n_id1442,50 km/h,Parnell Road,None
+l_326,n_id936,n_id938,50 km/h,Grafton Road,None
+l_327,n_id938,n_id941,50 km/h,Grafton Road,None
+l_328,n_id999,n_id1004,30 km/h,Symonds Street,None
+l_329,n_id1004,n_id1008,30 km/h,Symonds Street,None
+l_330,n_id1355,n_id1344,50 km/h,Khyber Pass Road,None
+l_331,n_id1208,n_id1206,30 km/h,Grafton Road,None
+l_332,n_id978,n_id974,30 km/h,Mayoral Drive,None
+l_333,n_id974,n_id962,30 km/h,Mayoral Drive,None
+l_334,n_id1494,n_id1493,50 km/h,Saint Stephens Avenue,None
+l_335,n_id71,n_id61,50 km/h,Williamson Avenue,None
+l_336,n_id61,n_id59,50 km/h,Williamson Avenue,None
+l_337,n_id93,n_id95,50 km/h,Curran Street,None
+l_338,n_id1469,n_id1466,50 km/h,Parnell Road,None
+l_339,n_id958,n_id961,50 km/h,Grafton Road,None
+l_340,n_id769,n_id774,30 km/h,Upper Queen Street,None
+l_341,n_id521,n_id533,30 km/h,Karangahape Road,None
+l_342,n_id533,n_id543,30 km/h,Karangahape Road,None
+l_343,n_id541,n_id530,30 km/h,Hopetoun Street,None
+l_344,n_id251,n_id249,50 km/h,Bond Street,None
+l_345,n_id219,n_id212,50 km/h,Bond Street,None
+l_346,n_id60,n_id68,50 km/h,Great North Road,None
+l_347,n_id148,n_id122,50 km/h,Williamson Avenue,None
+l_348,n_id172,n_id159,50 km/h,Williamson Avenue,None
+l_349,n_id188,n_id218,50 km/h,Richmond Road,None
+l_350,n_id34,n_id37,50 km/h,Richmond Road,None
+l_351,n_id6,n_id10,50 km/h,Richmond Road,None
+l_352,n_id947,n_id940,30 km/h,Mayoral Drive,None
+l_353,n_id962,n_id947,30 km/h,Mayoral Drive,None
+l_354,n_id1206,n_id1205,30 km/h,Grafton Road,None
+l_355,n_id1205,n_id1204,30 km/h,Grafton Road,None
+l_356,n_id787,n_id806,30 km/h,Vincent Street,None
+l_357,n_id824,n_id806,30 km/h,Mayoral Drive,None
+l_358,n_id806,n_id848,30 km/h,Mayoral Drive,None
+l_359,n_id848,n_id862,30 km/h,Mayoral Drive,None
+l_360,n_id189,n_id191,40 km/h,Ponsonby Road,None
+l_361,n_id1441,n_id1437,50 km/h,The Strand,None
+l_362,n_id185,n_id189,40 km/h,Ponsonby Road,None
+l_363,n_id1092,n_id1079,30 km/h,Bowen Avenue,None
+l_364,n_id1431,n_id1428,50 km/h,The Strand,None
+l_365,n_id1284,n_id1279,30 km/h,Beach Road,None
+l_366,n_id1279,n_id1274,30 km/h,Beach Road,None
+l_367,n_id1049,n_id1071,30 km/h,Quay Street,None
+l_368,n_id458,n_id449,30 km/h,Beaumont Street,None
+l_369,n_id465,n_id458,30 km/h,Beaumont Street,None
+l_370,n_id474,n_id465,30 km/h,Beaumont Street,None
+l_371,n_id1252,n_id1257,30 km/h,Symonds Street,None
+l_372,n_id1058,n_id1050,50 km/h,Park Road,None
+l_373,n_id1320,n_id1319,30 km/h,Beach Road,None
+l_374,n_id1526,n_id1527,50 km/h,Gladstone Road,None
+l_375,n_id77,n_id82,50 km/h,Richmond Road,None
+l_376,n_id1374,n_id1373,50 km/h,Parnell Rise,None
+l_377,n_id1517,n_id1518,50 km/h,Gladstone Road,None
+l_378,n_id1399,n_id1385,50 km/h,Parnell Rise,None
+l_379,n_id66,n_id76,50 km/h,Jervois Road,None
+l_380,n_id1120,n_id1096,50 km/h,Park Road,None
+l_381,n_id1429,n_id1426,50 km/h,Parnell Road,None
+l_382,n_id1168,n_id1148,30 km/h,Bowen Avenue,None
+l_383,n_id1122,n_id1107,50 km/h,Khyber Pass Road,None
+l_384,n_id894,n_id895,30 km/h,Queen Street,None
+l_385,n_id1218,n_id1198,50 km/h,Park Road,None
+l_386,n_id1200,n_id1215,50 km/h,Park Road,None
+l_387,n_id1398,n_id1404,50 km/h,Davis Crescent,None
+l_388,n_id1391,n_id1398,50 km/h,Davis Crescent,None
+l_389,n_id971,n_id976,30 km/h,Symonds Street,None
+l_390,n_id1095,n_id1112,50 km/h,Grafton Road,None
+l_391,n_id1242,n_id1234,30 km/h,Waterloo Quadrant,None
+l_392,n_id535,n_id508,30 km/h,Jellicoe Street,None
+l_393,n_id1078,n_id1090,50 km/h,Grafton Road,None
+l_394,n_id393,n_id406,30 km/h,Victoria Street W,None
+l_395,n_id1280,n_id1297,30 km/h,Anzac Avenue,None
+l_396,n_id1276,n_id1264,30 km/h,Alten Road,None
+l_397,n_id1133,n_id1138,50 km/h,Grafton Road,None
+l_398,n_id1287,n_id1289,30 km/h,Alten Road,None
+l_399,n_id1258,n_id1242,30 km/h,Waterloo Quadrant,None
+l_400,n_id352,n_id360,30 km/h,Hepburn Street,None
+l_401,n_id1174,n_id1168,30 km/h,Bowen Avenue,None
+l_402,n_id1112,n_id1115,50 km/h,Grafton Road,None
+l_403,n_id1394,n_id1395,50 km/h,Broadway,None
+l_404,n_id1538,n_id1537,50 km/h,Tamaki Drive,None
+l_405,n_id891,n_id894,30 km/h,Queen Street,None
+l_406,n_id54,n_id64,50 km/h,Richmond Road,None
+l_407,n_id49,n_id54,50 km/h,Richmond Road,None
+l_408,n_id64,n_id67,50 km/h,Richmond Road,None
+l_409,n_id312,n_id317,40 km/h,Ponsonby Road,None
+l_410,n_id1184,n_id1174,30 km/h,Waterloo Quadrant,None
+l_411,n_id75,n_id77,50 km/h,Richmond Road,None
+l_412,n_id360,n_id367,30 km/h,Wellington Street,None
+l_413,n_id1322,n_id1320,30 km/h,Beach Road,None
+l_414,n_id89,n_id91,50 km/h,Curran Street,None
+l_415,n_id508,n_id504,30 km/h,Beaumont Street,None
+l_416,n_id372,n_id378,30 km/h,Victoria Street W,None
+l_417,n_id374,n_id371,30 km/h,Beaumont Street,None
+l_418,n_id356,n_id350,30 km/h,Beaumont Street,None
+l_419,n_id369,n_id372,30 km/h,Victoria Street W,None
+l_420,n_id1281,n_id1276,30 km/h,Alten Road,None
+l_421,n_id1289,n_id1281,30 km/h,Alten Road,None
+l_422,n_id1148,n_id1141,30 km/h,Bowen Avenue,None
+l_423,n_id1325,n_id1322,30 km/h,Beach Road,None
+l_424,n_id1022,n_id1031,30 km/h,Symonds Street,None
+l_425,n_id2,n_id3,50 km/h,Jervois Road,None
+l_426,n_id1492,n_id1501,50 km/h,Gladstone Road,None
+l_427,n_id1157,n_id1171,50 km/h,Mountain Road,None
+l_428,n_id930,n_id931,30 km/h,Symonds Street,None
+l_429,n_id1131,n_id1120,50 km/h,Park Road,None
+l_430,n_id1156,n_id1143,50 km/h,Park Road,None
+l_431,n_id1143,n_id1131,50 km/h,Park Road,None
+l_432,n_id226,n_id229,50 km/h,Richmond Road,None
+l_433,n_id1015,n_id1022,30 km/h,Symonds Street,None
+l_434,n_id1183,n_id1146,50 km/h,Khyber Pass Road,None
+l_435,n_id1178,n_id1179,50 km/h,Mountain Road,None
+l_436,n_id0,n_id1,50 km/h,Jervois Road,None
+l_437,n_id1,n_id2,50 km/h,Jervois Road,None
+l_438,n_id1215,n_id1224,50 km/h,Park Road,None
+l_439,n_id1127,n_id1122,50 km/h,Khyber Pass Road,None
+l_440,n_id24,n_id26,50 km/h,Great North Road,None
+l_441,n_id1501,n_id1508,50 km/h,Gladstone Road,None
+l_442,n_id1508,n_id1512,50 km/h,Gladstone Road,None
+l_443,n_id367,n_id388,30 km/h,Wellington Street,None
+l_444,n_id1515,n_id1513,50 km/h,Gladstone Road,None
+l_445,n_id1411,n_id1414,50 km/h,Broadway,None
+l_446,n_id21,n_id24,50 km/h,Great North Road,None
+l_447,n_id268,n_id283,50 km/h,College Hill,None
+l_448,n_id257,n_id268,50 km/h,College Hill,None
+l_449,n_id1293,n_id1287,30 km/h,Alten Road,None
+l_450,n_id1181,n_id1176,50 km/h,Park Road,None
+l_451,n_id1176,n_id1156,50 km/h,Park Road,None
+l_452,n_id1198,n_id1190,50 km/h,Park Road,None
+l_453,n_id1190,n_id1188,50 km/h,Park Road,None
+l_454,n_id590,n_id599,30 km/h,Halsey Street,None
+l_455,n_id1507,n_id1505,50 km/h,Ayr Street,None
+l_456,n_id1505,n_id1502,50 km/h,Ayr Street,None
+l_457,n_id4,n_id5,50 km/h,Richmond Road,None
+l_458,n_id373,n_id376,50 km/h,Karangahape Road,None
+l_459,n_id1211,n_id1208,30 km/h,Grafton Road,None
+l_460,n_id91,n_id93,50 km/h,Curran Street,None
+l_461,n_id387,n_id393,30 km/h,Victoria Street W,None
+l_462,n_id386,n_id374,30 km/h,Beaumont Street,None
+l_463,n_id398,n_id386,30 km/h,Beaumont Street,None
+l_464,n_id247,n_id245,50 km/h,Bond Street,None
+l_465,n_id245,n_id241,50 km/h,Bond Street,None
+l_466,n_id223,n_id219,50 km/h,Bond Street,None
+l_467,n_id31,n_id32,50 km/h,Great North Road,None
+l_468,n_id26,n_id31,50 km/h,Great North Road,None
+l_469,n_id159,n_id148,50 km/h,Williamson Avenue,None
+l_470,n_id309,n_id312,40 km/h,Ponsonby Road,None
+l_471,n_id218,n_id226,50 km/h,Richmond Road,None
+l_472,n_id895,n_id898,30 km/h,Queen Street,None
+l_473,n_id37,n_id49,50 km/h,Richmond Road,None
+l_474,n_id5,n_id6,50 km/h,Richmond Road,None
+l_475,n_id1539,n_id1538,50 km/h,Tamaki Drive,None
+l_476,n_id579,n_id572,30 km/h,Halsey Street,None
+l_477,n_id417,n_id426,30 km/h,Karangahape Road,None
+l_478,n_id328,n_id334,50 km/h,Great North Road,None
+l_479,n_id322,n_id328,50 km/h,Great North Road,None
+l_480,n_id1293,n_id1298,30 km/h,Alten Road,None
+l_481,n_id514,n_id521,30 km/h,Karangahape Road,None
+l_482,n_id606,n_id595,30 km/h,Hopetoun Street,None
+l_483,n_id1137,n_id1127,50 km/h,Khyber Pass Road,None
+l_484,n_id1155,n_id1157,50 km/h,Mountain Road,None
+l_485,n_id1152,n_id1155,50 km/h,Mountain Road,None
+l_486,n_id1074,n_id1053,50 km/h,Khyber Pass Road,None
+l_487,n_id1448,n_id1451,50 km/h,Parnell Road,None
+l_488,n_id361,n_id368,50 km/h,Great North Road,None
+l_489,n_id48,n_id50,50 km/h,Great North Road,None
+l_490,n_id47,n_id48,50 km/h,Great North Road,None
+l_491,n_id32,n_id35,50 km/h,Great North Road,None
+l_492,n_id1185,n_id1189,50 km/h,Park Road,None
+l_493,n_id1183,n_id1185,50 km/h,Park Road,None
+l_494,n_id12,n_id15,50 km/h,Jervois Road,None
+l_495,n_id8,n_id12,50 km/h,Jervois Road,None
+l_496,n_id46,n_id52,50 km/h,Jervois Road,None
+l_497,n_id42,n_id46,50 km/h,Jervois Road,None
+l_498,n_id98,n_id104,50 km/h,Jervois Road,None
+l_499,n_id180,n_id190,50 km/h,Jervois Road,None
+l_500,n_id1002,n_id1006,30 km/h,Queen Street,None
+l_501,n_id996,n_id1002,30 km/h,Queen Street,None
+l_502,n_id461,n_id489,30 km/h,Victoria Street W,None
+l_503,n_id505,n_id518,30 km/h,Victoria Street W,None
+l_504,n_id1540,n_id1539,50 km/h,Tamaki Drive,None
+l_505,n_id881,n_id888,30 km/h,Mayoral Drive,None
+l_506,n_id416,n_id411,50 km/h,Newton Road,None
+l_507,n_id425,n_id416,50 km/h,Newton Road,None
+l_508,n_id725,n_id750,30 km/h,Karangahape Road,None
+l_509,n_id761,n_id792,30 km/h,Karangahape Road,None
+l_510,n_id750,n_id761,30 km/h,Karangahape Road,None
+l_511,n_id1520,n_id1507,50 km/h,Ayr Street,None
+l_512,n_id1522,n_id1520,50 km/h,Ayr Street,None
+l_513,n_id1100,n_id1092,30 km/h,Bowen Avenue,None
+l_514,n_id1141,n_id1100,30 km/h,Bowen Avenue,None
+l_515,n_id718,n_id727,30 km/h,Cook Street,None
+l_516,n_id627,n_id633,30 km/h,Halsey Street,None
+l_517,n_id1009,n_id1018,30 km/h,Queen Street,None
+l_518,n_id1425,n_id1427,50 km/h,Broadway,None
+l_519,n_id1421,n_id1425,50 km/h,Broadway,None
+l_520,n_id1051,n_id1060,50 km/h,Grafton Road,None
+l_521,n_id1050,n_id1051,50 km/h,Grafton Road,None
+l_522,n_id277,n_id284,40 km/h,Ponsonby Road,None
+l_523,n_id269,n_id277,40 km/h,Ponsonby Road,None
+l_524,n_id1271,n_id1270,30 km/h,Beach Road,None
+l_525,n_id1274,n_id1271,30 km/h,Beach Road,None
+l_526,n_id1272,n_id1275,30 km/h,Anzac Avenue,None
+l_527,n_id1264,n_id1272,30 km/h,Anzac Avenue,None
+l_528,n_id704,n_id713,30 km/h,Vincent Street,None
+l_529,n_id1224,n_id1223,50 km/h,Park Road,None
+l_530,n_id1066,n_id1058,50 km/h,Park Road,None
+l_531,n_id994,n_id1003,30 km/h,Albert Street,None
+l_532,n_id1025,n_id1029,30 km/h,Queen Street,None
+l_533,n_id1020,n_id1025,30 km/h,Queen Street,None
+l_534,n_id1397,n_id1402,50 km/h,Broadway,None
+l_535,n_id834,n_id837,30 km/h,Queen Street,None
+l_536,n_id901,n_id902,30 km/h,Queen Street,None
+l_537,n_id898,n_id901,30 km/h,Queen Street,None
+l_538,n_id985,n_id988,30 km/h,Albert Street,None
+l_539,n_id1393,n_id1394,50 km/h,Broadway,None
+l_540,n_id1392,n_id1393,50 km/h,Broadway,None
+l_541,n_id992,n_id994,30 km/h,Albert Street,None
+l_542,n_id988,n_id992,30 km/h,Albert Street,None
+l_543,n_id212,n_id208,50 km/h,Bond Street,None
+l_544,n_id319,n_id322,50 km/h,Great North Road,None
+l_545,n_id280,n_id287,50 km/h,Great North Road,None
+l_546,n_id276,n_id280,50 km/h,Great North Road,None
+l_547,n_id174,n_id176,50 km/h,Great North Road,None
+l_548,n_id171,n_id174,50 km/h,Great North Road,None
+l_549,n_id234,n_id236,50 km/h,Great North Road,None
+l_550,n_id228,n_id234,50 km/h,Great North Road,None
+l_551,n_id157,n_id162,50 km/h,Great North Road,None
+l_552,n_id151,n_id157,50 km/h,Great North Road,None
+l_553,n_id200,n_id205,50 km/h,Great North Road,None
+l_554,n_id192,n_id196,50 km/h,Great North Road,None
+l_555,n_id187,n_id192,50 km/h,Great North Road,None
+l_556,n_id119,n_id121,50 km/h,Great North Road,None
+l_557,n_id117,n_id119,50 km/h,Great North Road,None
+l_558,n_id16,n_id17,50 km/h,Great North Road,None
+l_559,n_id207,n_id204,50 km/h,Bond Street,None
+l_560,n_id196,n_id200,50 km/h,Great North Road,None
+l_561,n_id208,n_id207,50 km/h,Bond Street,None
+l_562,n_id315,n_id319,50 km/h,Great North Road,None
+l_563,n_id700,n_id683,50 km/h,Newton Road,None
+l_564,n_id715,n_id700,50 km/h,Newton Road,None
+l_565,n_id402,n_id399,50 km/h,Newton Road,None
+l_566,n_id1415,n_id1412,50 km/h,Parnell Road,None
+l_567,n_id1419,n_id1415,50 km/h,Parnell Road,None
+l_568,n_id311,n_id316,50 km/h,College Hill,None
+l_569,n_id305,n_id311,50 km/h,College Hill,None
+l_570,n_id546,n_id553,50 km/h,New North Road,None
+l_571,n_id539,n_id546,50 km/h,New North Road,None
+l_572,n_id645,n_id658,50 km/h,New North Road,None
+l_573,n_id640,n_id645,50 km/h,New North Road,None
+l_574,n_id273,n_id275,50 km/h,New North Road,None
+l_575,n_id342,n_id349,30 km/h,Hepburn Street,None
+l_576,n_id1043,n_id1034,30 km/h,Victoria Street E,None
+l_577,n_id439,n_id448,30 km/h,Karangahape Road,None
+l_578,n_id745,n_id753,50 km/h,New North Road,None
+l_579,n_id736,n_id745,50 km/h,New North Road,None
+l_580,n_id666,n_id660,50 km/h,Newton Road,None
+l_581,n_id701,n_id718,30 km/h,Cook Street,None
+l_582,n_id677,n_id701,30 km/h,Cook Street,None
+l_583,n_id1503,n_id1498,50 km/h,Saint Stephens Avenue,None
+l_584,n_id614,n_id629,50 km/h,New North Road,None
+l_585,n_id1430,n_id1429,50 km/h,Parnell Road,None
+l_586,n_id1432,n_id1430,50 km/h,Parnell Road,None
+l_587,n_id1126,n_id1133,50 km/h,Grafton Road,None
+l_588,n_id302,n_id303,40 km/h,Ponsonby Road,None
+l_589,n_id1090,n_id1095,50 km/h,Grafton Road,None
+l_590,n_id1446,n_id1448,50 km/h,Parnell Road,None
+l_591,n_id1445,n_id1446,50 km/h,Parnell Road,None
+l_592,n_id1144,n_id1145,50 km/h,Grafton Road,None
+l_593,n_id1138,n_id1144,50 km/h,Grafton Road,None
+l_594,n_id1221,n_id1218,50 km/h,Park Road,None
+l_595,n_id1223,n_id1221,50 km/h,Park Road,None
+l_596,n_id397,n_id391,50 km/h,Newton Road,None
+l_597,n_id399,n_id397,50 km/h,Newton Road,None
+l_598,n_id265,n_id269,40 km/h,Ponsonby Road,None
+l_599,n_id262,n_id265,40 km/h,Ponsonby Road,None
+l_600,n_id553,n_id564,50 km/h,New North Road,None
+l_601,n_id660,n_id651,50 km/h,Newton Road,None
+l_602,n_id1495,n_id1494,50 km/h,Saint Stephens Avenue,None
+l_603,n_id1498,n_id1495,50 km/h,Saint Stephens Avenue,None
+l_604,n_id603,n_id614,50 km/h,New North Road,None
+l_605,n_id592,n_id603,50 km/h,New North Road,None
+l_606,n_id300,n_id302,40 km/h,Ponsonby Road,None
+l_607,n_id278,n_id279,50 km/h,New North Road,None
+l_608,n_id275,n_id278,50 km/h,New North Road,None
+l_609,n_id1226,n_id1219,30 km/h,Waterloo Quadrant,None
+l_610,n_id1396,n_id1390,50 km/h,The Strand,None
+l_611,n_id1401,n_id1396,50 km/h,The Strand,None
+l_612,n_id59,n_id57,50 km/h,Williamson Avenue,None
+l_613,n_id39,n_id42,50 km/h,Jervois Road,None
+l_614,n_id36,n_id39,50 km/h,Jervois Road,None
+l_615,n_id498,n_id487,30 km/h,Beaumont Street,None
+l_616,n_id1514,n_id1515,50 km/h,Gladstone Road,None
+l_617,n_id1512,n_id1514,50 km/h,Gladstone Road,None
+l_618,n_id153,n_id156,50 km/h,Jervois Road,None
+l_619,n_id55,n_id51,50 km/h,Williamson Avenue,None
+l_620,n_id57,n_id55,50 km/h,Williamson Avenue,None
+l_621,n_id487,n_id480,30 km/h,Beaumont Street,None
+l_622,n_id504,n_id501,30 km/h,Beaumont Street,None
+l_623,n_id147,n_id153,50 km/h,Jervois Road,None
+l_624,n_id1479,n_id1476,50 km/h,The Strand,None
+l_625,n_id480,n_id474,30 km/h,Beaumont Street,None
+l_626,n_id499,n_id498,30 km/h,Beaumont Street,None
+l_627,n_id501,n_id499,30 km/h,Beaumont Street,None
+l_628,n_id160,n_id152,50 km/h,Shelly Beach Road,None
+l_629,n_id168,n_id160,50 km/h,Shelly Beach Road,None
+l_630,n_id1481,n_id1479,50 km/h,The Strand,None
+l_631,n_id1482,n_id1481,50 km/h,The Strand,None
+l_632,n_id1449,n_id1443,50 km/h,The Strand,None
+l_633,n_id99,n_id100,50 km/h,Curran Street,None
+l_634,n_id1245,n_id1252,30 km/h,Symonds Street,None
+l_635,n_id1209,n_id1203,30 km/h,Waterloo Quadrant,None
+l_636,n_id1219,n_id1209,30 km/h,Waterloo Quadrant,None
+l_637,n_id1295,n_id1283,30 km/h,Anzac Avenue,None
+l_638,n_id1265,n_id1262,30 km/h,Beach Road,None
+l_639,n_id1266,n_id1265,30 km/h,Beach Road,None
+l_640,n_id1434,n_id1431,50 km/h,The Strand,None
+l_641,n_id1437,n_id1434,50 km/h,The Strand,None
+l_642,n_id1159,n_id1163,50 km/h,Grafton Road,None
+l_643,n_id1153,n_id1159,50 km/h,Grafton Road,None
+l_644,n_id1169,n_id1161,30 km/h,Customs Street E,None
+l_645,n_id1180,n_id1169,30 km/h,Customs Street E,None
+l_646,n_id969,n_id972,30 km/h,Albert Street,None
+l_647,n_id956,n_id969,30 km/h,Albert Street,None
+l_648,n_id981,n_id985,30 km/h,Albert Street,None
+l_649,n_id972,n_id981,30 km/h,Albert Street,None
+l_650,n_id1182,n_id1183,50 km/h,Mountain Road,None
+l_651,n_id1179,n_id1182,50 km/h,Mountain Road,None
+l_652,n_id199,n_id202,50 km/h,College Hill,None
+l_653,n_id194,n_id197,40 km/h,Ponsonby Road,None
+l_654,n_id191,n_id194,40 km/h,Ponsonby Road,None
+l_655,n_id270,n_id260,40 km/h,Picton Street,None
+l_656,n_id1177,n_id1178,50 km/h,Mountain Road,None
+l_657,n_id1171,n_id1177,50 km/h,Mountain Road,None
+l_658,n_id1134,n_id1128,50 km/h,Wellesley Street E,None
+l_659,n_id1140,n_id1137,50 km/h,Khyber Pass Road,None
+l_660,n_id1196,n_id1197,50 km/h,Park Road,None
+l_661,n_id776,n_id768,50 km/h,Mount Eden Road,None
+l_662,n_id903,n_id920,30 km/h,Karangahape Road,None
+l_663,n_id1490,n_id1488,50 km/h,The Strand,None
+l_664,n_id909,n_id920,30 km/h,Symonds Street,None
+l_665,n_id882,n_id889,50 km/h,Symonds Street,None
+l_666,n_id889,n_id909,50 km/h,Symonds Street,None
+l_667,n_id376,n_id380,30 km/h,Karangahape Road,None
+l_668,n_id1300,n_id1291,50 km/h,Carlton Gore Road,None
+l_669,n_id1291,n_id1278,50 km/h,Carlton Gore Road,None
+l_670,n_id1486,n_id1484,50 km/h,The Strand,None
+l_671,n_id1486,n_id1488,50 km/h,The Strand,None
+l_672,n_id1300,n_id1305,50 km/h,Carlton Gore Road,None
+l_673,n_id1382,n_id1377,50 km/h,Khyber Pass Road,None
+l_674,n_id1188,n_id1181,50 km/h,Park Road,None
+l_675,n_id876,n_id903,30 km/h,Karangahape Road,None
+l_676,n_id1008,n_id1015,30 km/h,Symonds Street,None
+l_677,n_id1541,n_id1540,50 km/h,Tamaki Drive,None
+l_678,n_id100,n_id101,50 km/h,Curran Street,None
+l_679,n_id656,n_id675,30 km/h,Halsey Street,None
+l_680,n_id675,n_id554,30 km/h,Jellicoe Street,None
+l_681,n_id554,n_id535,30 km/h,Jellicoe Street,None
+l_682,n_id241,n_id237,50 km/h,Bond Street,None
+l_683,n_id225,n_id223,50 km/h,Bond Street,None
+l_684,n_id870,n_id881,30 km/h,Mayoral Drive,None
+l_685,n_id862,n_id870,30 km/h,Mayoral Drive,None
+l_686,n_id1202,n_id1228,30 km/h,Symonds Street,None
+l_687,n_id1236,n_id1245,30 km/h,Symonds Street,None
+l_688,n_id1228,n_id1236,30 km/h,Symonds Street,None
+l_689,n_id1283,n_id1267,30 km/h,Anzac Avenue,None
+l_690,n_id44,n_id47,50 km/h,Great North Road,None
+l_691,n_id45,n_id44,50 km/h,Great North Road,None
+l_692,n_id44,n_id43,50 km/h,Great North Road,None
+l_693,n_id40,n_id43,50 km/h,Great North Road,None
+l_694,n_id1316,n_id1305,50 km/h,Carlton Gore Road,None
+l_695,n_id1330,n_id1331,30 km/h,Beach Road,None
+l_696,n_id644,n_id648,30 km/h,Wellesley Street W,None
+l_697,n_id175,n_id177,50 km/h,Jervois Road,None
+l_698,n_id209,n_id210,40 km/h,Ponsonby Road,None
+l_699,n_id56,n_id62,50 km/h,Jervois Road,None
+l_700,n_id775,n_id778,50 km/h,Symonds Street,None
+l_701,n_id572,n_id570,30 km/h,Halsey Street,None
+l_702,n_id918,n_id921,50 km/h,Nugent Street,None
+l_703,n_id713,n_id731,30 km/h,Vincent Street,None
+l_704,n_id303,n_id309,40 km/h,Ponsonby Road,None
+l_705,n_id443,n_id461,30 km/h,Victoria Street W,None
+l_706,n_id1333,n_id1334,30 km/h,Beach Road,None
+l_707,n_id74,n_id88,50 km/h,Great North Road,None
+l_708,n_id755,n_id758,50 km/h,Upper Queen Street,None
+l_709,n_id897,n_id879,50 km/h,Khyber Pass Road,None
+l_710,n_id643,n_id656,30 km/h,Halsey Street,None
+l_711,n_id635,n_id643,30 km/h,Halsey Street,None
+l_712,n_id589,n_id604,30 km/h,Karangahape Road,None
+l_713,n_id1129,n_id1124,30 km/h,Customs Street E,None
+l_714,n_id106,n_id111,50 km/h,Great North Road,None
+l_715,n_id1114,n_id1113,30 km/h,Wellesley Street E,None
+l_716,n_id1003,n_id995,30 km/h,Customs Street W,None
+l_717,n_id911,n_id918,50 km/h,Nugent Street,None
+l_718,n_id574,n_id541,30 km/h,Hopetoun Street,None
+l_719,n_id1146,n_id1140,50 km/h,Khyber Pass Road,None
+l_720,n_id1529,n_id1530,50 km/h,Gladstone Road,None
+l_721,n_id778,n_id785,50 km/h,Symonds Street,None
+l_722,n_id586,n_id590,30 km/h,Halsey Street,None
+l_723,n_id731,n_id787,30 km/h,Vincent Street,None
+l_724,n_id832,n_id846,30 km/h,Karangahape Road,None
+l_725,n_id1053,n_id1036,50 km/h,Khyber Pass Road,None
+l_726,n_id109,n_id113,50 km/h,Jervois Road,None
+l_727,n_id570,n_id567,30 km/h,Halsey Street,None
+l_728,n_id86,n_id98,50 km/h,Jervois Road,None
+l_729,n_id696,n_id695,30 km/h,Pitt Street,None
+l_730,n_id924,n_id927,30 km/h,Albert Street,None
+l_731,n_id103,n_id104,50 km/h,Curran Street,None
+l_732,n_id1191,n_id1196,50 km/h,Park Road,None
+l_733,n_id155,n_id158,50 km/h,Shelly Beach Road,None
+l_734,n_id323,n_id331,40 km/h,Ponsonby Road,None
+l_735,n_id925,n_id930,30 km/h,Symonds Street,None
+l_736,n_id1130,n_id1160,30 km/h,Symonds Street,None
+l_737,n_id1407,n_id1401,50 km/h,The Strand,None
+l_738,n_id595,n_id574,30 km/h,Hopetoun Street,None
+l_739,n_id1233,n_id1244,30 km/h,Quay Street,None
+l_740,n_id237,n_id232,50 km/h,Bond Street,None
+l_741,n_id1032,n_id1041,50 km/h,Grafton Road,None
+l_742,n_id1036,n_id1024,50 km/h,Khyber Pass Road,None
+l_743,n_id410,n_id405,30 km/h,Beaumont Street,None
+l_744,n_id550,n_id540,50 km/h,Newton Road,None
+l_745,n_id1379,n_id1374,50 km/h,Parnell Rise,None
+l_746,n_id1231,n_id1226,30 km/h,Waterloo Quadrant,None
+l_747,n_id1527,n_id1529,50 km/h,Gladstone Road,None
+l_748,n_id216,n_id217,40 km/h,Ponsonby Road,None
+l_749,n_id232,n_id225,50 km/h,Bond Street,None
+l_750,n_id1123,n_id1126,50 km/h,Grafton Road,None
+l_751,n_id1364,n_id1360,50 km/h,Khyber Pass Road,None
+l_752,n_id599,n_id602,30 km/h,Halsey Street,None
+l_753,n_id1443,n_id1441,50 km/h,The Strand,None
+l_754,n_id502,n_id494,60 km/h,Ian McKinnon Drive,None
+l_755,n_id764,n_id769,30 km/h,Upper Queen Street,None
+l_756,n_id357,n_id361,50 km/h,Great North Road,None
+l_757,n_id35,n_id38,50 km/h,Great North Road,None
+l_758,n_id908,n_id911,50 km/h,Nugent Street,None
+l_759,n_id1462,n_id1463,50 km/h,Parnell Road,None
+l_760,n_id878,n_id872,30 km/h,Mayoral Drive,None
+l_761,n_id970,n_id993,50 km/h,Grafton Road,None
+l_762,n_id837,n_id841,30 km/h,Queen Street,None
+l_763,n_id623,n_id613,60 km/h,Ian McKinnon Drive,None
+l_764,n_id634,n_id644,30 km/h,Wellesley Street W,None
+l_765,n_id195,n_id187,50 km/h,Bond Street,None
+l_766,n_id536,n_id547,30 km/h,Victoria Street W,None
+l_767,n_id823,n_id827,30 km/h,Queen Street,None
+l_768,n_id125,n_id130,50 km/h,Jervois Road,None
+l_769,n_id921,n_id929,50 km/h,Nugent Street,None
+l_770,n_id568,n_id583,30 km/h,Wellesley Street W,None
+l_771,n_id986,n_id991,30 km/h,Symonds Street,None
+l_772,n_id105,n_id106,50 km/h,Great North Road,None
+l_773,n_id436,n_id414,30 km/h,Beaumont Street,None
+l_774,n_id1509,n_id1506,50 km/h,Tamaki Drive,None
+l_775,n_id1060,n_id1070,50 km/h,Grafton Road,None
+l_776,n_id929,n_id933,50 km/h,Nugent Street,None
+l_777,n_id528,n_id536,30 km/h,Victoria Street W,None
+l_778,n_id345,n_id357,50 km/h,Great North Road,None
+l_779,n_id558,n_id550,50 km/h,Newton Road,None
+l_780,n_id220,n_id224,40 km/h,Ponsonby Road,None
+l_781,n_id931,n_id950,30 km/h,Symonds Street,None
+l_782,n_id1023,n_id1037,30 km/h,Quay Street,None
+l_783,n_id121,n_id126,50 km/h,Great North Road,None
+l_784,n_id952,n_id936,50 km/h,Khyber Pass Road,None
+l_785,n_id758,n_id764,50 km/h,Upper Queen Street,None
+l_786,n_id782,n_id806,30 km/h,Cook Street,None
+l_787,n_id598,n_id610,30 km/h,Victoria Street W,None
+l_788,n_id348,n_id354,40 km/h,Ponsonby Road,None
+l_789,n_id1244,n_id1247,30 km/h,Quay Street,None
+l_790,n_id14,n_id16,50 km/h,Great North Road,None
+l_791,n_id735,n_id721,60 km/h,Ian McKinnon Drive,None
+l_792,n_id829,n_id819,50 km/h,Alex Evans Street,None
+l_793,n_id344,n_id341,30 km/h,Beaumont Street,None
+l_794,n_id96,n_id99,50 km/h,Curran Street,None
+l_795,n_id573,n_id589,30 km/h,Karangahape Road,None
+l_796,n_id224,n_id227,40 km/h,Ponsonby Road,None
+l_797,n_id543,n_id549,30 km/h,Karangahape Road,None
+l_798,n_id1463,n_id1468,50 km/h,Parnell Road,None
+l_799,n_id68,n_id70,50 km/h,Great North Road,None
+l_800,n_id158,n_id166,50 km/h,Shelly Beach Road,None
+l_801,n_id239,n_id242,50 km/h,Richmond Road,None
+l_802,n_id107,n_id109,50 km/h,Jervois Road,None
+l_803,n_id655,n_id674,30 km/h,Wellesley Street W,None
+l_804,n_id428,n_id443,30 km/h,Victoria Street W,None
+l_805,n_id1377,n_id1370,50 km/h,Khyber Pass Road,None
+l_806,n_id616,n_id627,30 km/h,Halsey Street,None
+l_807,n_id1395,n_id1397,50 km/h,Broadway,None
+l_808,n_id941,n_id944,50 km/h,Grafton Road,None
+l_809,n_id335,n_id342,30 km/h,Hepburn Street,None
+l_810,n_id497,n_id505,30 km/h,Victoria Street W,None
+l_811,n_id699,n_id696,30 km/h,Pitt Street,None
+l_812,n_id936,n_id916,50 km/h,Khyber Pass Road,None
+l_813,n_id549,n_id555,30 km/h,Karangahape Road,None
+l_814,n_id1007,n_id1026,50 km/h,Grafton Road,None
+l_815,n_id1386,n_id1382,50 km/h,Khyber Pass Road,None
+l_816,n_id1082,n_id1075,50 km/h,Park Road,None
+l_817,n_id1000,n_id989,50 km/h,Khyber Pass Road,None
+l_818,n_id279,n_id281,50 km/h,New North Road,None
+l_819,n_id1423,n_id1418,50 km/h,The Strand,None
+l_820,n_id858,n_id905,40 km/h,Fanshawe Street,None
+l_821,n_id1385,n_id1379,50 km/h,Parnell Rise,None
+l_822,n_id976,n_id986,30 km/h,Symonds Street,None
+l_823,n_id1075,n_id1066,50 km/h,Park Road,None
+l_824,n_id95,n_id96,50 km/h,Curran Street,None
+l_825,n_id1255,n_id1268,30 km/h,Quay Street,None
+l_826,n_id1115,n_id1123,50 km/h,Grafton Road,None
+l_827,n_id202,n_id211,50 km/h,College Hill,None
+l_828,n_id1332,n_id1329,30 km/h,Beach Road,None
+l_829,n_id1516,n_id1517,50 km/h,Gladstone Road,None
+l_830,n_id1370,n_id1364,50 km/h,Khyber Pass Road,None
+l_831,n_id706,n_id726,30 km/h,Wellesley Street W,None
+l_832,n_id236,n_id246,50 km/h,Great North Road,None
+l_833,n_id1336,n_id1328,50 km/h,Khyber Pass Road,None
+l_834,n_id1317,n_id1315,30 km/h,Beach Road,None
+l_835,n_id863,n_id867,50 km/h,Symonds Street,None
+l_836,n_id380,n_id384,30 km/h,Karangahape Road,None
+l_837,n_id384,n_id396,30 km/h,Karangahape Road,None
+l_838,n_id62,n_id65,50 km/h,Jervois Road,None
+l_839,n_id1500,n_id1496,50 km/h,Ayr Street,None
+l_840,n_id610,n_id619,30 km/h,Victoria Street W,None
+l_841,n_id1472,n_id1473,50 km/h,Parnell Road,None
+l_842,n_id525,n_id502,60 km/h,Ian McKinnon Drive,None
+l_843,n_id547,n_id562,30 km/h,Victoria Street W,None
+l_844,n_id944,n_id945,50 km/h,Grafton Road,None
+l_845,n_id855,n_id863,50 km/h,Symonds Street,None
+l_846,n_id993,n_id1007,50 km/h,Grafton Road,None
+l_847,n_id113,n_id115,50 km/h,Jervois Road,None
+l_848,n_id149,n_id145,50 km/h,Shelly Beach Road,None
+l_849,n_id1278,n_id1261,50 km/h,Carlton Gore Road,None
+l_850,n_id371,n_id359,30 km/h,Beaumont Street,None
+l_851,n_id400,n_id417,30 km/h,Karangahape Road,None
+l_852,n_id1189,n_id1191,50 km/h,Park Road,None
+l_853,n_id1113,n_id1108,30 km/h,Wellesley Street E,None
+l_854,n_id1511,n_id1509,50 km/h,Tamaki Drive,None
+l_855,n_id905,n_id914,40 km/h,Fanshawe Street,None
+l_856,n_id585,n_id586,30 km/h,Halsey Street,None
+l_857,n_id849,n_id829,50 km/h,Alex Evans Street,None
+l_858,n_id126,n_id131,50 km/h,Great North Road,None
+l_859,n_id613,n_id576,60 km/h,Ian McKinnon Drive,None
+l_860,n_id633,n_id635,30 km/h,Halsey Street,None
+l_861,n_id1351,n_id1347,50 km/h,Carlton Gore Road,None
+l_862,n_id341,n_id340,30 km/h,Beaumont Street,None
+l_863,n_id751,n_id767,30 km/h,Cook Street,None
+l_864,n_id1203,n_id1193,30 km/h,Waterloo Quadrant,None
+l_865,n_id281,n_id285,50 km/h,New North Road,None
+l_866,n_id118,n_id125,50 km/h,Jervois Road,None
+l_867,n_id1387,n_id1388,50 km/h,Broadway,None
+l_868,n_id1241,n_id1235,50 km/h,Khyber Pass Road,None
+l_869,n_id619,n_id672,30 km/h,Victoria Street W,None
+l_870,n_id609,n_id616,30 km/h,Halsey Street,None
+l_871,n_id211,n_id215,50 km/h,College Hill,None
+l_872,n_id1263,n_id1251,50 km/h,Khyber Pass Road,None
+l_873,n_id1428,n_id1423,50 km/h,The Strand,None
+l_874,n_id518,n_id528,30 km/h,Victoria Street W,None
+l_875,n_id765,n_id757,50 km/h,Newton Road,None
+l_876,n_id1269,n_id1263,50 km/h,Khyber Pass Road,None
+l_877,n_id142,n_id138,50 km/h,Shelly Beach Road,None
+l_878,n_id350,n_id346,30 km/h,Beaumont Street,None
+l_879,n_id1344,n_id1342,50 km/h,Khyber Pass Road,None
+l_880,n_id608,n_id634,30 km/h,Wellesley Street W,None
+l_881,n_id1468,n_id1472,50 km/h,Parnell Road,None
+l_882,n_id1251,n_id1241,50 km/h,Khyber Pass Road,None
+l_883,n_id104,n_id107,50 km/h,Jervois Road,None
+l_884,n_id293,n_id300,40 km/h,Ponsonby Road,None
+l_885,n_id338,n_id340,30 km/h,Beaumont Street,None
+l_886,n_id1493,n_id1491,50 km/h,Saint Stephens Avenue,None
+l_887,n_id1234,n_id1231,30 km/h,Waterloo Quadrant,None
+l_888,n_id587,n_id601,30 km/h,Cook Street,None
+l_889,n_id76,n_id86,50 km/h,Jervois Road,None
+l_890,n_id757,n_id749,50 km/h,Newton Road,None
+l_891,n_id1103,n_id1097,30 km/h,Wellesley Street E,None
+l_892,n_id359,n_id356,30 km/h,Beaumont Street,None
+l_893,n_id1261,n_id1239,50 km/h,Carlton Gore Road,None
+l_894,n_id1124,n_id1119,30 km/h,Customs Street E,None
+l_895,n_id210,n_id214,40 km/h,Ponsonby Road,None
+l_896,n_id692,n_id706,30 km/h,Wellesley Street W,None
+l_897,n_id672,n_id711,30 km/h,Victoria Street W,None
+l_898,n_id1496,n_id1480,50 km/h,Ayr Street,None
+l_899,n_id784,n_id793,30 km/h,Upper Queen Street,None
+l_900,n_id1012,n_id1000,50 km/h,Khyber Pass Road,None
+l_901,n_id177,n_id180,50 km/h,Jervois Road,None
+l_902,n_id145,n_id142,50 km/h,Shelly Beach Road,None
+l_903,n_id916,n_id907,50 km/h,Khyber Pass Road,None
+l_904,n_id637,n_id628,30 km/h,Hopetoun Street,None
+l_905,n_id580,n_id585,30 km/h,Halsey Street,None
+l_906,n_id197,n_id198,40 km/h,Ponsonby Road,None
+l_907,n_id52,n_id56,50 km/h,Jervois Road,None
+l_908,n_id217,n_id220,40 km/h,Ponsonby Road,None
+l_909,n_id1535,n_id1511,50 km/h,Tamaki Drive,None
+l_910,n_id1491,n_id1485,50 km/h,Saint Stephens Avenue,None
+l_911,n_id206,n_id209,40 km/h,Ponsonby Road,None
+l_912,n_id1232,n_id1224,50 km/h,Carlton Gore Road,None
+l_913,n_id1128,n_id1114,30 km/h,Wellesley Street E,None
+l_914,n_id678,n_id652,60 km/h,Ian McKinnon Drive,None
+l_915,n_id652,n_id623,60 km/h,Ian McKinnon Drive,None
+l_916,n_id14,n_id16,50 km/h,Great North Road,None
+l_917,n_id1037,n_id1049,30 km/h,Quay Street,None
+l_918,n_id414,n_id410,30 km/h,Beaumont Street,None
+l_919,n_id823,n_id832,30 km/h,Karangahape Road,None
+l_920,n_id902,n_id878,30 km/h,Mayoral Drive,None
+l_921,n_id383,n_id387,30 km/h,Victoria Street W,None
+l_922,n_id1021,n_id1016,30 km/h,Customs Street W,None
+l_923,n_id588,n_id598,30 km/h,Victoria Street W,None
+l_924,n_id837,n_id841,30 km/h,Queen Street,None
+l_925,n_id1096,n_id1082,50 km/h,Park Road,None
+l_926,n_id1331,n_id1333,30 km/h,Beach Road,None
+l_927,n_id781,n_id784,30 km/h,Upper Queen Street,None
+l_928,n_id867,n_id877,50 km/h,Symonds Street,None
+l_929,n_id250,n_id254,50 km/h,Sandringham Road,None
+l_930,n_id7,n_id8,50 km/h,Jervois Road,None
+l_931,n_id1193,n_id1184,30 km/h,Waterloo Quadrant,None
+l_932,n_id389,n_id385,50 km/h,Newton Road,None
+l_933,n_id1477,n_id1469,50 km/h,Parnell Road,None
+l_934,n_id1513,n_id1516,50 km/h,Gladstone Road,None
+l_935,n_id877,n_id882,50 km/h,Symonds Street,None
+l_936,n_id888,n_id924,30 km/h,Albert Street,None
+l_937,n_id214,n_id216,40 km/h,Ponsonby Road,None
+l_938,n_id933,n_id936,50 km/h,Nugent Street,None
+l_939,n_id1485,n_id1477,50 km/h,Saint Stephens Avenue,None
+l_940,n_id102,n_id105,50 km/h,Great North Road,None
+l_941,n_id1225,n_id1233,30 km/h,Quay Street,None
+l_942,n_id489,n_id497,30 km/h,Victoria Street W,None
+l_943,n_id227,n_id231,40 km/h,Ponsonby Road,None
+l_944,n_id242,n_id253,40 km/h,Richmond Road,None
+l_945,n_id391,n_id389,50 km/h,Newton Road,None
+l_946,n_id638,n_id657,30 km/h,Cook Street,None
+l_947,n_id229,n_id239,50 km/h,Richmond Road,None
+l_948,n_id3,n_id7,50 km/h,Jervois Road,None
+l_949,n_id1099,n_id1094,30 km/h,Customs Street E,None
+l_950,n_id602,n_id609,30 km/h,Halsey Street,None
+l_951,n_id246,n_id258,50 km/h,Great North Road,None
+l_952,n_id1418,n_id1407,50 km/h,The Strand,None
+l_953,n_id1328,n_id1313,50 km/h,Khyber Pass Road,None
+l_954,n_id198,n_id201,40 km/h,Ponsonby Road,None
+l_955,n_id1247,n_id1255,30 km/h,Quay Street,None
+l_956,n_id1213,n_id1211,30 km/h,Grafton Road,None
+l_957,n_id65,n_id66,50 km/h,Jervois Road,None
+l_958,n_id767,n_id782,30 km/h,Cook Street,None
+l_959,n_id990,n_id997,30 km/h,Quay Street,None
+l_960,n_id1392,n_id1386,50 km/h,Khyber Pass Road,None
+l_961,n_id1480,n_id1470,50 km/h,Ayr Street,None
+l_962,n_id583,n_id560,30 km/h,Wellesley Street W,None
+l_963,n_id406,n_id428,30 km/h,Victoria Street W,None
+l_964,n_id920,n_id925,30 km/h,Symonds Street,None
+l_965,n_id711,n_id724,30 km/h,Victoria Street W,None
+l_966,n_id543,n_id549,30 km/h,Karangahape Road,None
+l_967,n_id1160,n_id1187,30 km/h,Symonds Street,None
+l_968,n_id1319,n_id1317,30 km/h,Beach Road,None
+l_969,n_id601,n_id624,30 km/h,Cook Street,None
+l_970,n_id378,n_id383,30 km/h,Victoria Street W,None
+l_971,n_id827,n_id834,30 km/h,Queen Street,None
+l_972,n_id1388,n_id1389,50 km/h,Broadway,None
+l_973,n_id1070,n_id1078,50 km/h,Grafton Road,None
+l_974,n_id1235,n_id1207,50 km/h,Khyber Pass Road,None
+l_975,n_id788,n_id776,50 km/h,Mount Eden Road,None
+l_976,n_id1342,n_id1336,50 km/h,Khyber Pass Road,None
+l_977,n_id249,n_id247,50 km/h,Bond Street,None
+l_978,n_id957,n_id952,50 km/h,Khyber Pass Road,None
+l_979,n_id551,n_id525,60 km/h,Ian McKinnon Drive,None
+l_980,n_id583,n_id608,30 km/h,Wellesley Street W,None
+l_981,n_id130,n_id147,50 km/h,Jervois Road,None
+l_982,n_id907,n_id897,50 km/h,Khyber Pass Road,None
+l_983,n_id346,n_id344,30 km/h,Beaumont Street,None
+l_984,n_id1109,n_id1099,30 km/h,Customs Street E,None
+l_985,n_id628,n_id611,30 km/h,Hopetoun Street,None
+l_986,n_id760,n_id771,30 km/h,Wellesley Street W,None
+l_987,n_id1033,n_id1021,30 km/h,Customs Street W,None
+l_988,n_id1108,n_id1103,30 km/h,Wellesley Street E,None
+l_989,n_id576,n_id551,60 km/h,Ian McKinnon Drive,None
+l_990,n_id631,n_id638,30 km/h,Cook Street,None
+l_991,n_id1026,n_id1032,50 km/h,Grafton Road,None
+l_992,n_id1347,n_id1316,50 km/h,Carlton Gore Road,None
+l_993,n_id1290,n_id1269,50 km/h,Khyber Pass Road,None
+l_994,n_id252,n_id260,40 km/h,Ponsonby Road,None
+l_995,n_id771,n_id805,30 km/h,Wellesley Street W,None
+l_996,n_id396,n_id400,30 km/h,Karangahape Road,None
+l_997,n_id774,n_id781,30 km/h,Upper Queen Street,None
+l_998,n_id819,n_id800,50 km/h,Alex Evans Street,None
+l_999,n_id70,n_id74,50 km/h,Great North Road,None
+l_1000,n_id38,n_id40,50 km/h,Great North Road,None
+l_1001,n_id799,n_id788,50 km/h,Mount Eden Road,None
+l_1002,n_id984,n_id990,30 km/h,Quay Street,None
+l_1003,n_id335,n_id326,30 km/h,Hepburn Street,None
+l_1004,n_id243,n_id240,40 km/h,Ponsonby Road,None
+l_1005,n_id751,n_id727,30 km/h,Cook Street,None
+l_1006,n_id558,n_id607,50 km/h,Newton Road,None
+l_1007,n_id172,n_id193,50 km/h,Williamson Avenue,None
+l_1008,n_id297,n_id288,50 km/h,Great North Road,None
+l_1009,n_id838,n_id845,40 km/h,Fanshawe Street,None
+l_1010,n_id719,n_id709,40 km/h,Hobson Street,None
+l_1011,n_id135,n_id114,50 km/h,Richmond Road,None
+l_1012,n_id978,n_id983,30 km/h,Mayoral Drive,None
+l_1013,n_id1285,n_id1292,30 km/h,Tangihua Street,None
+l_1014,n_id304,n_id291,50 km/h,College Hill,None
+l_1015,n_id291,n_id289,50 km/h,College Hill,None
+l_1016,n_id1503,n_id1510,50 km/h,Saint Stephens Avenue,None
+l_1017,n_id1350,n_id1348,50 km/h,Stanley Street,None
+l_1018,n_id1013,n_id1005,30 km/h,Quay Street,None
+l_1019,n_id684,n_id673,50 km/h,Upper Queen Street,None
+l_1020,n_id1290,n_id1313,50 km/h,Khyber Pass Road,None
+l_1021,n_id743,n_id732,50 km/h,Upper Queen Street,None
+l_1022,n_id203,n_id201,40 km/h,Ponsonby Road,None
+l_1023,n_id1249,n_id1250,30 km/h,Anzac Avenue,None
+l_1024,n_id1292,n_id1296,30 km/h,Tangihua Street,None
+l_1025,n_id524,n_id563,30 km/h,Cook Street,None
+l_1026,n_id1080,n_id1084,30 km/h,Customs Street E,None
+l_1027,n_id305,n_id304,50 km/h,College Hill,None
+l_1028,n_id799,n_id825,50 km/h,Mount Eden Road,None
+l_1029,n_id1014,n_id1017,30 km/h,Mayoral Drive,None
+l_1030,n_id221,n_id244,50 km/h,Williamson Avenue,None
+l_1031,n_id1142,n_id1161,30 km/h,Customs Street E,None
+l_1032,n_id1216,n_id1248,30 km/h,Beach Road,None
+l_1033,n_id1213,n_id1217,30 km/h,Grafton Road,None
+l_1034,n_id582,n_id569,40 km/h,Fanshawe Street,None
+l_1035,n_id482,n_id448,30 km/h,Karangahape Road,None
+l_1036,n_id607,n_id639,50 km/h,Newton Road,None
+l_1037,n_id1284,n_id1294,30 km/h,Beach Road,None
+l_1038,n_id625,n_id630,40 km/h,Nelson Street,None
+l_1039,n_id337,n_id330,50 km/h,New North Road,None
+l_1040,n_id734,n_id740,50 km/h,Newton Road,None
+l_1041,n_id252,n_id248,40 km/h,Ponsonby Road,None
+l_1042,n_id561,n_id562,30 km/h,Wellesley Street W,None
+l_1043,n_id678,n_id721,60 km/h,Ian McKinnon Drive,None
+l_1044,n_id439,n_id426,30 km/h,Karangahape Road,None
+l_1045,n_id47,n_id51,50 km/h,Williamson Avenue,None
+l_1046,n_id276,n_id272,50 km/h,Great North Road,None
+l_1047,n_id1355,n_id1360,50 km/h,Khyber Pass Road,None
+l_1048,n_id1444,n_id1447,50 km/h,Parnell Road,None
+l_1049,n_id715,n_id734,50 km/h,Newton Road,None
+l_1050,n_id1435,n_id1436,50 km/h,Parnell Road,None
+l_1051,n_id272,n_id261,50 km/h,Great North Road,None
+l_1052,n_id954,n_id939,30 km/h,Albert Street,None
+l_1053,n_id868,n_id856,40 km/h,Hobson Street,None
+l_1054,n_id951,n_id945,50 km/h,Grafton Road,None
+l_1055,n_id796,n_id785,50 km/h,Symonds Street,None
+l_1056,n_id1454,n_id1451,50 km/h,Parnell Road,None
+l_1057,n_id1524,n_id1521,50 km/h,Gladstone Road,None
+l_1058,n_id1294,n_id1308,30 km/h,Beach Road,None
+l_1059,n_id686,n_id687,30 km/h,Pitt Street,None
+l_1060,n_id762,n_id777,40 km/h,Nelson Street,None
+l_1061,n_id805,n_id795,40 km/h,Hobson Street,None
+l_1062,n_id1526,n_id1525,50 km/h,Gladstone Road,None
+l_1063,n_id1457,n_id1466,50 km/h,Parnell Road,None
+l_1064,n_id307,n_id299,50 km/h,Great North Road,None
+l_1065,n_id971,n_id968,30 km/h,Symonds Street,None
+l_1066,n_id1250,n_id1253,30 km/h,Anzac Avenue,None
+l_1067,n_id1362,n_id1367,50 km/h,Parnell Rise,None
+l_1068,n_id1266,n_id1270,30 km/h,Beach Road,None
+l_1069,n_id30,n_id27,50 km/h,Jervois Road,None
+l_1070,n_id573,n_id555,30 km/h,Karangahape Road,None
+l_1071,n_id1011,n_id1027,30 km/h,Victoria Street E,None
+l_1072,n_id238,n_id233,40 km/h,Ponsonby Road,None
+l_1073,n_id299,n_id297,50 km/h,Great North Road,None
+l_1074,n_id1361,n_id1372,50 km/h,The Strand,None
+l_1075,n_id582,n_id584,30 km/h,Halsey Street,None
+l_1076,n_id187,n_id183,50 km/h,Great North Road,None
+l_1077,n_id240,n_id238,40 km/h,Ponsonby Road,None
+l_1078,n_id685,n_id686,30 km/h,Pitt Street,None
+l_1079,n_id1346,n_id1343,50 km/h,Parnell Rise,None
+l_1080,n_id293,n_id284,40 km/h,Ponsonby Road,None
+l_1081,n_id816,n_id820,40 km/h,Nelson Street,None
+l_1082,n_id809,n_id816,40 km/h,Nelson Street,None
+l_1083,n_id840,n_id857,50 km/h,Khyber Pass Road,None
+l_1084,n_id1492,n_id1489,50 km/h,Gladstone Road,None
+l_1085,n_id1489,n_id1482,50 km/h,Gladstone Road,None
+l_1086,n_id1363,n_id1371,50 km/h,Carlton Gore Road,None
+l_1087,n_id1519,n_id1518,50 km/h,Gladstone Road,None
+l_1088,n_id823,n_id804,30 km/h,Karangahape Road,None
+l_1089,n_id1475,n_id1473,50 km/h,Parnell Road,None
+l_1090,n_id680,n_id685,30 km/h,Pitt Street,None
+l_1091,n_id1419,n_id1424,50 km/h,Parnell Road,None
+l_1092,n_id1074,n_id1089,50 km/h,Khyber Pass Road,None
+l_1093,n_id1521,n_id1519,50 km/h,Gladstone Road,None
+l_1094,n_id244,n_id266,50 km/h,Williamson Avenue,None
+l_1095,n_id164,n_id135,50 km/h,Richmond Road,None
+l_1096,n_id812,n_id840,50 km/h,Khyber Pass Road,None
+l_1097,n_id373,n_id368,50 km/h,Great North Road,None
+l_1098,n_id797,n_id812,50 km/h,Khyber Pass Road,None
+l_1099,n_id539,n_id520,50 km/h,New North Road,None
+l_1100,n_id1371,n_id1378,50 km/h,Carlton Gore Road,None
+l_1101,n_id1492,n_id1489,50 km/h,Gladstone Road,None
+l_1102,n_id1525,n_id1524,50 km/h,Gladstone Road,None
+l_1103,n_id1248,n_id1249,30 km/h,Anzac Avenue,None
+l_1104,n_id33,n_id30,50 km/h,Jervois Road,None
+l_1105,n_id790,n_id797,50 km/h,Khyber Pass Road,None
+l_1106,n_id647,n_id661,40 km/h,Nelson Street,None
+l_1107,n_id630,n_id632,40 km/h,Nelson Street,None
+l_1108,n_id665,n_id667,30 km/h,Union Street,None
+l_1109,n_id661,n_id677,40 km/h,Nelson Street,None
+l_1110,n_id345,n_id334,50 km/h,Great North Road,None
+l_1111,n_id27,n_id20,50 km/h,Jervois Road,None
+l_1112,n_id1020,n_id1018,30 km/h,Queen Street,None
+l_1113,n_id677,n_id669,30 km/h,Cook Street,None
+l_1114,n_id722,n_id712,50 km/h,Upper Queen Street,None
+l_1115,n_id1052,n_id1048,30 km/h,Queen Street,None
+l_1116,n_id1085,n_id1031,30 km/h,Symonds Street,None
+l_1117,n_id1380,n_id1376,50 km/h,The Strand,None
+l_1118,n_id1432,n_id1435,50 km/h,Parnell Road,None
+l_1119,n_id22,n_id10,50 km/h,Richmond Road,None
+l_1120,n_id820,n_id801,40 km/h,Fanshawe Street,None
+l_1121,n_id1478,n_id1475,50 km/h,Parnell Road,None
+l_1122,n_id87,n_id108,50 km/h,Williamson Avenue,None
+l_1123,n_id1200,n_id1197,50 km/h,Park Road,None
+l_1124,n_id294,n_id285,50 km/h,New North Road,None
+l_1125,n_id584,n_id579,30 km/h,Halsey Street,None
+l_1126,n_id151,n_id131,50 km/h,Great North Road,None
+l_1127,n_id712,n_id684,50 km/h,Upper Queen Street,None
+l_1128,n_id851,n_id831,30 km/h,Victoria Street W,None
+l_1129,n_id175,n_id156,50 km/h,Jervois Road,None
+l_1130,n_id1447,n_id1457,50 km/h,Parnell Road,None
+l_1131,n_id1461,n_id1470,50 km/h,Ayr Street,None
+l_1132,n_id622,n_id582,40 km/h,Fanshawe Street,None
+l_1133,n_id669,n_id657,30 km/h,Cook Street,None
+l_1134,n_id704,n_id682,30 km/h,Vincent Street,None
+l_1135,n_id668,n_id658,50 km/h,New North Road,None
+l_1136,n_id28,n_id22,50 km/h,Richmond Road,None
+l_1137,n_id73,n_id72,50 km/h,Richmond Road,None
+l_1138,n_id173,n_id164,50 km/h,Richmond Road,None
+l_1139,n_id1089,n_id1098,50 km/h,Khyber Pass Road,None
+l_1140,n_id1050,n_id1046,50 km/h,Grafton Road,None
+l_1141,n_id454,n_id466,30 km/h,Exit 424B Cook Street,None
+l_1142,n_id856,n_id851,40 km/h,Hobson Street,None
+l_1143,n_id682,n_id688,30 km/h,Pitt Street,None
+l_1144,n_id323,n_id317,40 km/h,Ponsonby Road,None
+l_1145,n_id1274,n_id1285,30 km/h,Tangihua Street,None
+l_1146,n_id343,n_id337,50 km/h,New North Road,None
+l_1147,n_id740,n_id749,50 km/h,Newton Road,None
+l_1148,n_id836,n_id830,50 km/h,Symonds Street,None
+l_1149,n_id171,n_id162,50 km/h,Great North Road,None
+l_1150,n_id296,n_id300,40 km/h,Williamson Avenue,None
+l_1151,n_id1248,n_id1262,30 km/h,Beach Road,None
+l_1152,n_id581,n_id582,30 km/h,Halsey Street,None
+l_1153,n_id640,n_id629,50 km/h,New North Road,None
+l_1154,n_id720,n_id679,50 km/h,New North Road,None
+l_1155,n_id679,n_id668,50 km/h,New North Road,None
+l_1156,n_id766,n_id753,50 km/h,New North Road,None
+l_1157,n_id273,n_id271,50 km/h,New North Road,None
+l_1158,n_id325,n_id313,50 km/h,New North Road,None
+l_1159,n_id1424,n_id1426,50 km/h,Parnell Road,None
+l_1160,n_id580,n_id581,30 km/h,Halsey Street,None
+l_1161,n_id688,n_id693,30 km/h,Pitt Street,None
+l_1162,n_id75,n_id73,50 km/h,Richmond Road,None
+l_1163,n_id103,n_id101,50 km/h,Curran Street,None
+l_1164,n_id1280,n_id1275,30 km/h,Anzac Avenue,None
+l_1165,n_id699,n_id702,30 km/h,Pitt Street,None
+l_1166,n_id637,n_id664,30 km/h,Hopetoun Street,None
+l_1167,n_id664,n_id682,30 km/h,Hopetoun Street,None
+l_1168,n_id1296,n_id1306,30 km/h,Tangihua Street,None
+l_1169,n_id425,n_id437,50 km/h,Newton Road,None
+l_1170,n_id437,n_id425,50 km/h,Newton Road,None
+l_1171,n_id1417,n_id1416,50 km/h,Broadway,None
+l_1172,n_id1309,n_id1306,30 km/h,Tangihua Street,None
+l_1173,n_id1306,n_id1309,30 km/h,Tangihua Street,None
+l_1174,n_id120,n_id124,50 km/h,Shelly Beach Road,None
+l_1175,n_id481,n_id478,60 km/h,Ian McKinnon Drive,None
+l_1176,n_id433,n_id437,50 km/h,Newton Road,None
+l_1177,n_id440,n_id433,50 km/h,Newton Road,None
+l_1178,n_id436,n_id449,30 km/h,Beaumont Street,None
+l_1179,n_id274,n_id286,50 km/h,Picton Street,None
+l_1180,n_id352,n_id349,30 km/h,Hepburn Street,None
+l_1181,n_id577,n_id530,80 km/h,Entry 4 Hobson Street,None
+l_1182,n_id662,n_id646,40 km/h,Entry 4 Hobson Street,None
+l_1183,n_id1482,n_id1484,50 km/h,The Strand,None
+l_1184,n_id363,n_id375,80 km/h,Northern Motorway,None
+l_1185,n_id1039,n_id1029,30 km/h,Queen Street,None
+l_1186,n_id1194,n_id1229,80 km/h,Southern Motorway,None
+l_1187,n_id1467,n_id1474,50 km/h,The Strand,None
+l_1188,n_id123,n_id143,80 km/h,Northern Motorway,None
+l_1189,n_id471,n_id500,30 km/h,Entry 425 Wellington Street,None
+l_1190,n_id1074,n_id1077,50 km/h,Entry 430 Khyber Pass Road,None
+l_1191,n_id484,n_id481,60 km/h,Ian McKinnon Drive,None
+l_1192,n_id1153,n_id1149,50 km/h,Grafton Road,None
+l_1193,n_id875,n_id868,40 km/h,Hobson Street,None
+l_1194,n_id1097,n_id1093,30 km/h,Wellesley Street E,None
+l_1195,n_id514,n_id490,30 km/h,Karangahape Road,None
+l_1196,n_id946,n_id934,30 km/h,Lower Hobson Street,None
+l_1197,n_id233,n_id231,40 km/h,Ponsonby Road,None
+l_1198,n_id1309,n_id1306,30 km/h,Quay Street,None
+l_1199,n_id441,n_id479,80 km/h,Northern Motorway,None
+l_1200,n_id1405,n_id1402,50 km/h,Broadway,None
+l_1201,n_id1383,n_id1390,50 km/h,The Strand,None
+l_1202,n_id824,n_id826,30 km/h,Mayoral Drive,None
+l_1203,n_id794,n_id803,40 km/h,Nelson Street,None
+l_1204,n_id592,n_id564,50 km/h,New North Road,None
+l_1205,n_id1306,n_id1288,30 km/h,Quay Street,None
+l_1206,n_id1084,n_id1094,30 km/h,Customs Street E,None
+l_1207,n_id1381,n_id1383,50 km/h,The Strand,None
+l_1208,n_id1019,n_id965,80 km/h,Northwestern Motorway,None
+l_1209,n_id398,n_id401,30 km/h,Beaumont Street,None
+l_1210,n_id1349,n_id1353,50 km/h,The Strand,None
+l_1211,n_id621,n_id625,40 km/h,Nelson Street,None
+l_1212,n_id1318,n_id1309,30 km/h,Quay Street,None
+l_1213,n_id762,n_id747,30 km/h,Victoria Street W,None
+l_1214,n_id775,n_id772,50 km/h,Symonds Street,None
+l_1215,n_id772,n_id766,50 km/h,Symonds Street,None
+l_1216,n_id72,n_id69,50 km/h,Richmond Road,None
+l_1217,n_id775,n_id772,50 km/h,Mount Eden Road,None
+l_1218,n_id766,n_id768,50 km/h,Mount Eden Road,None
+l_1219,n_id1046,n_id1041,50 km/h,Grafton Road,None
+l_1220,n_id308,n_id298,50 km/h,New North Road,None
+l_1221,n_id828,n_id844,30 km/h,Mayoral Drive,None
+l_1222,n_id315,n_id307,50 km/h,Great North Road,None
+l_1223,n_id755,n_id800,50 km/h,Alex Evans Street,None
+l_1224,n_id1098,n_id1107,50 km/h,Khyber Pass Road,None
+l_1225,n_id649,n_id596,80 km/h,Hobson Street Entry,None
+l_1226,n_id348,n_id331,40 km/h,Ponsonby Road,None
+l_1227,n_id959,n_id953,30 km/h,Lower Hobson Street,None
+l_1228,n_id1483,n_id1471,50 km/h,Quay Street,None
+l_1229,n_id923,n_id940,30 km/h,Mayoral Drive,None
+l_1230,n_id968,n_id960,30 km/h,Symonds Street,None
+l_1231,n_id1406,n_id1405,50 km/h,Broadway,None
+l_1232,n_id642,n_id622,40 km/h,Fanshawe Street,None
+l_1233,n_id1536,n_id1537,50 km/h,Tamaki Drive,None
+l_1234,n_id1535,n_id1536,50 km/h,Tamaki Drive,None
+l_1235,n_id69,n_id67,50 km/h,Richmond Road,None
+l_1236,n_id1456,n_id1453,50 km/h,Quay Street,None
+l_1237,n_id58,n_id53,50 km/h,Great North Road,None
+l_1238,n_id1497,n_id1490,50 km/h,Tamaki Drive,None
+l_1239,n_id1005,n_id997,30 km/h,Quay Street,None
+l_1240,n_id1523,n_id1528,50 km/h,Saint Stephens Avenue,None
+l_1241,n_id139,n_id144,50 km/h,Shelly Beach Road,None
+l_1242,n_id1310,n_id1312,30 km/h,Beach Road,None
+l_1243,n_id1308,n_id1310,30 km/h,Beach Road,None
+l_1244,n_id760,n_id739,30 km/h,Wellesley Street W,None
+l_1245,n_id1330,n_id1327,30 km/h,Beach Road,None
+l_1246,n_id1325,n_id1329,30 km/h,Beach Road,None
+l_1247,n_id1327,n_id1323,30 km/h,Beach Road,None
+l_1248,n_id826,n_id828,30 km/h,Mayoral Drive,None
+l_1249,n_id169,n_id166,50 km/h,Shelly Beach Road,None
+l_1250,n_id1264,n_id1257,30 km/h,Symonds Street,None
+l_1251,n_id739,n_id726,30 km/h,Wellesley Street W,None
+l_1252,n_id264,n_id263,50 km/h,New North Road,None
+l_1253,n_id271,n_id264,50 km/h,New North Road,None
+l_1254,n_id168,n_id169,50 km/h,Shelly Beach Road,None
+l_1255,n_id1258,n_id1264,30 km/h,Waterloo Quadrant,None
+l_1256,n_id85,n_id83,50 km/h,Curran Street,None
+l_1257,n_id89,n_id85,50 km/h,Curran Street,None
+l_1258,n_id1069,n_id1079,30 km/h,Bowen Avenue,None
+l_1259,n_id562,n_id566,30 km/h,Halsey Street,None
+l_1260,n_id919,n_id914,40 km/h,Fanshawe Street,None
+l_1261,n_id588,n_id562,30 km/h,Victoria Street W,None
+l_1262,n_id956,n_id954,30 km/h,Albert Street,None
+l_1263,n_id919,n_id915,40 km/h,Hobson Street,None
+l_1264,n_id566,n_id567,30 km/h,Halsey Street,None
+l_1265,n_id667,n_id680,30 km/h,Pitt Street,None
+l_1266,n_id932,n_id927,30 km/h,Albert Street,None
+l_1267,n_id1167,n_id1225,30 km/h,Quay Street,None
+l_1268,n_id922,n_id934,30 km/h,Lower Hobson Street,None
+l_1269,n_id902,n_id923,30 km/h,Mayoral Drive,None
+l_1270,n_id662,n_id650,40 km/h,Hobson Street Entry,None
+l_1271,n_id665,n_id662,40 km/h,Hobson Street,None
+l_1272,n_id667,n_id662,40 km/h,Hobson Street,None
+l_1273,n_id618,n_id621,40 km/h,Nelson Street,None
+l_1274,n_id1164,n_id1135,30 km/h,Quay Street,None
+l_1275,n_id1023,n_id1013,30 km/h,Quay Street,None
+l_1276,n_id676,n_id665,40 km/h,Hobson Street,None
+l_1277,n_id811,n_id805,40 km/h,Hobson Street,None
+l_1278,n_id687,n_id682,30 km/h,Pitt Street,None
+l_1279,n_id691,n_id681,40 km/h,Pitt Street,None
+l_1280,n_id691,n_id667,40 km/h,Hobson Street,None
+l_1281,n_id270,n_id274,50 km/h,Picton Street,None
+l_1282,n_id975,n_id964,40 km/h,Fanshawe Street,None
+l_1283,n_id568,n_id561,30 km/h,Wellesley Street W,None
+l_1284,n_id533,n_id527,80 km/h,Exit 427 Nelson Street,None
+l_1285,n_id754,n_id756,40 km/h,Nelson Street,None
+l_1286,n_id213,n_id205,50 km/h,Great North Road,None
+l_1287,n_id746,n_id754,40 km/h,Nelson Street,None
+l_1288,n_id495,n_id485,60 km/h,Piwakawaka Street,None
+l_1289,n_id1010,n_id1014,30 km/h,Mayoral Drive,None
+l_1290,n_id747,n_id724,30 km/h,Victoria Street W,None
+l_1291,n_id263,n_id259,50 km/h,New North Road,None
+l_1292,n_id861,n_id846,30 km/h,Karangahape Road,None
+l_1293,n_id831,n_id813,30 km/h,Victoria Street W,None
+l_1294,n_id1477,n_id1478,50 km/h,Parnell Road,None
+l_1295,n_id756,n_id762,40 km/h,Nelson Street,None
+l_1296,n_id261,n_id258,50 km/h,Great North Road,None
+l_1297,n_id803,n_id809,40 km/h,Nelson Street,None
+l_1298,n_id1009,n_id1006,30 km/h,Queen Street,None
+l_1299,n_id912,n_id922,30 km/h,Sturdee Street,None
+l_1300,n_id813,n_id791,30 km/h,Victoria Street W,None
+l_1301,n_id1109,n_id1119,30 km/h,Customs Street E,None
+l_1302,n_id1312,n_id1315,30 km/h,Beach Road,None
+l_1303,n_id1017,n_id1055,30 km/h,Kitchener Street,None
+l_1304,n_id791,n_id762,30 km/h,Victoria Street W,None
+l_1305,n_id401,n_id405,30 km/h,Beaumont Street,None
+l_1306,n_id1048,n_id1045,30 km/h,Queen Street,None
+l_1307,n_id1180,n_id1192,30 km/h,Customs Street E,None
+l_1308,n_id288,n_id287,50 km/h,Great North Road,None
+l_1309,n_id1027,n_id1034,30 km/h,Victoria Street E,None
+l_1310,n_id34,n_id28,50 km/h,Richmond Road,None
+l_1311,n_id490,n_id482,30 km/h,Karangahape Road,None
+l_1312,n_id620,n_id604,30 km/h,Karangahape Road,None
+l_1313,n_id1104,n_id1118,30 km/h,Quay Street,None
+l_1314,n_id639,n_id651,50 km/h,Newton Road,None
+l_1315,n_id193,n_id221,50 km/h,Williamson Avenue,None
+l_1316,n_id1052,n_id1033,30 km/h,Customs Street W,None
+l_1317,n_id248,n_id243,40 km/h,Ponsonby Road,None
+l_1318,n_id884,n_id875,40 km/h,Hobson Street,None
+l_1319,n_id1057,n_id1080,30 km/h,Customs Street E,None
+l_1320,n_id887,n_id883,30 km/h,Queen Street,None
+l_1321,n_id708,n_id663,30 km/h,Karangahape Road,None
+l_1322,n_id206,n_id203,40 km/h,Ponsonby Road,None
+l_1323,n_id744,n_id746,40 km/h,Nelson Street,None
+l_1324,n_id124,n_id136,50 km/h,Shelly Beach Road,None
+l_1325,n_id1080,n_id1067,30 km/h,Customs Street E,None
+l_1326,n_id36,n_id33,50 km/h,Jervois Road,None
+l_1327,n_id996,n_id1011,30 km/h,Victoria Street E,None
+l_1328,n_id777,n_id789,40 km/h,Nelson Street,None
+l_1329,n_id71,n_id87,50 km/h,Williamson Avenue,None
+l_1330,n_id266,n_id282,50 km/h,Williamson Avenue,None
+l_1331,n_id1057,n_id1052,30 km/h,Queen Street,None
+l_1332,n_id1192,n_id1216,30 km/h,Beach Road,None
+l_1333,n_id939,n_id932,30 km/h,Albert Street,None
+l_1334,n_id732,n_id722,50 km/h,Upper Queen Street,None
+l_1335,n_id1173,n_id1164,30 km/h,Quay Street,None
+l_1336,n_id169,n_id168,50 km/h,Shelly Beach Road,None
+l_1337,n_id255,n_id256,50 km/h,Bond Street,None
+l_1338,n_id1067,n_id1052,30 km/h,Customs Street E,None
+l_1339,n_id1455,n_id1454,50 km/h,Parnell Road,None
+l_1340,n_id1012,n_id1024,50 km/h,Khyber Pass Road,None
+l_1341,n_id1199,n_id1207,50 km/h,Khyber Pass Road,None
+l_1342,n_id1183,n_id1199,50 km/h,Khyber Pass Road,None
+l_1343,n_id260,n_id253,40 km/h,Richmond Road,None
+l_1344,n_id984,n_id980,30 km/h,Quay Street,None
+l_1345,n_id321,n_id318,30 km/h,Hepburn Street,None
+l_1346,n_id228,n_id213,50 km/h,Great North Road,None
+l_1347,n_id457,n_id453,60 km/h,Ian McKinnon Drive,None
+l_1348,n_id453,n_id445,60 km/h,Ian McKinnon Drive,None
+l_1349,n_id29,n_id41,80 km/h,Northwestern Motorway,None
+l_1350,n_id1003,n_id1016,30 km/h,Customs Street W,None
+l_1351,n_id1166,n_id1158,80 km/h,Entry 2A Wellesley Street,None
+l_1352,n_id1102,n_id1085,30 km/h,Symonds Street,None
+l_1353,n_id343,n_id347,50 km/h,New North Road,None
+l_1354,n_id999,n_id991,30 km/h,Symonds Street,None
+l_1355,n_id1458,n_id1455,50 km/h,Parnell Road,None
+l_1356,n_id464,n_id460,60 km/h,Ian McKinnon Drive,None
+l_1357,n_id1445,n_id1442,50 km/h,Parnell Road,None
+l_1358,n_id804,n_id792,30 km/h,Karangahape Road,None
+l_1359,n_id725,n_id708,30 km/h,Karangahape Road,None
+l_1360,n_id1462,n_id1459,50 km/h,Parnell Road,None
+l_1361,n_id259,n_id254,50 km/h,Sandringham Road,None
+l_1362,n_id1528,n_id1534,50 km/h,Saint Stephens Avenue,None
+l_1363,n_id1510,n_id1523,50 km/h,Saint Stephens Avenue,None
+l_1364,n_id663,n_id636,30 km/h,Karangahape Road,None
+l_1365,n_id1416,n_id1413,50 km/h,Broadway,None
+l_1366,n_id510,n_id515,50 km/h,New North Road,None
+l_1367,n_id620,n_id636,30 km/h,Karangahape Road,None
+l_1368,n_id402,n_id411,50 km/h,Newton Road,None
+l_1369,n_id636,n_id663,30 km/h,Karangahape Road,None
+l_1370,n_id1421,n_id1420,50 km/h,Parnell Road,None
+l_1371,n_id891,n_id892,30 km/h,Queen Street,None
+l_1372,n_id1129,n_id1142,30 km/h,Customs Street E,None
+l_1373,n_id1378,n_id1384,50 km/h,Carlton Gore Road,None
+l_1374,n_id510,n_id503,50 km/h,New North Road,None
+l_1375,n_id736,n_id720,50 km/h,New North Road,None
+l_1376,n_id1134,n_id1136,50 km/h,Wellesley Street E,None
+l_1377,n_id1399,n_id1409,50 km/h,Parnell Road,None
+l_1378,n_id1409,n_id1412,50 km/h,Parnell Road,None
+l_1379,n_id1409,n_id1403,50 km/h,Parnell Road,None
+l_1380,n_id1403,n_id1399,50 km/h,Parnell Rise,None
+l_1381,n_id1416,n_id1414,50 km/h,Broadway,None
+l_1382,n_id1459,n_id1458,50 km/h,Parnell Road,None
+l_1383,n_id520,n_id517,50 km/h,New North Road,None
+l_1384,n_id1458,n_id1461,50 km/h,Ayr Street,None
+l_1385,n_id1420,n_id1417,50 km/h,Broadway,None
+l_1386,n_id257,n_id222,50 km/h,College Hill,None
+l_1387,n_id222,n_id215,50 km/h,College Hill,None
+l_1388,n_id1033,n_id1040,30 km/h,Customs Street W,None
+l_1389,n_id1149,n_id1145,50 km/h,Grafton Road,None
+l_1390,n_id960,n_id950,30 km/h,Symonds Street,None
+l_1391,n_id251,n_id255,50 km/h,Bond Street,None
+l_1392,n_id195,n_id204,50 km/h,Bond Street,None
+l_1393,n_id1404,n_id1413,50 km/h,Davis Crescent,None
+l_1394,n_id136,n_id138,50 km/h,Shelly Beach Road,None
+l_1395,n_id1368,n_id1365,50 km/h,Parnell Rise,None
+l_1396,n_id298,n_id294,50 km/h,New North Road,None
+l_1397,n_id60,n_id58,50 km/h,Great North Road,None
+l_1398,n_id117,n_id111,50 km/h,Great North Road,None
+l_1399,n_id1202,n_id1195,30 km/h,Symonds Street,None
+l_1400,n_id1201,n_id1187,30 km/h,Grafton Road,None
+l_1401,n_id256,n_id259,50 km/h,Bond Street,None
+l_1402,n_id1392,n_id1389,50 km/h,Broadway,None
+l_1403,n_id1195,n_id1187,30 km/h,Symonds Street,None
+l_1404,n_id1195,n_id1201,30 km/h,Grafton Road,None
+l_1405,n_id116,n_id115,50 km/h,Jervois Road,None
+l_1406,n_id957,n_id989,50 km/h,Khyber Pass Road,None
+l_1407,n_id1373,n_id1368,50 km/h,Parnell Rise,None
+l_1408,n_id849,n_id855,50 km/h,Symonds Street,None
+l_1409,n_id855,n_id849,50 km/h,Symonds Street,None
+l_1410,n_id485,n_id484,60 km/h,Ian McKinnon Drive,None
+l_1411,n_id495,n_id485,60 km/h,Ian McKinnon Drive,None
+l_1412,n_id869,n_id879,50 km/h,Khyber Pass Road,None
+l_1413,n_id494,n_id496,60 km/h,Ian McKinnon Drive,None
+l_1414,n_id496,n_id488,60 km/h,Ian McKinnon Drive,None
+l_1415,n_id488,n_id495,60 km/h,Ian McKinnon Drive,None
+l_1416,n_id116,n_id120,50 km/h,Shelly Beach Road,None
+l_1417,n_id118,n_id116,50 km/h,Jervois Road,None
+l_1418,n_id1365,n_id1362,50 km/h,Parnell Rise,None
+l_1419,n_id1350,n_id1346,50 km/h,Parnell Rise,None
+l_1420,n_id735,n_id755,50 km/h,Ian McKinnon Drive,None
+l_1421,n_id179,n_id181,40 km/h,Ponsonby Road,None
+l_1422,n_id892,n_id887,30 km/h,Queen Street,None
+l_1423,n_id666,n_id683,50 km/h,Newton Road,None
+l_1424,n_id755,n_id743,50 km/h,Upper Queen Street,None
+l_1425,n_id181,n_id185,40 km/h,Ponsonby Road,None
+l_1426,n_id866,n_id861,30 km/h,Karangahape Road,None
+l_1427,n_id857,n_id869,50 km/h,Khyber Pass Road,None
+l_1428,n_id190,n_id186,50 km/h,Ponsonby Road,None
+l_1429,n_id199,n_id190,50 km/h,College Hill,None
+l_1430,n_id673,n_id666,50 km/h,Upper Queen Street,None
+l_1431,n_id262,n_id260,40 km/h,Ponsonby Road,None
+l_1432,n_id1420,n_id1421,50 km/h,Broadway,None
+l_1433,n_id1533,n_id1534,50 km/h,Gladstone Road,None
+l_1434,n_id1531,n_id1530,50 km/h,Gladstone Road,None
+l_1435,n_id313,n_id308,50 km/h,New North Road,None
+l_1436,n_id330,n_id325,50 km/h,New North Road,None
+l_1437,n_id765,n_id773,50 km/h,Newton Road,None
+l_1438,n_id790,n_id773,50 km/h,Newton Road,None
+l_1439,n_id785,n_id790,50 km/h,Symonds Street,None
+l_1440,n_id797,n_id796,50 km/h,Symonds Street,None
+l_1441,n_id418,n_id441,80 km/h,Northern Motorway,None
+l_1442,n_id183,n_id176,50 km/h,Great North Road,None
+l_1443,n_id379,n_id375,30 km/h,Entry 424 Fanshawe Street,None
+l_1444,n_id382,n_id379,30 km/h,Entry 424 Fanshawe Street,None
+l_1445,n_id577,n_id594,40 km/h,Exit 4B Nelson Street,None
+l_1446,n_id578,n_id577,80 km/h,Entry 4 Hobson Street,None
+l_1447,n_id292,n_id296,50 km/h,Williamson Avenue,None
+l_1448,n_id444,n_id394,30 km/h,Wellington Street,None
+l_1449,n_id444,n_id456,30 km/h,Wellington Street,None
+l_1450,n_id1295,n_id1302,30 km/h,Anzac Avenue,None
+l_1451,n_id1267,n_id1260,30 km/h,Anzac Avenue,None
+l_1452,n_id1260,n_id1253,30 km/h,Anzac Avenue,None
+l_1453,n_id1326,n_id1338,30 km/h,Parnell Rise,None
+l_1454,n_id1324,n_id1326,30 km/h,Beach Road,None
+l_1455,n_id19,n_id18,50 km/h,Jervois Road,None
+l_1456,n_id18,n_id15,50 km/h,Jervois Road,None
+l_1457,n_id20,n_id19,50 km/h,Jervois Road,None
+l_1458,n_id188,n_id173,50 km/h,Richmond Road,None
+l_1459,n_id90,n_id82,50 km/h,Richmond Road,None
+l_1460,n_id114,n_id90,50 km/h,Richmond Road,None
+l_1461,n_id1324,n_id1323,30 km/h,Beach Road,None
+l_1462,n_id1411,n_id1406,50 km/h,Broadway,None
+l_1463,n_id102,n_id88,50 km/h,Great North Road,None
+l_1464,n_id1326,n_id1324,30 km/h,Beach Road,None
+l_1465,n_id108,n_id122,50 km/h,Williamson Avenue,None
+l_1466,n_id524,n_id537,30 km/h,Sam Wrigley Street,None
+l_1467,n_id1384,n_id1391,50 km/h,Carlton Gore Road,None
+l_1468,n_id1332,n_id1334,30 km/h,Beach Road,None
+l_1469,n_id796,n_id790,50 km/h,Khyber Pass Road,None
+l_1470,n_id1307,n_id1304,30 km/h,Alten Road,None
+l_1471,n_id773,n_id790,50 km/h,Newton Road,None
+l_1472,n_id1352,n_id1345,30 km/h,Quay Street,None
+l_1473,n_id21,n_id17,50 km/h,Great North Road,None
+l_1474,n_id289,n_id283,50 km/h,College Hill,None
+l_1475,n_id149,n_id152,50 km/h,Shelly Beach Road,None
+l_1476,n_id290,n_id292,50 km/h,Williamson Avenue,None
+l_1477,n_id282,n_id290,50 km/h,Williamson Avenue,None
+l_1478,n_id1323,n_id1324,30 km/h,Beach Road,None
+l_1479,n_id1116,n_id1130,30 km/h,Symonds Street,None
+l_1480,n_id1500,n_id1502,50 km/h,Ayr Street,None
+l_1481,n_id1465,n_id1467,50 km/h,The Strand,None
+l_1482,n_id1304,n_id1298,30 km/h,Alten Road,None
+l_1483,n_id53,n_id50,50 km/h,Great North Road,None
+l_1484,n_id1440,n_id1444,50 km/h,Parnell Road,None
+l_1485,n_id1436,n_id1440,50 km/h,Parnell Road,None
+l_1486,n_id316,n_id320,50 km/h,College Hill,None
+l_1487,n_id336,n_id339,30 km/h,Beaumont Street,None
+l_1488,n_id320,n_id316,50 km/h,College Hill,None
+l_1489,n_id351,n_id339,30 km/h,Victoria Street W,None
+l_1490,n_id1303,n_id1299,50 km/h,Stanley Street,None
+l_1491,n_id854,n_id872,30 km/h,Mayoral Drive,None
+l_1492,n_id844,n_id854,30 km/h,Mayoral Drive,None
+l_1493,n_id394,n_id388,30 km/h,Wellington Street,None
+l_1494,n_id462,n_id456,30 km/h,Wellington Street,None
+l_1495,n_id456,n_id462,30 km/h,Wellington Street,None
+l_1496,n_id462,n_id469,30 km/h,Wellington Street,None
+l_1497,n_id469,n_id471,30 km/h,Wellington Street,None
+l_1498,n_id456,n_id444,30 km/h,Wellington Street,None
+l_1499,n_id469,n_id462,30 km/h,Wellington Street,None
+l_1500,n_id286,n_id314,50 km/h,Picton Street,None
+l_1501,n_id318,n_id314,50 km/h,Picton Street,None
+l_1502,n_id326,n_id321,30 km/h,Hepburn Street,None
+l_1503,n_id966,n_id970,50 km/h,Grafton Road,None
+l_1504,n_id970,n_id966,50 km/h,Grafton Road,None
+l_1505,n_id1474,n_id1476,50 km/h,The Strand,None
+l_1506,n_id1351,n_id1363,50 km/h,Carlton Gore Road,None
+l_1507,n_id631,n_id624,30 km/h,Cook Street,None
+l_1508,n_id1116,n_id1117,30 km/h,Symonds Street,None
+l_1509,n_id694,n_id695,30 km/h,Pitt Street,None
+l_1510,n_id693,n_id694,30 km/h,Pitt Street,None
+l_1511,n_id606,n_id611,30 km/h,Hopetoun Street,None
+l_1512,n_id703,n_id707,30 km/h,Pitt Street,None
+l_1513,n_id707,n_id708,30 km/h,Pitt Street,None
+l_1514,n_id702,n_id703,30 km/h,Pitt Street,None
+l_1515,n_id376,n_id373,30 km/h,Karangahape Road,None
+l_1516,n_id1433,n_id1427,50 km/h,Parnell Road,None
+l_1517,n_id1438,n_id1433,50 km/h,Parnell Road,None
+l_1518,n_id358,n_id354,40 km/h,Ponsonby Road,None
+l_1519,n_id376,n_id385,50 km/h,Newton Road,None
+l_1520,n_id385,n_id373,50 km/h,Newton Road,None
+l_1521,n_id1442,n_id1438,50 km/h,Parnell Road,None
+l_1522,n_id938,n_id936,50 km/h,Grafton Road,None
+l_1523,n_id941,n_id938,50 km/h,Grafton Road,None
+l_1524,n_id1004,n_id999,30 km/h,Symonds Street,None
+l_1525,n_id1008,n_id1004,30 km/h,Symonds Street,None
+l_1526,n_id1344,n_id1355,50 km/h,Khyber Pass Road,None
+l_1527,n_id974,n_id978,30 km/h,Mayoral Drive,None
+l_1528,n_id962,n_id974,30 km/h,Mayoral Drive,None
+l_1529,n_id1493,n_id1494,50 km/h,Saint Stephens Avenue,None
+l_1530,n_id61,n_id71,50 km/h,Williamson Avenue,None
+l_1531,n_id59,n_id61,50 km/h,Williamson Avenue,None
+l_1532,n_id95,n_id93,50 km/h,Curran Street,None
+l_1533,n_id1466,n_id1469,50 km/h,Parnell Road,None
+l_1534,n_id1072,n_id1073,80 km/h,Southern Motorway,None
+l_1535,n_id961,n_id958,50 km/h,Grafton Road,None
+l_1536,n_id963,n_id979,80 km/h,Southern Motorway,None
+l_1537,n_id979,n_id1001,80 km/h,Southern Motorway,None
+l_1538,n_id967,n_id961,50 km/h,Grafton Road,None
+l_1539,n_id961,n_id967,50 km/h,Grafton Road,None
+l_1540,n_id967,n_id977,80 km/h,Entry 429 Wellesley Street,None
+l_1541,n_id977,n_id1001,80 km/h,Entry 429 Wellesley Street,None
+l_1542,n_id967,n_id966,50 km/h,Grafton Road,None
+l_1543,n_id447,n_id452,80 km/h,Northwestern Motorway,None
+l_1544,n_id429,n_id447,80 km/h,Northwestern Motorway,None
+l_1545,n_id447,n_id452,80 km/h,Exit 4C Southern Motorway,None
+l_1546,n_id429,n_id447,80 km/h,Exit 4C Southern Motorway,None
+l_1547,n_id452,n_id455,80 km/h,Exit 4C Southern Motorway,None
+l_1548,n_id935,n_id906,80 km/h,Northwestern Motorway,None
+l_1549,n_id779,n_id758,80 km/h,Northern Motorway,None
+l_1550,n_id697,n_id671,80 km/h,Northern Motorway,None
+l_1551,n_id671,n_id653,80 km/h,Northern Motorway,None
+l_1552,n_id1028,n_id1019,80 km/h,Northwestern Motorway,None
+l_1553,n_id774,n_id769,30 km/h,Upper Queen Street,None
+l_1554,n_id557,n_id552,80 km/h,Exit 427 Nelson Street,None
+l_1555,n_id533,n_id521,30 km/h,Karangahape Road,None
+l_1556,n_id543,n_id533,30 km/h,Karangahape Road,None
+l_1557,n_id530,n_id541,30 km/h,Hopetoun Street,None
+l_1558,n_id650,n_id649,40 km/h,Hobson Street Entry,None
+l_1559,n_id650,n_id646,30 km/h,Pitt Street,None
+l_1560,n_id424,n_id427,80 km/h,Northern Motorway,None
+l_1561,n_id398,n_id375,40 km/h,Entry 424 Fanshawe Street,None
+l_1562,n_id912,n_id922,30 km/h,Sturdee Street,None
+l_1563,n_id154,n_id163,80 km/h,Northern Motorway,None
+l_1564,n_id163,n_id154,80 km/h,Northern Motorway,None
+l_1565,n_id965,n_id935,80 km/h,Northwestern Motorway,None
+l_1566,n_id1349,n_id1350,50 km/h,The Strand,None
+l_1567,n_id1111,n_id1170,80 km/h,Southern Motorway,None
+l_1568,n_id1077,n_id1081,50 km/h,Entry 430 Khyber Pass Road,None
+l_1569,n_id407,n_id423,80 km/h,Northern Motorway,None
+l_1570,n_id423,n_id418,80 km/h,Northern Motorway,None
+l_1571,n_id249,n_id251,50 km/h,Bond Street,None
+l_1572,n_id212,n_id219,50 km/h,Bond Street,None
+l_1573,n_id68,n_id60,50 km/h,Great North Road,None
+l_1574,n_id122,n_id148,50 km/h,Williamson Avenue,None
+l_1575,n_id159,n_id172,50 km/h,Williamson Avenue,None
+l_1576,n_id218,n_id188,50 km/h,Richmond Road,None
+l_1577,n_id37,n_id34,50 km/h,Richmond Road,None
+l_1578,n_id10,n_id6,50 km/h,Richmond Road,None
+l_1579,n_id940,n_id947,30 km/h,Mayoral Drive,None
+l_1580,n_id947,n_id962,30 km/h,Mayoral Drive,None
+l_1581,n_id998,n_id983,30 km/h,Mayoral Drive,None
+l_1582,n_id983,n_id998,30 km/h,Mayoral Drive,None
+l_1583,n_id806,n_id787,30 km/h,Vincent Street,None
+l_1584,n_id806,n_id824,30 km/h,Mayoral Drive,None
+l_1585,n_id848,n_id806,30 km/h,Mayoral Drive,None
+l_1586,n_id862,n_id848,30 km/h,Mayoral Drive,None
+l_1587,n_id191,n_id189,40 km/h,Ponsonby Road,None
+l_1588,n_id1055,n_id1043,30 km/h,Victoria Street E,None
+l_1589,n_id1064,n_id1055,30 km/h,Bowen Avenue,None
+l_1590,n_id1437,n_id1441,50 km/h,The Strand,None
+l_1591,n_id189,n_id185,40 km/h,Ponsonby Road,None
+l_1592,n_id1079,n_id1092,30 km/h,Bowen Avenue,None
+l_1593,n_id1428,n_id1431,50 km/h,The Strand,None
+l_1594,n_id1260,n_id1267,30 km/h,Anzac Avenue,None
+l_1595,n_id1279,n_id1284,30 km/h,Beach Road,None
+l_1596,n_id1274,n_id1279,30 km/h,Beach Road,None
+l_1597,n_id1400,n_id1369,50 km/h,Quay Street,None
+l_1598,n_id375,n_id355,80 km/h,Entry 424 Fanshawe Street,None
+l_1599,n_id1071,n_id1049,30 km/h,Quay Street,None
+l_1600,n_id449,n_id458,30 km/h,Beaumont Street,None
+l_1601,n_id458,n_id465,30 km/h,Beaumont Street,None
+l_1602,n_id465,n_id474,30 km/h,Beaumont Street,None
+l_1603,n_id143,n_id154,80 km/h,Northern Motorway,None
+l_1604,n_id1257,n_id1252,30 km/h,Symonds Street,None
+l_1605,n_id1019,n_id1058,50 km/h,Park Road,None
+l_1606,n_id347,n_id364,50 km/h,New North Road,None
+l_1607,n_id1319,n_id1320,30 km/h,Beach Road,None
+l_1608,n_id1527,n_id1526,50 km/h,Gladstone Road,None
+l_1609,n_id82,n_id77,50 km/h,Richmond Road,None
+l_1610,n_id1373,n_id1374,50 km/h,Parnell Rise,None
+l_1611,n_id1518,n_id1517,50 km/h,Gladstone Road,None
+l_1612,n_id1385,n_id1399,50 km/h,Parnell Rise,None
+l_1613,n_id76,n_id66,50 km/h,Jervois Road,None
+l_1614,n_id1367,n_id1373,50 km/h,Parnell Rise,None
+l_1615,n_id1096,n_id1120,50 km/h,Park Road,None
+l_1616,n_id1426,n_id1429,50 km/h,Parnell Road,None
+l_1617,n_id1148,n_id1168,30 km/h,Bowen Avenue,None
+l_1618,n_id1107,n_id1122,50 km/h,Khyber Pass Road,None
+l_1619,n_id895,n_id894,30 km/h,Queen Street,None
+l_1620,n_id1198,n_id1218,50 km/h,Park Road,None
+l_1621,n_id1215,n_id1200,50 km/h,Park Road,None
+l_1622,n_id1404,n_id1398,50 km/h,Davis Crescent,None
+l_1623,n_id1398,n_id1391,50 km/h,Davis Crescent,None
+l_1624,n_id976,n_id971,30 km/h,Symonds Street,None
+l_1625,n_id1112,n_id1095,50 km/h,Grafton Road,None
+l_1626,n_id1234,n_id1242,30 km/h,Waterloo Quadrant,None
+l_1627,n_id508,n_id535,30 km/h,Jellicoe Street,None
+l_1628,n_id1090,n_id1078,50 km/h,Grafton Road,None
+l_1629,n_id406,n_id393,30 km/h,Victoria Street W,None
+l_1630,n_id1297,n_id1280,30 km/h,Anzac Avenue,None
+l_1631,n_id1264,n_id1276,30 km/h,Alten Road,None
+l_1632,n_id1138,n_id1133,50 km/h,Grafton Road,None
+l_1633,n_id1289,n_id1287,30 km/h,Alten Road,None
+l_1634,n_id1242,n_id1258,30 km/h,Waterloo Quadrant,None
+l_1635,n_id360,n_id352,30 km/h,Hepburn Street,None
+l_1636,n_id1168,n_id1174,30 km/h,Bowen Avenue,None
+l_1637,n_id1091,n_id1101,80 km/h,Entry 430 Khyber Pass Road,None
+l_1638,n_id1115,n_id1112,50 km/h,Grafton Road,None
+l_1639,n_id81,n_id84,50 km/h,Curran Street,None
+l_1640,n_id1395,n_id1394,50 km/h,Broadway,None
+l_1641,n_id1408,n_id1404,50 km/h,Davis Crescent,None
+l_1642,n_id1537,n_id1538,50 km/h,Tamaki Drive,None
+l_1643,n_id894,n_id891,30 km/h,Queen Street,None
+l_1644,n_id64,n_id54,50 km/h,Richmond Road,None
+l_1645,n_id54,n_id49,50 km/h,Richmond Road,None
+l_1646,n_id67,n_id64,50 km/h,Richmond Road,None
+l_1647,n_id317,n_id312,40 km/h,Ponsonby Road,None
+l_1648,n_id1174,n_id1184,30 km/h,Waterloo Quadrant,None
+l_1649,n_id77,n_id75,50 km/h,Richmond Road,None
+l_1650,n_id367,n_id360,30 km/h,Wellington Street,None
+l_1651,n_id1320,n_id1322,30 km/h,Beach Road,None
+l_1652,n_id91,n_id89,50 km/h,Curran Street,None
+l_1653,n_id504,n_id508,30 km/h,Beaumont Street,None
+l_1654,n_id378,n_id372,30 km/h,Victoria Street W,None
+l_1655,n_id1093,n_id1068,30 km/h,Wellesley Street E,None
+l_1656,n_id371,n_id374,30 km/h,Beaumont Street,None
+l_1657,n_id350,n_id356,30 km/h,Beaumont Street,None
+l_1658,n_id372,n_id369,30 km/h,Victoria Street W,None
+l_1659,n_id1276,n_id1281,30 km/h,Alten Road,None
+l_1660,n_id1281,n_id1289,30 km/h,Alten Road,None
+l_1661,n_id1141,n_id1148,30 km/h,Bowen Avenue,None
+l_1662,n_id123,n_id141,80 km/h,Northern Motorway,None
+l_1663,n_id1322,n_id1325,30 km/h,Beach Road,None
+l_1664,n_id1031,n_id1022,30 km/h,Symonds Street,None
+l_1665,n_id1086,n_id1071,30 km/h,Quay Street,None
+l_1666,n_id3,n_id2,50 km/h,Jervois Road,None
+l_1667,n_id1501,n_id1492,50 km/h,Gladstone Road,None
+l_1668,n_id1056,n_id1042,30 km/h,Wellesley Street E,None
+l_1669,n_id1171,n_id1157,50 km/h,Mountain Road,None
+l_1670,n_id931,n_id930,30 km/h,Symonds Street,None
+l_1671,n_id1120,n_id1131,50 km/h,Park Road,None
+l_1672,n_id1061,n_id1056,30 km/h,Wellesley Street E,None
+l_1673,n_id1143,n_id1156,50 km/h,Park Road,None
+l_1674,n_id1131,n_id1143,50 km/h,Park Road,None
+l_1675,n_id229,n_id226,50 km/h,Richmond Road,None
+l_1676,n_id1022,n_id1015,30 km/h,Symonds Street,None
+l_1677,n_id1146,n_id1183,50 km/h,Khyber Pass Road,None
+l_1678,n_id1101,n_id1111,80 km/h,Entry 430 Khyber Pass Road,None
+l_1679,n_id1111,n_id1170,80 km/h,Entry 430 Khyber Pass Road,None
+l_1680,n_id460,n_id457,60 km/h,Ian McKinnon Drive,None
+l_1681,n_id1179,n_id1178,50 km/h,Mountain Road,None
+l_1682,n_id1399,n_id1403,50 km/h,Parnell Rise,None
+l_1683,n_id1413,n_id1408,50 km/h,Davis Crescent,None
+l_1684,n_id1,n_id0,50 km/h,Jervois Road,None
+l_1685,n_id2,n_id1,50 km/h,Jervois Road,None
+l_1686,n_id476,n_id483,50 km/h,New North Road,None
+l_1687,n_id1224,n_id1215,50 km/h,Park Road,None
+l_1688,n_id1122,n_id1127,50 km/h,Khyber Pass Road,None
+l_1689,n_id26,n_id24,50 km/h,Great North Road,None
+l_1690,n_id112,n_id141,80 km/h,Entry 423 Curran Street,None
+l_1691,n_id1508,n_id1501,50 km/h,Gladstone Road,None
+l_1692,n_id1512,n_id1508,50 km/h,Gladstone Road,None
+l_1693,n_id388,n_id367,30 km/h,Wellington Street,None
+l_1694,n_id1513,n_id1515,50 km/h,Gladstone Road,None
+l_1695,n_id1414,n_id1411,50 km/h,Broadway,None
+l_1696,n_id144,n_id139,50 km/h,Shelly Beach Road,None
+l_1697,n_id24,n_id21,50 km/h,Great North Road,None
+l_1698,n_id283,n_id268,50 km/h,College Hill,None
+l_1699,n_id268,n_id257,50 km/h,College Hill,None
+l_1700,n_id1287,n_id1293,30 km/h,Alten Road,None
+l_1701,n_id1176,n_id1181,50 km/h,Park Road,None
+l_1702,n_id1156,n_id1176,50 km/h,Park Road,None
+l_1703,n_id1190,n_id1198,50 km/h,Park Road,None
+l_1704,n_id1188,n_id1190,50 km/h,Park Road,None
+l_1705,n_id599,n_id590,30 km/h,Halsey Street,None
+l_1706,n_id1505,n_id1507,50 km/h,Ayr Street,None
+l_1707,n_id1502,n_id1505,50 km/h,Ayr Street,None
+l_1708,n_id5,n_id4,50 km/h,Richmond Road,None
+l_1709,n_id93,n_id91,50 km/h,Curran Street,None
+l_1710,n_id393,n_id387,30 km/h,Victoria Street W,None
+l_1711,n_id374,n_id386,30 km/h,Beaumont Street,None
+l_1712,n_id386,n_id398,30 km/h,Beaumont Street,None
+l_1713,n_id245,n_id247,50 km/h,Bond Street,None
+l_1714,n_id241,n_id245,50 km/h,Bond Street,None
+l_1715,n_id219,n_id223,50 km/h,Bond Street,None
+l_1716,n_id32,n_id31,50 km/h,Great North Road,None
+l_1717,n_id31,n_id26,50 km/h,Great North Road,None
+l_1718,n_id148,n_id159,50 km/h,Williamson Avenue,None
+l_1719,n_id312,n_id309,40 km/h,Ponsonby Road,None
+l_1720,n_id226,n_id218,50 km/h,Richmond Road,None
+l_1721,n_id871,n_id873,30 km/h,Queen Street,None
+l_1722,n_id873,n_id880,30 km/h,Queen Street,None
+l_1723,n_id898,n_id895,30 km/h,Queen Street,None
+l_1724,n_id49,n_id37,50 km/h,Richmond Road,None
+l_1725,n_id6,n_id5,50 km/h,Richmond Road,None
+l_1726,n_id1068,n_id1061,30 km/h,Wellesley Street E,None
+l_1727,n_id998,n_id1010,30 km/h,Mayoral Drive,None
+l_1728,n_id1538,n_id1539,50 km/h,Tamaki Drive,None
+l_1729,n_id572,n_id579,30 km/h,Halsey Street,None
+l_1730,n_id83,n_id78,50 km/h,Curran Street,None
+l_1731,n_id426,n_id417,30 km/h,Karangahape Road,None
+l_1732,n_id726,n_id730,40 km/h,Nelson Street,None
+l_1733,n_id789,n_id794,40 km/h,Nelson Street,None
+l_1734,n_id334,n_id328,50 km/h,Great North Road,None
+l_1735,n_id328,n_id322,50 km/h,Great North Road,None
+l_1736,n_id1014,n_id1010,30 km/h,Mayoral Drive,None
+l_1737,n_id880,n_id873,30 km/h,Queen Street,None
+l_1738,n_id873,n_id860,30 km/h,Queen Street,None
+l_1739,n_id1105,n_id1104,30 km/h,Quay Street,None
+l_1740,n_id1104,n_id1086,30 km/h,Quay Street,None
+l_1741,n_id1286,n_id1309,30 km/h,Quay Street,None
+l_1742,n_id1309,n_id1314,30 km/h,Quay Street,None
+l_1743,n_id1345,n_id1339,30 km/h,Quay Street,None
+l_1744,n_id1243,n_id1238,80 km/h,Northwestern Motorway,None
+l_1745,n_id1212,n_id1172,80 km/h,Northwestern Motorway,None
+l_1746,n_id1172,n_id1158,80 km/h,Northwestern Motorway,None
+l_1747,n_id1298,n_id1293,30 km/h,Alten Road,None
+l_1748,n_id1335,n_id1311,50 km/h,Stanley Street,None
+l_1749,n_id1311,n_id1307,50 km/h,Stanley Street,None
+l_1750,n_id1299,n_id1277,50 km/h,Stanley Street,None
+l_1751,n_id980,n_id984,30 km/h,Quay Street,None
+l_1752,n_id1056,n_id1061,30 km/h,Wellesley Street E,None
+l_1753,n_id1163,n_id1165,50 km/h,Grafton Road,None
+l_1754,n_id1348,n_id1340,50 km/h,Stanley Street,None
+l_1755,n_id1340,n_id1335,50 km/h,Stanley Street,None
+l_1756,n_id1059,n_id1069,30 km/h,Bowen Avenue,None
+l_1757,n_id1117,n_id1116,30 km/h,Symonds Street,None
+l_1758,n_id141,n_id154,80 km/h,Northern Motorway,None
+l_1759,n_id154,n_id163,80 km/h,Northern Motorway,None
+l_1760,n_id509,n_id523,50 km/h,Newton Road,None
+l_1761,n_id523,n_id509,50 km/h,Newton Road,None
+l_1762,n_id440,n_id446,50 km/h,Newton Road,None
+l_1763,n_id446,n_id455,50 km/h,Newton Road,None
+l_1764,n_id521,n_id514,30 km/h,Karangahape Road,None
+l_1765,n_id1170,n_id1175,80 km/h,Southern Motorway,None
+l_1766,n_id1175,n_id1194,80 km/h,Southern Motorway,None
+l_1767,n_id1229,n_id1237,80 km/h,Southern Motorway,None
+l_1768,n_id1237,n_id1240,80 km/h,Southern Motorway,None
+l_1769,n_id758,n_id723,80 km/h,Northern Motorway,None
+l_1770,n_id723,n_id697,80 km/h,Northern Motorway,None
+l_1771,n_id1357,n_id1362,50 km/h,Parnell Rise,None
+l_1772,n_id595,n_id606,30 km/h,Hopetoun Street,None
+l_1773,n_id1110,n_id1113,30 km/h,Symonds Street,None
+l_1774,n_id1307,n_id1303,50 km/h,Stanley Street,None
+l_1775,n_id1047,n_id1054,80 km/h,Southern Motorway,None
+l_1776,n_id1065,n_id1077,80 km/h,Southern Motorway,None
+l_1777,n_id1362,n_id1357,50 km/h,Parnell Rise,None
+l_1778,n_id966,n_id967,50 km/h,Grafton Road,None
+l_1779,n_id320,n_id324,50 km/h,College Hill,None
+l_1780,n_id437,n_id446,50 km/h,Newton Road,None
+l_1781,n_id763,n_id752,40 km/h,Fanshawe Street,None
+l_1782,n_id770,n_id763,40 km/h,Fanshawe Street,None
+l_1783,n_id479,n_id491,80 km/h,Northern Motorway,None
+l_1784,n_id471,n_id469,30 km/h,Wellington Street,None
+l_1785,n_id185,n_id181,40 km/h,Ponsonby Road,None
+l_1786,n_id181,n_id178,40 km/h,Ponsonby Road,None
+l_1787,n_id486,n_id506,30 km/h,Wellington Street,None
+l_1788,n_id1372,n_id1375,50 km/h,The Strand,None
+l_1789,n_id1383,n_id1380,50 km/h,The Strand,None
+l_1790,n_id1412,n_id1409,50 km/h,Parnell Road,None
+l_1791,n_id1460,n_id1452,50 km/h,The Strand,None
+l_1792,n_id1452,n_id1449,50 km/h,The Strand,None
+l_1793,n_id1464,n_id1460,50 km/h,The Strand,None
+l_1794,n_id1467,n_id1465,50 km/h,The Strand,None
+l_1795,n_id1465,n_id1464,50 km/h,The Strand,None
+l_1796,n_id1453,n_id1450,50 km/h,Quay Street,None
+l_1797,n_id1450,n_id1439,50 km/h,Quay Street,None
+l_1798,n_id472,n_id502,50 km/h,Newton Road,None
+l_1799,n_id496,n_id494,60 km/h,Ian McKinnon Drive,None
+l_1800,n_id488,n_id496,60 km/h,Ian McKinnon Drive,None
+l_1801,n_id850,n_id833,40 km/h,Fanshawe Street,None
+l_1802,n_id833,n_id820,40 km/h,Fanshawe Street,None
+l_1803,n_id1042,n_id1038,30 km/h,Wellesley Street E,None
+l_1804,n_id805,n_id1056,30 km/h,Wellesley Street E,None
+l_1805,n_id1079,n_id1069,30 km/h,Bowen Avenue,None
+l_1806,n_id1069,n_id1064,30 km/h,Bowen Avenue,None
+l_1807,n_id1165,n_id1162,50 km/h,Wellesley Street E,None
+l_1808,n_id1162,n_id1158,50 km/h,Wellesley Street E,None
+l_1809,n_id1093,n_id1097,30 km/h,Wellesley Street E,None
+l_1810,n_id364,n_id347,50 km/h,New North Road,None
+l_1811,n_id347,n_id343,50 km/h,New North Road,None
+l_1812,n_id445,n_id435,60 km/h,Ian McKinnon Drive,None
+l_1813,n_id503,n_id483,50 km/h,New North Road,None
+l_1814,n_id483,n_id503,50 km/h,New North Road,None
+l_1815,n_id503,n_id510,50 km/h,New North Road,None
+l_1816,n_id517,n_id520,50 km/h,New North Road,None
+l_1817,n_id301,n_id306,80 km/h,Northwestern Motorway,None
+l_1818,n_id295,n_id301,80 km/h,Northwestern Motorway,None
+l_1819,n_id502,n_id509,50 km/h,Newton Road,None
+l_1820,n_id1158,n_id1151,50 km/h,Wellesley Street E,None
+l_1821,n_id1151,n_id1147,50 km/h,Wellesley Street E,None
+l_1822,n_id845,n_id853,40 km/h,Fanshawe Street,None
+l_1823,n_id853,n_id858,40 km/h,Fanshawe Street,None
+l_1824,n_id858,n_id853,40 km/h,Fanshawe Street,None
+l_1825,n_id853,n_id850,40 km/h,Fanshawe Street,None
+l_1826,n_id597,n_id557,80 km/h,Northern Motorway,None
+l_1827,n_id958,n_id951,50 km/h,Grafton Road,None
+l_1828,n_id1127,n_id1137,50 km/h,Khyber Pass Road,None
+l_1829,n_id1157,n_id1155,50 km/h,Mountain Road,None
+l_1830,n_id1155,n_id1152,50 km/h,Mountain Road,None
+l_1831,n_id839,n_id849,50 km/h,Symonds Street,None
+l_1832,n_id836,n_id839,50 km/h,Symonds Street,None
+l_1833,n_id953,n_id946,30 km/h,Lower Hobson Street,None
+l_1834,n_id1158,n_id1150,80 km/h,Entry 2A Wellesley Street,None
+l_1835,n_id591,n_id600,80 km/h,Exit 427 Nelson Street,None
+l_1836,n_id230,n_id170,80 km/h,Northern Motorway,None
+l_1837,n_id540,n_id523,50 km/h,Newton Road,None
+l_1838,n_id329,n_id362,80 km/h,Northwestern Motorway,None
+l_1839,n_id961,n_id949,80 km/h,Southern Motorway,None
+l_1840,n_id922,n_id914,30 km/h,Lower Hobson Street,None
+l_1841,n_id880,n_id883,30 km/h,Queen Street,None
+l_1842,n_id807,n_id808,50 km/h,Symonds Street,None
+l_1843,n_id808,n_id797,50 km/h,Symonds Street,None
+l_1844,n_id1053,n_id1074,50 km/h,Khyber Pass Road,None
+l_1845,n_id1451,n_id1448,50 km/h,Parnell Road,None
+l_1846,n_id368,n_id361,50 km/h,Great North Road,None
+l_1847,n_id50,n_id48,50 km/h,Great North Road,None
+l_1848,n_id48,n_id47,50 km/h,Great North Road,None
+l_1849,n_id35,n_id32,50 km/h,Great North Road,None
+l_1850,n_id1189,n_id1185,50 km/h,Park Road,None
+l_1851,n_id1185,n_id1183,50 km/h,Park Road,None
+l_1852,n_id15,n_id12,50 km/h,Jervois Road,None
+l_1853,n_id12,n_id8,50 km/h,Jervois Road,None
+l_1854,n_id52,n_id46,50 km/h,Jervois Road,None
+l_1855,n_id46,n_id42,50 km/h,Jervois Road,None
+l_1856,n_id104,n_id98,50 km/h,Jervois Road,None
+l_1857,n_id190,n_id180,50 km/h,Jervois Road,None
+l_1858,n_id980,n_id959,30 km/h,Quay Street,None
+l_1859,n_id937,n_id919,40 km/h,Fanshawe Street,None
+l_1860,n_id934,n_id926,30 km/h,Lower Hobson Street,None
+l_1861,n_id926,n_id922,30 km/h,Lower Hobson Street,None
+l_1862,n_id946,n_id928,30 km/h,Lower Hobson Street,None
+l_1863,n_id1006,n_id1002,30 km/h,Queen Street,None
+l_1864,n_id1002,n_id996,30 km/h,Queen Street,None
+l_1865,n_id830,n_id822,50 km/h,Symonds Street,None
+l_1866,n_id822,n_id818,50 km/h,Symonds Street,None
+l_1867,n_id821,n_id811,40 km/h,Hobson Street,None
+l_1868,n_id1439,n_id1422,50 km/h,Quay Street,None
+l_1869,n_id329,n_id366,80 km/h,Exit 4A Northern Motorway,None
+l_1870,n_id362,n_id366,80 km/h,Northwestern Motorway,None
+l_1871,n_id366,n_id420,80 km/h,Northwestern Motorway,None
+l_1872,n_id420,n_id429,80 km/h,Northwestern Motorway,None
+l_1873,n_id489,n_id461,30 km/h,Victoria Street W,None
+l_1874,n_id518,n_id505,30 km/h,Victoria Street W,None
+l_1875,n_id1539,n_id1540,50 km/h,Tamaki Drive,None
+l_1876,n_id888,n_id881,30 km/h,Mayoral Drive,None
+l_1877,n_id717,n_id726,40 km/h,Nelson Street,None
+l_1878,n_id411,n_id416,50 km/h,Newton Road,None
+l_1879,n_id416,n_id425,50 km/h,Newton Road,None
+l_1880,n_id750,n_id725,30 km/h,Karangahape Road,None
+l_1881,n_id792,n_id761,30 km/h,Karangahape Road,None
+l_1882,n_id761,n_id750,30 km/h,Karangahape Road,None
+l_1883,n_id1507,n_id1520,50 km/h,Ayr Street,None
+l_1884,n_id1520,n_id1522,50 km/h,Ayr Street,None
+l_1885,n_id170,n_id140,80 km/h,Northern Motorway,None
+l_1886,n_id140,n_id137,80 km/h,Northern Motorway,None
+l_1887,n_id1092,n_id1100,30 km/h,Bowen Avenue,None
+l_1888,n_id1100,n_id1141,30 km/h,Bowen Avenue,None
+l_1889,n_id727,n_id718,30 km/h,Cook Street,None
+l_1890,n_id783,n_id759,40 km/h,Hobson Street,None
+l_1891,n_id705,n_id710,40 km/h,Nelson Street,None
+l_1892,n_id633,n_id627,30 km/h,Halsey Street,None
+l_1893,n_id538,n_id533,80 km/h,Exit 427 Nelson Street,None
+l_1894,n_id955,n_id959,30 km/h,Lower Hobson Street,None
+l_1895,n_id946,n_id955,30 km/h,Lower Hobson Street,None
+l_1896,n_id1018,n_id1009,30 km/h,Queen Street,None
+l_1897,n_id1427,n_id1425,50 km/h,Broadway,None
+l_1898,n_id1425,n_id1421,50 km/h,Broadway,None
+l_1899,n_id1060,n_id1051,50 km/h,Grafton Road,None
+l_1900,n_id1051,n_id1050,50 km/h,Grafton Road,None
+l_1901,n_id1150,n_id1132,80 km/h,Entry 2A Wellesley Street,None
+l_1902,n_id1132,n_id1028,80 km/h,Entry 2A Wellesley Street,None
+l_1903,n_id1277,n_id1254,50 km/h,Stanley Street,None
+l_1904,n_id373,n_id358,50 km/h,Ponsonby Road,None
+l_1905,n_id284,n_id277,40 km/h,Ponsonby Road,None
+l_1906,n_id277,n_id269,40 km/h,Ponsonby Road,None
+l_1907,n_id1270,n_id1271,30 km/h,Beach Road,None
+l_1908,n_id1271,n_id1274,30 km/h,Beach Road,None
+l_1909,n_id1530,n_id1532,50 km/h,Gladstone Road,None
+l_1910,n_id1532,n_id1533,50 km/h,Gladstone Road,None
+l_1911,n_id1275,n_id1272,30 km/h,Anzac Avenue,None
+l_1912,n_id1272,n_id1264,30 km/h,Anzac Avenue,None
+l_1913,n_id1253,n_id1256,30 km/h,Anzac Avenue,None
+l_1914,n_id1282,n_id1286,30 km/h,Quay Street,None
+l_1915,n_id713,n_id704,30 km/h,Vincent Street,None
+l_1916,n_id1223,n_id1224,50 km/h,Park Road,None
+l_1917,n_id1058,n_id1066,50 km/h,Park Road,None
+l_1918,n_id1003,n_id994,30 km/h,Albert Street,None
+l_1919,n_id1029,n_id1025,30 km/h,Queen Street,None
+l_1920,n_id1025,n_id1020,30 km/h,Queen Street,None
+l_1921,n_id1402,n_id1397,50 km/h,Broadway,None
+l_1922,n_id860,n_id864,30 km/h,Queen Street,None
+l_1923,n_id864,n_id871,30 km/h,Queen Street,None
+l_1924,n_id902,n_id901,30 km/h,Queen Street,None
+l_1925,n_id901,n_id898,30 km/h,Queen Street,None
+l_1926,n_id710,n_id714,40 km/h,Nelson Street,None
+l_1927,n_id714,n_id717,40 km/h,Nelson Street,None
+l_1928,n_id988,n_id985,30 km/h,Albert Street,None
+l_1929,n_id1394,n_id1393,50 km/h,Broadway,None
+l_1930,n_id1393,n_id1392,50 km/h,Broadway,None
+l_1931,n_id994,n_id992,30 km/h,Albert Street,None
+l_1932,n_id992,n_id988,30 km/h,Albert Street,None
+l_1933,n_id208,n_id212,50 km/h,Bond Street,None
+l_1934,n_id322,n_id319,50 km/h,Great North Road,None
+l_1935,n_id287,n_id280,50 km/h,Great North Road,None
+l_1936,n_id280,n_id276,50 km/h,Great North Road,None
+l_1937,n_id176,n_id174,50 km/h,Great North Road,None
+l_1938,n_id174,n_id171,50 km/h,Great North Road,None
+l_1939,n_id236,n_id234,50 km/h,Great North Road,None
+l_1940,n_id234,n_id228,50 km/h,Great North Road,None
+l_1941,n_id162,n_id157,50 km/h,Great North Road,None
+l_1942,n_id157,n_id151,50 km/h,Great North Road,None
+l_1943,n_id205,n_id200,50 km/h,Great North Road,None
+l_1944,n_id196,n_id192,50 km/h,Great North Road,None
+l_1945,n_id192,n_id187,50 km/h,Great North Road,None
+l_1946,n_id121,n_id119,50 km/h,Great North Road,None
+l_1947,n_id119,n_id117,50 km/h,Great North Road,None
+l_1948,n_id17,n_id16,50 km/h,Great North Road,None
+l_1949,n_id204,n_id207,50 km/h,Bond Street,None
+l_1950,n_id200,n_id196,50 km/h,Great North Road,None
+l_1951,n_id207,n_id208,50 km/h,Bond Street,None
+l_1952,n_id319,n_id315,50 km/h,Great North Road,None
+l_1953,n_id683,n_id700,50 km/h,Newton Road,None
+l_1954,n_id700,n_id715,50 km/h,Newton Road,None
+l_1955,n_id399,n_id402,50 km/h,Newton Road,None
+l_1956,n_id899,n_id896,40 km/h,Hobson Street,None
+l_1957,n_id896,n_id893,40 km/h,Hobson Street,None
+l_1958,n_id1412,n_id1415,50 km/h,Parnell Road,None
+l_1959,n_id1415,n_id1419,50 km/h,Parnell Road,None
+l_1960,n_id316,n_id311,50 km/h,College Hill,None
+l_1961,n_id311,n_id305,50 km/h,College Hill,None
+l_1962,n_id553,n_id546,50 km/h,New North Road,None
+l_1963,n_id546,n_id539,50 km/h,New North Road,None
+l_1964,n_id658,n_id645,50 km/h,New North Road,None
+l_1965,n_id645,n_id640,50 km/h,New North Road,None
+l_1966,n_id275,n_id273,50 km/h,New North Road,None
+l_1967,n_id349,n_id342,30 km/h,Hepburn Street,None
+l_1968,n_id1034,n_id1043,30 km/h,Victoria Street E,None
+l_1969,n_id448,n_id439,30 km/h,Karangahape Road,None
+l_1970,n_id636,n_id620,30 km/h,Karangahape Road,None
+l_1971,n_id753,n_id745,50 km/h,New North Road,None
+l_1972,n_id745,n_id736,50 km/h,New North Road,None
+l_1973,n_id660,n_id666,50 km/h,Newton Road,None
+l_1974,n_id718,n_id701,30 km/h,Cook Street,None
+l_1975,n_id701,n_id677,30 km/h,Cook Street,None
+l_1976,n_id1498,n_id1503,50 km/h,Saint Stephens Avenue,None
+l_1977,n_id629,n_id614,50 km/h,New North Road,None
+l_1978,n_id1429,n_id1430,50 km/h,Parnell Road,None
+l_1979,n_id1430,n_id1432,50 km/h,Parnell Road,None
+l_1980,n_id1133,n_id1126,50 km/h,Grafton Road,None
+l_1981,n_id303,n_id302,40 km/h,Ponsonby Road,None
+l_1982,n_id1095,n_id1090,50 km/h,Grafton Road,None
+l_1983,n_id1448,n_id1446,50 km/h,Parnell Road,None
+l_1984,n_id1446,n_id1445,50 km/h,Parnell Road,None
+l_1985,n_id1145,n_id1144,50 km/h,Grafton Road,None
+l_1986,n_id1144,n_id1138,50 km/h,Grafton Road,None
+l_1987,n_id1256,n_id1259,30 km/h,Anzac Avenue,None
+l_1988,n_id1259,n_id1260,30 km/h,Anzac Avenue,None
+l_1989,n_id1218,n_id1221,50 km/h,Park Road,None
+l_1990,n_id1221,n_id1223,50 km/h,Park Road,None
+l_1991,n_id391,n_id397,50 km/h,Newton Road,None
+l_1992,n_id397,n_id399,50 km/h,Newton Road,None
+l_1993,n_id893,n_id886,40 km/h,Hobson Street,None
+l_1994,n_id269,n_id265,40 km/h,Ponsonby Road,None
+l_1995,n_id265,n_id262,40 km/h,Ponsonby Road,None
+l_1996,n_id564,n_id553,50 km/h,New North Road,None
+l_1997,n_id738,n_id728,40 km/h,Hobson Street,None
+l_1998,n_id728,n_id719,40 km/h,Hobson Street,None
+l_1999,n_id651,n_id660,50 km/h,Newton Road,None
+l_2000,n_id523,n_id540,50 km/h,Newton Road,None
+l_2001,n_id1302,n_id1301,30 km/h,Anzac Avenue,None
+l_2002,n_id1494,n_id1495,50 km/h,Saint Stephens Avenue,None
+l_2003,n_id1495,n_id1498,50 km/h,Saint Stephens Avenue,None
+l_2004,n_id614,n_id603,50 km/h,New North Road,None
+l_2005,n_id603,n_id592,50 km/h,New North Road,None
+l_2006,n_id302,n_id300,40 km/h,Ponsonby Road,None
+l_2007,n_id886,n_id885,40 km/h,Hobson Street,None
+l_2008,n_id885,n_id884,40 km/h,Hobson Street,None
+l_2009,n_id279,n_id278,50 km/h,New North Road,None
+l_2010,n_id278,n_id275,50 km/h,New North Road,None
+l_2011,n_id1219,n_id1226,30 km/h,Waterloo Quadrant,None
+l_2012,n_id670,n_id654,40 km/h,Fanshawe Street,None
+l_2013,n_id1390,n_id1396,50 km/h,The Strand,None
+l_2014,n_id1396,n_id1401,50 km/h,The Strand,None
+l_2015,n_id57,n_id59,50 km/h,Williamson Avenue,None
+l_2016,n_id42,n_id39,50 km/h,Jervois Road,None
+l_2017,n_id39,n_id36,50 km/h,Jervois Road,None
+l_2018,n_id487,n_id498,30 km/h,Beaumont Street,None
+l_2019,n_id1515,n_id1514,50 km/h,Gladstone Road,None
+l_2020,n_id1514,n_id1512,50 km/h,Gladstone Road,None
+l_2021,n_id752,n_id729,40 km/h,Fanshawe Street,None
+l_2022,n_id729,n_id716,40 km/h,Fanshawe Street,None
+l_2023,n_id156,n_id153,50 km/h,Jervois Road,None
+l_2024,n_id964,n_id948,40 km/h,Fanshawe Street,None
+l_2025,n_id51,n_id55,50 km/h,Williamson Avenue,None
+l_2026,n_id55,n_id57,50 km/h,Williamson Avenue,None
+l_2027,n_id480,n_id487,30 km/h,Beaumont Street,None
+l_2028,n_id501,n_id504,30 km/h,Beaumont Street,None
+l_2029,n_id153,n_id147,50 km/h,Jervois Road,None
+l_2030,n_id948,n_id942,40 km/h,Fanshawe Street,None
+l_2031,n_id942,n_id937,40 km/h,Fanshawe Street,None
+l_2032,n_id1476,n_id1479,50 km/h,The Strand,None
+l_2033,n_id474,n_id480,30 km/h,Beaumont Street,None
+l_2034,n_id498,n_id499,30 km/h,Beaumont Street,None
+l_2035,n_id499,n_id501,30 km/h,Beaumont Street,None
+l_2036,n_id152,n_id160,50 km/h,Shelly Beach Road,None
+l_2037,n_id160,n_id168,50 km/h,Shelly Beach Road,None
+l_2038,n_id166,n_id155,50 km/h,Shelly Beach Road,None
+l_2039,n_id1479,n_id1481,50 km/h,The Strand,None
+l_2040,n_id1481,n_id1482,50 km/h,The Strand,None
+l_2041,n_id1443,n_id1449,50 km/h,The Strand,None
+l_2042,n_id492,n_id516,30 km/h,Cook Street,None
+l_2043,n_id516,n_id524,30 km/h,Cook Street,None
+l_2044,n_id100,n_id99,50 km/h,Curran Street,None
+l_2045,n_id466,n_id475,30 km/h,Cook Street,None
+l_2046,n_id475,n_id492,30 km/h,Cook Street,None
+l_2047,n_id1356,n_id1358,50 km/h,The Strand,None
+l_2048,n_id1375,n_id1380,50 km/h,The Strand,None
+l_2049,n_id1380,n_id1381,50 km/h,The Strand,None
+l_2050,n_id1252,n_id1245,30 km/h,Symonds Street,None
+l_2051,n_id1203,n_id1209,30 km/h,Waterloo Quadrant,None
+l_2052,n_id1209,n_id1219,30 km/h,Waterloo Quadrant,None
+l_2053,n_id1283,n_id1295,30 km/h,Anzac Avenue,None
+l_2054,n_id1262,n_id1265,30 km/h,Beach Road,None
+l_2055,n_id1265,n_id1266,30 km/h,Beach Road,None
+l_2056,n_id1076,n_id1063,80 km/h,Northwestern Motorway,None
+l_2057,n_id1130,n_id1121,30 km/h,Symonds Street,None
+l_2058,n_id1121,n_id1117,30 km/h,Symonds Street,None
+l_2059,n_id41,n_id63,80 km/h,Northwestern Motorway,None
+l_2060,n_id859,n_id843,80 km/h,Southern Motorway,None
+l_2061,n_id883,n_id887,30 km/h,Queen Street,None
+l_2062,n_id1431,n_id1434,50 km/h,The Strand,None
+l_2063,n_id1434,n_id1437,50 km/h,The Strand,None
+l_2064,n_id1163,n_id1159,50 km/h,Grafton Road,None
+l_2065,n_id1159,n_id1153,50 km/h,Grafton Road,None
+l_2066,n_id1161,n_id1169,30 km/h,Customs Street E,None
+l_2067,n_id1169,n_id1180,30 km/h,Customs Street E,None
+l_2068,n_id1045,n_id1044,30 km/h,Queen Street,None
+l_2069,n_id1044,n_id1039,30 km/h,Queen Street,None
+l_2070,n_id972,n_id969,30 km/h,Albert Street,None
+l_2071,n_id969,n_id956,30 km/h,Albert Street,None
+l_2072,n_id985,n_id981,30 km/h,Albert Street,None
+l_2073,n_id981,n_id972,30 km/h,Albert Street,None
+l_2074,n_id110,n_id128,80 km/h,Northwestern Motorway,None
+l_2075,n_id1183,n_id1182,50 km/h,Mountain Road,None
+l_2076,n_id1182,n_id1179,50 km/h,Mountain Road,None
+l_2077,n_id483,n_id434,50 km/h,New North Road,None
+l_2078,n_id434,n_id364,50 km/h,New North Road,None
+l_2079,n_id430,n_id421,60 km/h,Ian McKinnon Drive,None
+l_2080,n_id421,n_id415,60 km/h,Ian McKinnon Drive,None
+l_2081,n_id906,n_id874,80 km/h,Northwestern Motorway,None
+l_2082,n_id653,n_id626,80 km/h,Northern Motorway,None
+l_2083,n_id626,n_id597,80 km/h,Northern Motorway,None
+l_2084,n_id1238,n_id1230,80 km/h,Northwestern Motorway,None
+l_2085,n_id1230,n_id1212,80 km/h,Northwestern Motorway,None
+l_2086,n_id1210,n_id1227,80 km/h,Northwestern Motorway,None
+l_2087,n_id202,n_id199,50 km/h,College Hill,None
+l_2088,n_id197,n_id194,40 km/h,Ponsonby Road,None
+l_2089,n_id194,n_id191,40 km/h,Ponsonby Road,None
+l_2090,n_id260,n_id270,40 km/h,Picton Street,None
+l_2091,n_id1357,n_id1354,50 km/h,Parnell Rise,None
+l_2092,n_id1354,n_id1350,50 km/h,Parnell Rise,None
+l_2093,n_id78,n_id79,50 km/h,Curran Street,None
+l_2094,n_id132,n_id139,50 km/h,Shelly Beach Road,None
+l_2095,n_id1178,n_id1177,50 km/h,Mountain Road,None
+l_2096,n_id1177,n_id1171,50 km/h,Mountain Road,None
+l_2097,n_id1128,n_id1134,50 km/h,Wellesley Street E,None
+l_2098,n_id1106,n_id1110,30 km/h,Symonds Street,None
+l_2099,n_id137,n_id123,80 km/h,Northern Motorway,None
+l_2100,n_id133,n_id129,80 km/h,Shelly Beach Road,None
+l_2101,n_id127,n_id132,50 km/h,Shelly Beach Road,None
+l_2102,n_id1087,n_id1088,80 km/h,Entry 430 Khyber Pass Road,None
+l_2103,n_id1088,n_id1091,80 km/h,Entry 430 Khyber Pass Road,None
+l_2104,n_id1137,n_id1140,50 km/h,Khyber Pass Road,None
+l_2105,n_id1197,n_id1196,50 km/h,Park Road,None
+l_2106,n_id1212,n_id1220,50 km/h,Grafton Road,None
+l_2107,n_id1350,n_id1354,50 km/h,Parnell Rise,None
+l_2108,n_id1354,n_id1357,50 km/h,Parnell Rise,None
+l_2109,n_id1353,n_id1356,50 km/h,The Strand,None
+l_2110,n_id434,n_id476,50 km/h,New North Road,None
+l_2111,n_id768,n_id776,50 km/h,Mount Eden Road,None
+l_2112,n_id511,n_id506,30 km/h,Wellington Street,None
+l_2113,n_id511,n_id506,80 km/h,Entry 425 Wellington Street,None
+l_2114,n_id407,n_id424,80 km/h,Northern Motorway,None
+l_2115,n_id355,n_id267,80 km/h,Entry 424 Fanshawe Street,None
+l_2116,n_id920,n_id903,30 km/h,Karangahape Road,None
+l_2117,n_id1488,n_id1490,50 km/h,The Strand,None
+l_2118,n_id920,n_id909,30 km/h,Symonds Street,None
+l_2119,n_id889,n_id882,50 km/h,Symonds Street,None
+l_2120,n_id909,n_id889,50 km/h,Symonds Street,None
+l_2121,n_id380,n_id376,30 km/h,Karangahape Road,None
+l_2122,n_id455,n_id463,80 km/h,Exit 4C Southern Motorway,None
+l_2123,n_id455,n_id463,80 km/h,Northwestern Motorway,None
+l_2124,n_id876,n_id866,30 km/h,Karangahape Road,None
+l_2125,n_id1291,n_id1300,50 km/h,Carlton Gore Road,None
+l_2126,n_id1278,n_id1291,50 km/h,Carlton Gore Road,None
+l_2127,n_id1232,n_id1239,50 km/h,Carlton Gore Road,None
+l_2128,n_id63,n_id110,80 km/h,Northwestern Motorway,None
+l_2129,n_id1484,n_id1486,50 km/h,The Strand,None
+l_2130,n_id1486,n_id1487,50 km/h,Quay Street,None
+l_2131,n_id1487,n_id1488,50 km/h,Quay Street,None
+l_2132,n_id1487,n_id1486,50 km/h,The Strand,None
+l_2133,n_id1487,n_id1488,50 km/h,The Strand,None
+l_2134,n_id1305,n_id1300,50 km/h,Carlton Gore Road,None
+l_2135,n_id370,n_id376,50 km/h,Ponsonby Road,None
+l_2136,n_id13,n_id23,80 km/h,Northwestern Motorway,None
+l_2137,n_id165,n_id161,80 km/h,Northern Motorway,None
+l_2138,n_id600,n_id605,80 km/h,Exit 427 Nelson Street,None
+l_2139,n_id600,n_id605,80 km/h,Exit 427 Nelson Street,None
+l_2140,n_id422,n_id415,60 km/h,New North Road Interchange,None
+l_2141,n_id1001,n_id1030,80 km/h,Southern Motorway,None
+l_2142,n_id1030,n_id1047,80 km/h,Southern Motorway,None
+l_2143,n_id1499,n_id1497,50 km/h,Tamaki Drive,None
+l_2144,n_id1506,n_id1504,50 km/h,Tamaki Drive,None
+l_2145,n_id1504,n_id1499,50 km/h,Tamaki Drive,None
+l_2146,n_id306,n_id310,80 km/h,Northwestern Motorway,None
+l_2147,n_id310,n_id329,80 km/h,Northwestern Motorway,None
+l_2148,n_id11,n_id13,80 km/h,Northwestern Motorway,None
+l_2149,n_id9,n_id11,80 km/h,Northwestern Motorway,None
+l_2150,n_id332,n_id327,80 km/h,Northern Motorway,None
+l_2151,n_id427,n_id432,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2152,n_id565,n_id571,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2153,n_id571,n_id575,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2154,n_id575,n_id591,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2155,n_id548,n_id552,80 km/h,Exit 424C Port,None
+l_2156,n_id552,n_id557,80 km/h,Exit 424C Port,None
+l_2157,n_id1158,n_id1154,80 km/h,Northwestern Motorway,None
+l_2158,n_id1154,n_id1150,80 km/h,Northwestern Motorway,None
+l_2159,n_id1377,n_id1382,50 km/h,Khyber Pass Road,None
+l_2160,n_id1181,n_id1188,50 km/h,Park Road,None
+l_2161,n_id903,n_id876,30 km/h,Karangahape Road,None
+l_2162,n_id1015,n_id1008,30 km/h,Symonds Street,None
+l_2163,n_id1301,n_id1297,30 km/h,Anzac Avenue,None
+l_2164,n_id1540,n_id1541,50 km/h,Tamaki Drive,None
+l_2165,n_id101,n_id100,50 km/h,Curran Street,None
+l_2166,n_id1040,n_id1057,30 km/h,Customs Street W,None
+l_2167,n_id675,n_id656,30 km/h,Halsey Street,None
+l_2168,n_id554,n_id675,30 km/h,Jellicoe Street,None
+l_2169,n_id535,n_id554,30 km/h,Jellicoe Street,None
+l_2170,n_id79,n_id80,50 km/h,Curran Street,None
+l_2171,n_id80,n_id81,50 km/h,Curran Street,None
+l_2172,n_id427,n_id442,30 km/h,Exit 424B Cook Street,None
+l_2173,n_id442,n_id454,30 km/h,Exit 424B Cook Street,None
+l_2174,n_id1214,n_id1217,30 km/h,Grafton Road,None
+l_2175,n_id1217,n_id1214,30 km/h,Grafton Road,None
+l_2176,n_id1214,n_id1227,50 km/h,Grafton Road,None
+l_2177,n_id1117,n_id1113,30 km/h,Symonds Street,None
+l_2178,n_id1117,n_id1113,30 km/h,Wellesley Street E,None
+l_2179,n_id949,n_id917,80 km/h,Southern Motorway,None
+l_2180,n_id917,n_id913,80 km/h,Southern Motorway,None
+l_2181,n_id542,n_id538,80 km/h,Exit 427 Nelson Street,None
+l_2182,n_id552,n_id545,80 km/h,Exit 427 Nelson Street,None
+l_2183,n_id237,n_id241,50 km/h,Bond Street,None
+l_2184,n_id223,n_id225,50 km/h,Bond Street,None
+l_2185,n_id1240,n_id1246,80 km/h,Southern Motorway,None
+l_2186,n_id881,n_id870,30 km/h,Mayoral Drive,None
+l_2187,n_id870,n_id862,30 km/h,Mayoral Drive,None
+l_2188,n_id1228,n_id1202,30 km/h,Symonds Street,None
+l_2189,n_id1245,n_id1236,30 km/h,Symonds Street,None
+l_2190,n_id1236,n_id1228,30 km/h,Symonds Street,None
+l_2191,n_id1267,n_id1283,30 km/h,Anzac Avenue,None
+l_2192,n_id47,n_id44,50 km/h,Great North Road,None
+l_2193,n_id43,n_id40,50 km/h,Great North Road,None
+l_2194,n_id1305,n_id1316,50 km/h,Carlton Gore Road,None
+l_2195,n_id1331,n_id1330,30 km/h,Beach Road,None
+l_2196,n_id177,n_id175,50 km/h,Jervois Road,None
+l_2197,n_id404,n_id406,80 km/h,Northern Motorway,None
+l_2198,n_id210,n_id209,40 km/h,Ponsonby Road,None
+l_2199,n_id1273,n_id1282,30 km/h,Quay Street,None
+l_2200,n_id62,n_id56,50 km/h,Jervois Road,None
+l_2201,n_id778,n_id775,50 km/h,Symonds Street,None
+l_2202,n_id570,n_id572,30 km/h,Halsey Street,None
+l_2203,n_id97,n_id112,80 km/h,Entry 423 Curran Street,None
+l_2204,n_id569,n_id556,40 km/h,Fanshawe Street,None
+l_2205,n_id84,n_id92,50 km/h,Entry 423 Curran Street,None
+l_2206,n_id412,n_id413,80 km/h,Northern Motorway,None
+l_2207,n_id921,n_id918,50 km/h,Nugent Street,None
+l_2208,n_id731,n_id713,30 km/h,Vincent Street,None
+l_2209,n_id802,n_id793,30 km/h,Upper Queen Street,None
+l_2210,n_id818,n_id810,50 km/h,Symonds Street,None
+l_2211,n_id309,n_id303,40 km/h,Ponsonby Road,None
+l_2212,n_id184,n_id182,40 km/h,Ponsonby Road,None
+l_2213,n_id129,n_id127,80 km/h,Shelly Beach Road,None
+l_2214,n_id461,n_id443,30 km/h,Victoria Street W,None
+l_2215,n_id419,n_id407,80 km/h,Northern Motorway,None
+l_2216,n_id338,n_id336,30 km/h,Beaumont Street,None
+l_2217,n_id1334,n_id1333,30 km/h,Beach Road,None
+l_2218,n_id1359,n_id1352,30 km/h,Quay Street,None
+l_2219,n_id1220,n_id1222,50 km/h,Grafton Road,None
+l_2220,n_id324,n_id333,30 km/h,College Hill,None
+l_2221,n_id88,n_id74,50 km/h,Great North Road,None
+l_2222,n_id758,n_id755,50 km/h,Upper Queen Street,None
+l_2223,n_id879,n_id897,50 km/h,Khyber Pass Road,None
+l_2224,n_id656,n_id643,30 km/h,Halsey Street,None
+l_2225,n_id643,n_id635,30 km/h,Halsey Street,None
+l_2226,n_id604,n_id589,30 km/h,Karangahape Road,None
+l_2227,n_id267,n_id235,80 km/h,Northern Motorway,None
+l_2228,n_id691,n_id676,40 km/h,Hobson Street,None
+l_2229,n_id1124,n_id1129,30 km/h,Customs Street E,None
+l_2230,n_id111,n_id106,50 km/h,Great North Road,None
+l_2231,n_id1113,n_id1114,30 km/h,Wellesley Street E,None
+l_2232,n_id995,n_id1003,30 km/h,Customs Street W,None
+l_2233,n_id918,n_id911,50 km/h,Nugent Street,None
+l_2234,n_id541,n_id574,30 km/h,Hopetoun Street,None
+l_2235,n_id1140,n_id1146,50 km/h,Khyber Pass Road,None
+l_2236,n_id1530,n_id1529,50 km/h,Gladstone Road,None
+l_2237,n_id872,n_id878,30 km/h,Mayoral Drive,None
+l_2238,n_id785,n_id778,50 km/h,Symonds Street,None
+l_2239,n_id590,n_id586,30 km/h,Halsey Street,None
+l_2240,n_id477,n_id471,30 km/h,Wellington Street,None
+l_2241,n_id1113,n_id1110,30 km/h,Symonds Street,None
+l_2242,n_id787,n_id731,30 km/h,Vincent Street,None
+l_2243,n_id846,n_id832,30 km/h,Karangahape Road,None
+l_2244,n_id1036,n_id1053,50 km/h,Khyber Pass Road,None
+l_2245,n_id654,n_id642,40 km/h,Fanshawe Street,None
+l_2246,n_id113,n_id109,50 km/h,Jervois Road,None
+l_2247,n_id737,n_id741,40 km/h,Nelson Street,None
+l_2248,n_id403,n_id408,40 km/h,Northern Motorway,None
+l_2249,n_id567,n_id570,30 km/h,Halsey Street,None
+l_2250,n_id98,n_id86,50 km/h,Jervois Road,None
+l_2251,n_id695,n_id696,30 km/h,Pitt Street,None
+l_2252,n_id1035,n_id1028,80 km/h,Northwestern Motorway,None
+l_2253,n_id709,n_id698,40 km/h,Hobson Street,None
+l_2254,n_id927,n_id924,30 km/h,Albert Street,None
+l_2255,n_id468,n_id472,50 km/h,Newton Road,None
+l_2256,n_id104,n_id103,50 km/h,Curran Street,None
+l_2257,n_id1196,n_id1191,50 km/h,Park Road,None
+l_2258,n_id541,n_id531,80 km/h,Exit 424D Helensville,None
+l_2259,n_id331,n_id323,40 km/h,Ponsonby Road,None
+l_2260,n_id698,n_id691,40 km/h,Hobson Street,None
+l_2261,n_id930,n_id925,30 km/h,Symonds Street,None
+l_2262,n_id1160,n_id1130,30 km/h,Symonds Street,None
+l_2263,n_id1401,n_id1407,50 km/h,The Strand,None
+l_2264,n_id574,n_id595,30 km/h,Hopetoun Street,None
+l_2265,n_id1244,n_id1233,30 km/h,Quay Street,None
+l_2266,n_id134,n_id133,80 km/h,Shelly Beach Road,None
+l_2267,n_id232,n_id237,50 km/h,Bond Street,None
+l_2268,n_id690,n_id670,40 km/h,Fanshawe Street,None
+l_2269,n_id847,n_id860,30 km/h,Queen Street,None
+l_2270,n_id520,n_id539,50 km/h,New North Road Interchange,None
+l_2271,n_id1041,n_id1032,50 km/h,Grafton Road,None
+l_2272,n_id1024,n_id1036,50 km/h,Khyber Pass Road,None
+l_2273,n_id405,n_id410,30 km/h,Beaumont Street,None
+l_2274,n_id540,n_id550,50 km/h,Newton Road,None
+l_2275,n_id1374,n_id1379,50 km/h,Parnell Rise,None
+l_2276,n_id709,n_id691,40 km/h,Hobson Street,None
+l_2277,n_id1226,n_id1231,30 km/h,Waterloo Quadrant,None
+l_2278,n_id1529,n_id1527,50 km/h,Gladstone Road,None
+l_2279,n_id217,n_id216,40 km/h,Ponsonby Road,None
+l_2280,n_id225,n_id232,50 km/h,Bond Street,None
+l_2281,n_id1126,n_id1123,50 km/h,Grafton Road,None
+l_2282,n_id1360,n_id1364,50 km/h,Khyber Pass Road,None
+l_2283,n_id412,n_id404,80 km/h,Northern Motorway,None
+l_2284,n_id602,n_id599,30 km/h,Halsey Street,None
+l_2285,n_id780,n_id770,40 km/h,Fanshawe Street,None
+l_2286,n_id1441,n_id1443,50 km/h,The Strand,None
+l_2287,n_id559,n_id615,80 km/h,Exit 4C Southern Motorway,None
+l_2288,n_id339,n_id333,30 km/h,College Hill,None
+l_2289,n_id494,n_id502,60 km/h,Ian McKinnon Drive,None
+l_2290,n_id769,n_id764,30 km/h,Upper Queen Street,None
+l_2291,n_id526,n_id544,80 km/h,Northern Motorway,None
+l_2292,n_id1339,n_id1337,30 km/h,Quay Street,None
+l_2293,n_id361,n_id357,50 km/h,Great North Road,None
+l_2294,n_id38,n_id35,50 km/h,Great North Road,None
+l_2295,n_id369,n_id353,30 km/h,Victoria Street W,None
+l_2296,n_id751,n_id742,40 km/h,Hobson Street,None
+l_2297,n_id478,n_id467,60 km/h,Ian McKinnon Drive,None
+l_2298,n_id911,n_id908,50 km/h,Nugent Street,None
+l_2299,n_id1463,n_id1462,50 km/h,Parnell Road,None
+l_2300,n_id471,n_id477,30 km/h,Wellington Street,None
+l_2301,n_id993,n_id970,50 km/h,Grafton Road,None
+l_2302,n_id832,n_id815,30 km/h,Upper Queen Street,None
+l_2303,n_id613,n_id623,60 km/h,Ian McKinnon Drive,None
+l_2304,n_id187,n_id195,50 km/h,Bond Street,None
+l_2305,n_id547,n_id536,30 km/h,Victoria Street W,None
+l_2306,n_id232,n_id295,80 km/h,Northwestern Motorway,None
+l_2307,n_id130,n_id125,50 km/h,Jervois Road,None
+l_2308,n_id929,n_id921,50 km/h,Nugent Street,None
+l_2309,n_id92,n_id94,50 km/h,Entry 423 Curran Street,None
+l_2310,n_id991,n_id986,30 km/h,Symonds Street,None
+l_2311,n_id810,n_id807,50 km/h,Symonds Street,None
+l_2312,n_id438,n_id441,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2313,n_id934,n_id943,30 km/h,Lower Hobson Street,None
+l_2314,n_id106,n_id105,50 km/h,Great North Road,None
+l_2315,n_id414,n_id436,30 km/h,Beaumont Street,None
+l_2316,n_id1506,n_id1509,50 km/h,Tamaki Drive,None
+l_2317,n_id1070,n_id1060,50 km/h,Grafton Road,None
+l_2318,n_id933,n_id929,50 km/h,Nugent Street,None
+l_2319,n_id536,n_id528,30 km/h,Victoria Street W,None
+l_2320,n_id94,n_id97,80 km/h,Entry 423 Curran Street,None
+l_2321,n_id357,n_id345,50 km/h,Great North Road,None
+l_2322,n_id545,n_id542,80 km/h,Exit 427 Nelson Street,None
+l_2323,n_id550,n_id558,50 km/h,Newton Road,None
+l_2324,n_id224,n_id220,40 km/h,Ponsonby Road,None
+l_2325,n_id950,n_id931,30 km/h,Symonds Street,None
+l_2326,n_id1222,n_id1214,50 km/h,Grafton Road,None
+l_2327,n_id1062,n_id1065,80 km/h,Southern Motorway,None
+l_2328,n_id1205,n_id1206,26 km/h,Grafton Road,None
+l_2329,n_id506,n_id519,30 km/h,Wellington Street,None
+l_2330,n_id1037,n_id1023,30 km/h,Quay Street,None
+l_2331,n_id126,n_id121,50 km/h,Great North Road,None
+l_2332,n_id936,n_id952,50 km/h,Khyber Pass Road,None
+l_2333,n_id764,n_id758,50 km/h,Upper Queen Street,None
+l_2334,n_id1147,n_id1139,50 km/h,Wellesley Street E,None
+l_2335,n_id806,n_id782,30 km/h,Cook Street,None
+l_2336,n_id1321,n_id1318,30 km/h,Quay Street,None
+l_2337,n_id610,n_id598,30 km/h,Victoria Street W,None
+l_2338,n_id166,n_id167,50 km/h,Shelly Beach Road,None
+l_2339,n_id354,n_id348,40 km/h,Ponsonby Road,None
+l_2340,n_id491,n_id513,80 km/h,Northern Motorway,None
+l_2341,n_id1247,n_id1244,30 km/h,Quay Street,None
+l_2342,n_id1054,n_id1062,80 km/h,Southern Motorway,None
+l_2343,n_id721,n_id735,60 km/h,Ian McKinnon Drive,None
+l_2344,n_id819,n_id829,50 km/h,Alex Evans Street,None
+l_2345,n_id1532,n_id1530,50 km/h,Gladstone Road,None
+l_2346,n_id1254,n_id1243,80 km/h,Northwestern Motorway,None
+l_2347,n_id341,n_id344,30 km/h,Beaumont Street,None
+l_2348,n_id99,n_id96,50 km/h,Curran Street,None
+l_2349,n_id583,n_id568,18 km/h,Wellesley Street W,None
+l_2350,n_id648,n_id644,22 km/h,Wellesley Street W,None
+l_2351,n_id589,n_id573,30 km/h,Karangahape Road,None
+l_2352,n_id227,n_id224,40 km/h,Ponsonby Road,None
+l_2353,n_id375,n_id390,80 km/h,Northern Motorway,None
+l_2354,n_id144,n_id155,50 km/h,Shelly Beach Road,None
+l_2355,n_id1468,n_id1463,50 km/h,Parnell Road,None
+l_2356,n_id70,n_id68,50 km/h,Great North Road,None
+l_2357,n_id137,n_id134,80 km/h,Shelly Beach Road,None
+l_2358,n_id815,n_id802,30 km/h,Upper Queen Street,None
+l_2359,n_id242,n_id239,50 km/h,Richmond Road,None
+l_2360,n_id733,n_id737,40 km/h,Nelson Street,None
+l_2361,n_id852,n_id841,30 km/h,Queen Street,None
+l_2362,n_id109,n_id107,50 km/h,Jervois Road,None
+l_2363,n_id1288,n_id1273,30 km/h,Quay Street,None
+l_2364,n_id644,n_id634,23 km/h,Wellesley Street W,None
+l_2365,n_id982,n_id975,40 km/h,Fanshawe Street,None
+l_2366,n_id443,n_id428,30 km/h,Victoria Street W,None
+l_2367,n_id1370,n_id1377,50 km/h,Khyber Pass Road,None
+l_2368,n_id627,n_id616,30 km/h,Halsey Street,None
+l_2369,n_id1397,n_id1395,50 km/h,Broadway,None
+l_2370,n_id541,n_id532,80 km/h,Exit 424C Port,None
+l_2371,n_id944,n_id941,50 km/h,Grafton Road,None
+l_2372,n_id1125,n_id1105,30 km/h,Quay Street,None
+l_2373,n_id342,n_id335,30 km/h,Hepburn Street,None
+l_2374,n_id505,n_id497,30 km/h,Victoria Street W,None
+l_2375,n_id413,n_id406,80 km/h,Northern Motorway,None
+l_2376,n_id696,n_id699,30 km/h,Pitt Street,None
+l_2377,n_id916,n_id936,50 km/h,Khyber Pass Road,None
+l_2378,n_id186,n_id184,40 km/h,Ponsonby Road,None
+l_2379,n_id973,n_id980,30 km/h,Quay Street,None
+l_2380,n_id555,n_id549,30 km/h,Karangahape Road,None
+l_2381,n_id943,n_id946,30 km/h,Lower Hobson Street,None
+l_2382,n_id995,n_id987,30 km/h,Fanshawe Street,None
+l_2383,n_id1026,n_id1007,50 km/h,Grafton Road,None
+l_2384,n_id473,n_id459,40 km/h,Fanshawe Street,None
+l_2385,n_id1382,n_id1386,50 km/h,Khyber Pass Road,None
+l_2386,n_id529,n_id531,80 km/h,Entry 4 Hobson Street,None
+l_2387,n_id1075,n_id1082,50 km/h,Park Road,None
+l_2388,n_id1369,n_id1366,50 km/h,Quay Street,None
+l_2389,n_id989,n_id1000,50 km/h,Khyber Pass Road,None
+l_2390,n_id281,n_id279,50 km/h,New North Road,None
+l_2391,n_id1418,n_id1423,50 km/h,The Strand,None
+l_2392,n_id905,n_id858,40 km/h,Fanshawe Street,None
+l_2393,n_id1379,n_id1385,50 km/h,Parnell Rise,None
+l_2394,n_id841,n_id847,30 km/h,Queen Street,None
+l_2395,n_id986,n_id976,30 km/h,Symonds Street,None
+l_2396,n_id1066,n_id1075,50 km/h,Park Road,None
+l_2397,n_id817,n_id779,80 km/h,Southern Motorway,None
+l_2398,n_id1083,n_id1087,80 km/h,Entry 430 Khyber Pass Road,None
+l_2399,n_id556,n_id512,40 km/h,Fanshawe Street,None
+l_2400,n_id431,n_id430,60 km/h,Ian McKinnon Drive,None
+l_2401,n_id96,n_id95,50 km/h,Curran Street,None
+l_2402,n_id1102,n_id1106,30 km/h,Symonds Street,None
+l_2403,n_id1268,n_id1255,30 km/h,Quay Street,None
+l_2404,n_id634,n_id608,21 km/h,Wellesley Street W,None
+l_2405,n_id1123,n_id1115,50 km/h,Grafton Road,None
+l_2406,n_id211,n_id202,50 km/h,College Hill,None
+l_2407,n_id1329,n_id1332,30 km/h,Beach Road,None
+l_2408,n_id1517,n_id1516,50 km/h,Gladstone Road,None
+l_2409,n_id1364,n_id1370,50 km/h,Khyber Pass Road,None
+l_2410,n_id726,n_id706,30 km/h,Wellesley Street W,None
+l_2411,n_id246,n_id236,50 km/h,Great North Road,None
+l_2412,n_id1328,n_id1336,50 km/h,Khyber Pass Road,None
+l_2413,n_id1273,n_id1268,30 km/h,Quay Street,None
+l_2414,n_id1315,n_id1317,30 km/h,Beach Road,None
+l_2415,n_id532,n_id534,80 km/h,Exit 424C Port,None
+l_2416,n_id533,n_id542,80 km/h,Exit 424D Helensville,None
+l_2417,n_id867,n_id863,50 km/h,Symonds Street,None
+l_2418,n_id384,n_id380,30 km/h,Karangahape Road,None
+l_2419,n_id396,n_id384,30 km/h,Karangahape Road,None
+l_2420,n_id65,n_id62,50 km/h,Jervois Road,None
+l_2421,n_id1496,n_id1500,50 km/h,Ayr Street,None
+l_2422,n_id406,n_id419,80 km/h,Northern Motorway,None
+l_2423,n_id865,n_id859,80 km/h,Southern Motorway,None
+l_2424,n_id557,n_id542,80 km/h,Northern Motorway,None
+l_2425,n_id689,n_id705,40 km/h,Nelson Street,None
+l_2426,n_id1337,n_id1321,30 km/h,Quay Street,None
+l_2427,n_id677,n_id689,40 km/h,Nelson Street,None
+l_2428,n_id619,n_id610,30 km/h,Victoria Street W,None
+l_2429,n_id565,n_id596,80 km/h,Northern Motorway,None
+l_2430,n_id1473,n_id1472,50 km/h,Parnell Road,None
+l_2431,n_id502,n_id525,60 km/h,Ian McKinnon Drive,None
+l_2432,n_id562,n_id547,30 km/h,Victoria Street W,None
+l_2433,n_id945,n_id944,50 km/h,Grafton Road,None
+l_2434,n_id863,n_id855,50 km/h,Symonds Street,None
+l_2435,n_id1007,n_id993,50 km/h,Grafton Road,None
+l_2436,n_id641,n_id647,40 km/h,Nelson Street,None
+l_2437,n_id254,n_id250,50 km/h,Sandringham Road,None
+l_2438,n_id115,n_id113,50 km/h,Jervois Road,None
+l_2439,n_id145,n_id149,50 km/h,Shelly Beach Road,None
+l_2440,n_id432,n_id438,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2441,n_id1261,n_id1278,50 km/h,Carlton Gore Road,None
+l_2442,n_id359,n_id371,30 km/h,Beaumont Street,None
+l_2443,n_id632,n_id641,40 km/h,Nelson Street,None
+l_2444,n_id417,n_id400,30 km/h,Karangahape Road,None
+l_2445,n_id1191,n_id1189,50 km/h,Park Road,None
+l_2446,n_id1108,n_id1113,30 km/h,Wellesley Street E,None
+l_2447,n_id1509,n_id1511,50 km/h,Tamaki Drive,None
+l_2448,n_id914,n_id905,40 km/h,Fanshawe Street,None
+l_2449,n_id467,n_id464,60 km/h,Ian McKinnon Drive,None
+l_2450,n_id586,n_id585,30 km/h,Halsey Street,None
+l_2451,n_id829,n_id849,50 km/h,Alex Evans Street,None
+l_2452,n_id843,n_id817,80 km/h,Southern Motorway,None
+l_2453,n_id512,n_id493,40 km/h,Fanshawe Street,None
+l_2454,n_id131,n_id126,50 km/h,Great North Road,None
+l_2455,n_id235,n_id230,80 km/h,Northern Motorway,None
+l_2456,n_id576,n_id613,60 km/h,Ian McKinnon Drive,None
+l_2457,n_id463,n_id470,80 km/h,Northwestern Motorway,None
+l_2458,n_id544,n_id565,80 km/h,Northern Motorway,None
+l_2459,n_id635,n_id633,30 km/h,Halsey Street,None
+l_2460,n_id1347,n_id1351,50 km/h,Carlton Gore Road,None
+l_2461,n_id1081,n_id1083,80 km/h,Entry 430 Khyber Pass Road,None
+l_2462,n_id795,n_id786,40 km/h,Hobson Street,None
+l_2463,n_id340,n_id341,30 km/h,Beaumont Street,None
+l_2464,n_id767,n_id751,30 km/h,Cook Street,None
+l_2465,n_id1193,n_id1203,30 km/h,Waterloo Quadrant,None
+l_2466,n_id1410,n_id1400,50 km/h,Quay Street,None
+l_2467,n_id285,n_id281,50 km/h,New North Road,None
+l_2468,n_id910,n_id900,80 km/h,Southern Motorway,None
+l_2469,n_id125,n_id118,50 km/h,Jervois Road,None
+l_2470,n_id507,n_id559,80 km/h,Exit 4C Southern Motorway,None
+l_2471,n_id468,n_id455,50 km/h,Newton Road,None
+l_2472,n_id692,n_id659,18 km/h,Wellesley Street W,None
+l_2473,n_id531,n_id534,80 km/h,Exit 424D Helensville,None
+l_2474,n_id1388,n_id1387,50 km/h,Broadway,None
+l_2475,n_id1235,n_id1241,50 km/h,Khyber Pass Road,None
+l_2476,n_id672,n_id619,30 km/h,Victoria Street W,None
+l_2477,n_id616,n_id609,30 km/h,Halsey Street,None
+l_2478,n_id215,n_id211,50 km/h,College Hill,None
+l_2479,n_id364,n_id434,50 km/h,New North Road,None
+l_2480,n_id1251,n_id1263,50 km/h,Khyber Pass Road,None
+l_2481,n_id1423,n_id1428,50 km/h,The Strand,None
+l_2482,n_id528,n_id518,30 km/h,Victoria Street W,None
+l_2483,n_id757,n_id765,50 km/h,Newton Road,None
+l_2484,n_id1263,n_id1269,50 km/h,Khyber Pass Road,None
+l_2485,n_id392,n_id403,40 km/h,Northern Motorway,None
+l_2486,n_id1135,n_id1125,30 km/h,Quay Street,None
+l_2487,n_id138,n_id142,50 km/h,Shelly Beach Road,None
+l_2488,n_id1225,n_id1186,30 km/h,Quay Street,None
+l_2489,n_id346,n_id350,30 km/h,Beaumont Street,None
+l_2490,n_id1110,n_id1106,30 km/h,Symonds Street,None
+l_2491,n_id801,n_id780,40 km/h,Fanshawe Street,None
+l_2492,n_id1342,n_id1344,50 km/h,Khyber Pass Road,None
+l_2493,n_id1472,n_id1468,50 km/h,Parnell Road,None
+l_2494,n_id1241,n_id1251,50 km/h,Khyber Pass Road,None
+l_2495,n_id716,n_id690,40 km/h,Fanshawe Street,None
+l_2496,n_id107,n_id104,50 km/h,Jervois Road,None
+l_2497,n_id408,n_id412,80 km/h,Northern Motorway,None
+l_2498,n_id300,n_id293,40 km/h,Ponsonby Road,None
+l_2499,n_id340,n_id338,30 km/h,Beaumont Street,None
+l_2500,n_id608,n_id583,18 km/h,Wellesley Street W,None
+l_2501,n_id1491,n_id1493,50 km/h,Saint Stephens Avenue,None
+l_2502,n_id1231,n_id1234,30 km/h,Waterloo Quadrant,None
+l_2503,n_id510,n_id520,50 km/h,New North Road Interchange,None
+l_2504,n_id742,n_id738,40 km/h,Hobson Street,None
+l_2505,n_id601,n_id587,30 km/h,Cook Street,None
+l_2506,n_id86,n_id76,50 km/h,Jervois Road,None
+l_2507,n_id455,n_id440,50 km/h,Newton Road,None
+l_2508,n_id959,n_id973,30 km/h,Quay Street,None
+l_2509,n_id749,n_id757,50 km/h,Newton Road,None
+l_2510,n_id1097,n_id1103,30 km/h,Wellesley Street E,None
+l_2511,n_id25,n_id29,80 km/h,Northwestern Motorway,None
+l_2512,n_id526,n_id519,80 km/h,Northern Motorway,None
+l_2513,n_id356,n_id359,30 km/h,Beaumont Street,None
+l_2514,n_id167,n_id169,50 km/h,Shelly Beach Road,None
+l_2515,n_id545,n_id533,80 km/h,Exit 4B Nelson Street,None
+l_2516,n_id1239,n_id1261,50 km/h,Carlton Gore Road,None
+l_2517,n_id1119,n_id1124,30 km/h,Customs Street E,None
+l_2518,n_id1341,n_id1343,50 km/h,Parnell Rise,None
+l_2519,n_id214,n_id210,40 km/h,Ponsonby Road,None
+l_2520,n_id706,n_id692,30 km/h,Wellesley Street W,None
+l_2521,n_id711,n_id672,30 km/h,Victoria Street W,None
+l_2522,n_id1118,n_id1125,30 km/h,Quay Street,None
+l_2523,n_id1480,n_id1496,50 km/h,Ayr Street,None
+l_2524,n_id1000,n_id1012,50 km/h,Khyber Pass Road,None
+l_2525,n_id128,n_id150,80 km/h,Northwestern Motorway,None
+l_2526,n_id180,n_id177,50 km/h,Jervois Road,None
+l_2527,n_id1206,n_id1211,19 km/h,Grafton Road,None
+l_2528,n_id142,n_id145,50 km/h,Shelly Beach Road,None
+l_2529,n_id907,n_id916,50 km/h,Khyber Pass Road,None
+l_2530,n_id628,n_id637,30 km/h,Hopetoun Street,None
+l_2531,n_id585,n_id580,30 km/h,Halsey Street,None
+l_2532,n_id1490,n_id1483,50 km/h,Quay Street,None
+l_2533,n_id198,n_id197,40 km/h,Ponsonby Road,None
+l_2534,n_id56,n_id52,50 km/h,Jervois Road,None
+l_2535,n_id220,n_id217,40 km/h,Ponsonby Road,None
+l_2536,n_id1511,n_id1535,50 km/h,Tamaki Drive,None
+l_2537,n_id390,n_id408,80 km/h,Northern Motorway,None
+l_2538,n_id1358,n_id1361,50 km/h,The Strand,None
+l_2539,n_id1485,n_id1491,50 km/h,Saint Stephens Avenue,None
+l_2540,n_id209,n_id206,40 km/h,Ponsonby Road,None
+l_2541,n_id1224,n_id1232,50 km/h,Carlton Gore Road,None
+l_2542,n_id1114,n_id1128,30 km/h,Wellesley Street E,None
+l_2543,n_id435,n_id431,60 km/h,Ian McKinnon Drive,None
+l_2544,n_id652,n_id678,60 km/h,Ian McKinnon Drive,None
+l_2545,n_id623,n_id652,60 km/h,Ian McKinnon Drive,None
+l_2546,n_id759,n_id751,40 km/h,Hobson Street,None
+l_2547,n_id155,n_id146,50 km/h,Shelly Beach Road,None
+l_2548,n_id16,n_id14,50 km/h,Great North Road,None
+l_2549,n_id890,n_id865,80 km/h,Southern Motorway,None
+l_2550,n_id1049,n_id1037,30 km/h,Quay Street,None
+l_2551,n_id410,n_id414,30 km/h,Beaumont Street,None
+l_2552,n_id883,n_id880,30 km/h,Queen Street,None
+l_2553,n_id1268,n_id1273,30 km/h,Quay Street,None
+l_2554,n_id832,n_id823,30 km/h,Karangahape Road,None
+l_2555,n_id878,n_id902,30 km/h,Mayoral Drive,None
+l_2556,n_id387,n_id383,30 km/h,Victoria Street W,None
+l_2557,n_id374,n_id377,30 km/h,Entry 424 Fanshawe Street,None
+l_2558,n_id1016,n_id1021,30 km/h,Customs Street W,None
+l_2559,n_id470,n_id507,80 km/h,Exit 4C Southern Motorway,None
+l_2560,n_id1139,n_id1136,50 km/h,Wellesley Street E,None
+l_2561,n_id598,n_id588,30 km/h,Victoria Street W,None
+l_2562,n_id513,n_id522,80 km/h,Northern Motorway,None
+l_2563,n_id900,n_id890,80 km/h,Southern Motorway,None
+l_2564,n_id534,n_id533,80 km/h,Exit 424D Helensville,None
+l_2565,n_id851,n_id842,40 km/h,Hobson Street,None
+l_2566,n_id1082,n_id1096,50 km/h,Park Road,None
+l_2567,n_id1333,n_id1331,30 km/h,Beach Road,None
+l_2568,n_id784,n_id781,30 km/h,Upper Queen Street,None
+l_2569,n_id877,n_id867,50 km/h,Symonds Street,None
+l_2570,n_id365,n_id370,50 km/h,Ponsonby Road,None
+l_2571,n_id793,n_id784,30 km/h,Upper Queen Street,None
+l_2572,n_id8,n_id7,50 km/h,Jervois Road,None
+l_2573,n_id1184,n_id1193,30 km/h,Waterloo Quadrant,None
+l_2574,n_id385,n_id389,50 km/h,Newton Road,None
+l_2575,n_id1469,n_id1477,50 km/h,Parnell Road,None
+l_2576,n_id455,n_id468,50 km/h,Newton Road,None
+l_2577,n_id1516,n_id1513,50 km/h,Gladstone Road,None
+l_2578,n_id882,n_id877,50 km/h,Symonds Street,None
+l_2579,n_id924,n_id888,30 km/h,Albert Street,None
+l_2580,n_id216,n_id214,40 km/h,Ponsonby Road,None
+l_2581,n_id353,n_id351,30 km/h,Victoria Street W,None
+l_2582,n_id936,n_id933,50 km/h,Nugent Street,None
+l_2583,n_id779,n_id758,80 km/h,Exit 428 Northwestern Motorway,None
+l_2584,n_id1477,n_id1485,50 km/h,Saint Stephens Avenue,None
+l_2585,n_id105,n_id102,50 km/h,Great North Road,None
+l_2586,n_id1233,n_id1225,30 km/h,Quay Street,None
+l_2587,n_id497,n_id489,30 km/h,Victoria Street W,None
+l_2588,n_id231,n_id227,40 km/h,Ponsonby Road,None
+l_2589,n_id253,n_id242,40 km/h,Richmond Road,None
+l_2590,n_id1186,n_id1173,30 km/h,Quay Street,None
+l_2591,n_id389,n_id391,50 km/h,Newton Road,None
+l_2592,n_id657,n_id638,30 km/h,Cook Street,None
+l_2593,n_id758,n_id748,80 km/h,Exit 428 Northwestern Motorway,None
+l_2594,n_id239,n_id229,50 km/h,Richmond Road,None
+l_2595,n_id7,n_id3,50 km/h,Jervois Road,None
+l_2596,n_id519,n_id511,30 km/h,Wellington Street,None
+l_2597,n_id1422,n_id1410,50 km/h,Quay Street,None
+l_2598,n_id493,n_id473,40 km/h,Fanshawe Street,None
+l_2599,n_id1094,n_id1099,30 km/h,Customs Street E,None
+l_2600,n_id609,n_id602,30 km/h,Halsey Street,None
+l_2601,n_id1471,n_id1456,50 km/h,Quay Street,None
+l_2602,n_id913,n_id910,80 km/h,Southern Motorway,None
+l_2603,n_id258,n_id246,50 km/h,Great North Road,None
+l_2604,n_id617,n_id618,40 km/h,Exit 427 Nelson Street,None
+l_2605,n_id358,n_id365,50 km/h,Ponsonby Road,None
+l_2606,n_id1407,n_id1418,50 km/h,The Strand,None
+l_2607,n_id659,n_id648,18 km/h,Wellesley Street W,None
+l_2608,n_id1313,n_id1328,50 km/h,Khyber Pass Road,None
+l_2609,n_id542,n_id548,80 km/h,Exit 424C Port,None
+l_2610,n_id201,n_id198,40 km/h,Ponsonby Road,None
+l_2611,n_id1255,n_id1247,30 km/h,Quay Street,None
+l_2612,n_id1211,n_id1213,30 km/h,Grafton Road,None
+l_2613,n_id150,n_id232,80 km/h,Northwestern Motorway,None
+l_2614,n_id66,n_id65,50 km/h,Jervois Road,None
+l_2615,n_id782,n_id767,30 km/h,Cook Street,None
+l_2616,n_id451,n_id450,80 km/h,Exit 4A Northern Motorway,None
+l_2617,n_id997,n_id990,30 km/h,Quay Street,None
+l_2618,n_id605,n_id612,80 km/h,Exit 427 Nelson Street,None
+l_2619,n_id1386,n_id1392,50 km/h,Khyber Pass Road,None
+l_2620,n_id1470,n_id1480,50 km/h,Ayr Street,None
+l_2621,n_id874,n_id863,80 km/h,Northwestern Motorway,None
+l_2622,n_id146,n_id144,50 km/h,Shelly Beach Road,None
+l_2623,n_id459,n_id398,40 km/h,Fanshawe Street,None
+l_2624,n_id428,n_id406,30 km/h,Victoria Street W,None
+l_2625,n_id1106,n_id1102,30 km/h,Symonds Street,None
+l_2626,n_id1063,n_id1035,80 km/h,Northwestern Motorway,None
+l_2627,n_id1201,n_id1205,19 km/h,Grafton Road,None
+l_2628,n_id925,n_id920,30 km/h,Symonds Street,None
+l_2629,n_id406,n_id407,80 km/h,Northern Motorway,None
+l_2630,n_id470,n_id507,80 km/h,Northwestern Motorway,None
+l_2631,n_id724,n_id711,30 km/h,Victoria Street W,None
+l_2632,n_id549,n_id543,30 km/h,Karangahape Road,None
+l_2633,n_id1187,n_id1160,30 km/h,Symonds Street,None
+l_2634,n_id904,n_id899,40 km/h,Hobson Street,None
+l_2635,n_id1366,n_id1359,30 km/h,Quay Street,None
+l_2636,n_id463,n_id470,80 km/h,Exit 4C Southern Motorway,None
+l_2637,n_id1317,n_id1319,30 km/h,Beach Road,None
+l_2638,n_id624,n_id601,30 km/h,Cook Street,None
+l_2639,n_id741,n_id744,40 km/h,Nelson Street,None
+l_2640,n_id786,n_id783,40 km/h,Hobson Street,None
+l_2641,n_id383,n_id378,30 km/h,Victoria Street W,None
+l_2642,n_id1389,n_id1388,50 km/h,Broadway,None
+l_2643,n_id515,n_id517,50 km/h,New North Road,None
+l_2644,n_id1078,n_id1070,50 km/h,Grafton Road,None
+l_2645,n_id1338,n_id1341,30 km/h,Parnell Rise,None
+l_2646,n_id1207,n_id1235,50 km/h,Khyber Pass Road,None
+l_2647,n_id23,n_id25,80 km/h,Northwestern Motorway,None
+l_2648,n_id860,n_id852,30 km/h,Queen Street,None
+l_2649,n_id776,n_id788,50 km/h,Mount Eden Road,None
+l_2650,n_id1336,n_id1342,50 km/h,Khyber Pass Road,None
+l_2651,n_id247,n_id249,50 km/h,Bond Street,None
+l_2652,n_id952,n_id957,50 km/h,Khyber Pass Road,None
+l_2653,n_id525,n_id551,60 km/h,Ian McKinnon Drive,None
+l_2654,n_id915,n_id904,40 km/h,Hobson Street,None
+l_2655,n_id415,n_id395,60 km/h,Dominion Road,None
+l_2656,n_id147,n_id130,50 km/h,Jervois Road,None
+l_2657,n_id897,n_id907,50 km/h,Khyber Pass Road,None
+l_2658,n_id344,n_id346,30 km/h,Beaumont Street,None
+l_2659,n_id1113,n_id1117,30 km/h,Symonds Street,None
+l_2660,n_id1099,n_id1109,30 km/h,Customs Street E,None
+l_2661,n_id611,n_id628,30 km/h,Hopetoun Street,None
+l_2662,n_id182,n_id179,40 km/h,Ponsonby Road,None
+l_2663,n_id771,n_id760,30 km/h,Wellesley Street W,None
+l_2664,n_id1021,n_id1033,30 km/h,Customs Street W,None
+l_2665,n_id377,n_id381,30 km/h,Entry 424 Fanshawe Street,None
+l_2666,n_id1103,n_id1108,30 km/h,Wellesley Street E,None
+l_2667,n_id551,n_id576,60 km/h,Ian McKinnon Drive,None
+l_2668,n_id638,n_id631,30 km/h,Cook Street,None
+l_2669,n_id1032,n_id1026,50 km/h,Grafton Road,None
+l_2670,n_id1316,n_id1347,50 km/h,Carlton Gore Road,None
+l_2671,n_id591,n_id593,80 km/h,Exit 424C Port And 424D Helensville,None
+l_2672,n_id730,n_id733,40 km/h,Nelson Street,None
+l_2673,n_id1269,n_id1290,50 km/h,Khyber Pass Road,None
+l_2674,n_id260,n_id252,40 km/h,Ponsonby Road,None
+l_2675,n_id805,n_id771,30 km/h,Wellesley Street W,None
+l_2676,n_id400,n_id396,30 km/h,Karangahape Road,None
+l_2677,n_id781,n_id774,30 km/h,Upper Queen Street,None
+l_2678,n_id519,n_id491,80 km/h,Northern Motorway,None
+l_2679,n_id409,n_id412,40 km/h,Northern Motorway,None
+l_2680,n_id800,n_id819,50 km/h,Alex Evans Street,None
+l_2681,n_id74,n_id70,50 km/h,Great North Road,None
+l_2682,n_id40,n_id38,50 km/h,Great North Road,None
+l_2683,n_id408,n_id409,40 km/h,Northern Motorway,None
+l_2684,n_id788,n_id799,50 km/h,Mount Eden Road,None
+l_2685,n_id522,n_id526,80 km/h,Northern Motorway,None
+l_2686,n_id990,n_id984,30 km/h,Quay Street,None
+l_2687,n_id612,n_id617,40 km/h,Exit 427 Nelson Street,None
+l_2688,n_id842,n_id821,40 km/h,Hobson Street,None
+l_2689,n_id840,n_id835,50 km/h,Khyber Pass Road,None
+l_2690,n_id987,n_id982,30 km/h,Fanshawe Street,None

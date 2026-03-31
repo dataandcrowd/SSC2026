@@ -1,0 +1,34 @@
+;; Boundary drawing using GIS extension
+;; Requires: extensions [gis] in main model
+;; Add show-boundary? switch to interface
+
+globals [
+  boundary-dataset
+]
+
+;; Procedure to load the boundary from shapefile
+to load-boundary
+  carefully [
+    set boundary-dataset gis:load-dataset "Data/roads/akl_boundary.shp"
+    print "Boundary shapefile loaded successfully"
+  ] [
+    print "Warning: Could not load boundary shapefile"
+    set boundary-dataset nobody
+  ]
+end
+
+;; Procedure to draw the boundary
+to draw-boundary
+  if boundary-dataset != nobody [
+    gis:set-drawing-color blue
+    gis:draw boundary-dataset 2
+  ]
+end
+
+;; Toggle boundary display based on switch
+to update-boundary-display
+  clear-drawing
+  if show-boundary? [
+    draw-boundary
+  ]
+end

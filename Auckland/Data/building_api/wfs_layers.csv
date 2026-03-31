@@ -1,0 +1,2 @@
+name,title,default_crs,bbox_raw
+data.linz.govt.nz:layer-101290,NZ Building Outlines,urn:ogc:def:crs:EPSG::2193,"<ns0:WGS84BoundingBox xmlns:ns0=""http://www.opengis.net/ows/1.1""><ns0:LowerCorner>167.29474881729323 -46.92714944825096</ns0:LowerCorner><ns0:UpperCorner>178.54819748685932 -34.4260248208465</ns0:UpperCorner></ns0:WGS84BoundingBox>"

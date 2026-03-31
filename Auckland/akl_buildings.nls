@@ -1,0 +1,101 @@
+;; Define a breed for buildings
+breed [buildings building]
+
+; Define the variables for buildings
+buildings-own[
+  b-type ; type of building: "home", "commercial", "university"
+  b-xpos ; x-position of building
+  b-ypos ; y-position of building
+  b-id ; ID of building
+  nearest-node ; nearest node to building
+  is-cbd? ; whether building is in CBD area
+]
+
+; Procedure to load buildings from a CSV file
+to load-buildings
+  ;; Set the network context to nodes and roads
+  nw:set-context nodes roads
+
+  ;; Load the CBD building list from CSV
+  let csv-data csv:from-file "Data/akl_building_list.csv"
+  let header-row first csv-data
+  let data-rows butfirst csv-data
+
+  ;; Create CBD buildings from CSV (commercial by default)
+  foreach data-rows [
+    row ->
+    create-buildings 1 [
+      set b-id (item 0 row)
+      set b-xpos item 1 row * max-pxcor
+      set b-ypos item 2 row * max-pycor
+      set shape "square"
+      set size 1
+      setxy b-xpos b-ypos
+      set b-type "commercial"
+      set color red
+      set is-cbd? true
+      set nearest-node min-one-of nodes [distance myself]
+    ]
+  ]
+
+  ;; Set buildings near Symonds Street as universities
+  ;; Symonds Street area: normalized x 0.47-0.68, y 0.18-0.58
+  ask buildings with [
+    b-xpos / max-pxcor >= 0.47 and b-xpos / max-pxcor <= 0.68 and
+    b-ypos / max-pycor >= 0.18 and b-ypos / max-pycor <= 0.58
+  ] [
+    set b-type "university"
+    set color yellow
+  ]
+
+  ;; Create residential homes near nodes in outskirt areas
+  ;; Residential areas: x < 0.25 (left), y < 0.25 (bottom), x > 0.75 (right)
+  create-residential-buildings
+
+  print (word "Loaded " count buildings " buildings:")
+  print (word "  - Homes (blue): " count buildings with [b-type = "home"])
+  print (word "  - Universities (yellow): " count buildings with [b-type = "university"])
+  print (word "  - Commercial (red): " count buildings with [b-type = "commercial"])
+end
+
+;; Create residential buildings near outskirt nodes
+to create-residential-buildings
+  ;; Find nodes in residential areas
+  let residential-nodes nodes with [
+    (n-xpos / max-pxcor < 0.25) or   ;; Left side (Ponsonby/Grey Lynn)
+    (n-ypos / max-pycor < 0.25) or   ;; Bottom (Newton/Kingsland/Newmarket)
+    (n-xpos / max-pxcor > 0.75)      ;; Right side (Parnell)
+  ]
+
+  ;; Select 150 random nodes from residential areas to place homes
+  let target-homes min (list 150 count residential-nodes)
+  let selected-nodes n-of target-homes residential-nodes
+
+  ;; Collect node data into a list first (observer context)
+  let node-data []
+  ask selected-nodes [
+    set node-data lput (list n-xpos n-ypos self) node-data
+  ]
+
+  ;; Now create buildings from observer context
+  let home-count 0
+  foreach node-data [ data ->
+    let my-xpos item 0 data
+    let my-ypos item 1 data
+    let my-node item 2 data
+
+    create-buildings 1 [
+      set b-id (word "home_" home-count)
+      set b-xpos my-xpos + (random-float 2 - 1)
+      set b-ypos my-ypos + (random-float 2 - 1)
+      setxy b-xpos b-ypos
+      set shape "square"
+      set size 1
+      set b-type "home"
+      set color blue
+      set is-cbd? false
+      set nearest-node my-node
+    ]
+    set home-count home-count + 1
+  ]
+end
