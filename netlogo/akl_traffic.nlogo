@@ -1,6 +1,6 @@
 ; Include any necessary libraries
-extensions [gis nw  csv]
-__includes ["akl_vehicles.nls" "akl_nodes.nls" "akl_buildings.nls" "akl_boundary.nls"]
+extensions [gis nw  csv table]
+__includes ["akl_vehicles.nls" "akl_nodes.nls" "akl_buildings.nls" "akl_boundary.nls" "akl_pricing.nls"]
 
 ; monitors
 globals [
@@ -14,6 +14,8 @@ globals [
 to setup
   if control-seed? [random-seed current-seed]
   clear-all  ; Clear any existing data
+  set path-cache table:make  ; SSC2026: OD route cache (must exist before vehicles-init)
+  set w1 0.4  set w2 0.3  set w3 0.2  set w4 0.1  set w-std 0.02  ; fixed activity weights (were sliders)
   set all-periods (list)
   set all-delays (list)
   set n-trips-list (list)
@@ -22,6 +24,7 @@ to setup
   load-buildings
   vehicles-init number_of_vehicles ; Initialize vehicles
   ask vehicles [if b-destinations != 0 [set n-trips-list lput (length b-destinations) (n-trips-list)] ]
+  pricing-init ; SSC2026: tag CBD roads and assign heterogeneous VOT / decision-rule state
   reset-ticks ; Reset the tick counter
   reset-timer
 ;  go
@@ -30,10 +33,14 @@ end
 
 ; Advance the simulation by one tick
 to go
+  if ticks >= 24 * ticks-per-hour [ stop ]  ; SSC2026: stop after one simulated day
   let flag true
   ask roads [
     set current_speeds (list)
   ]
+  update-vc ; SSC2026: refresh link V/C before movement
+  update-signals ; SSC2026: cycle signalised intersections
+  record-hourly-vc ; SSC2026: accumulate hourly V/C for the histogram
   ask vehicles [
     let pre-period periods
     let pre-delay delays
@@ -52,6 +59,7 @@ to go
 ;    if ticks > 0 [type timer type "\n"]
     stop
   ]
+  tally-cordon ; SSC2026: count boundary cordon crossings
   tick ; Advance the tick counter
 end
 
@@ -115,9 +123,9 @@ ticks
 
 BUTTON
 25
-570
+400
 195
-603
+433
 NIL
 setup
 NIL
@@ -132,9 +140,9 @@ NIL
 
 BUTTON
 25
-640
+470
 195
-673
+503
 go
 go
 T
@@ -149,9 +157,9 @@ NIL
 
 BUTTON
 25
-605
+435
 195
-638
+468
 go once
 go
 NIL
@@ -172,9 +180,9 @@ SLIDER
 number_of_vehicles
 number_of_vehicles
 0
-500
-500.0
-20
+5000
+2500.0
+100
 1
 NIL
 HORIZONTAL
@@ -209,76 +217,63 @@ max-n-activities
 NIL
 HORIZONTAL
 
-BUTTON
-25
-675
-195
-708
-go-infinite
-go-infinite
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
 785
 25
 1070
 175
-Average time per trip
-Time step
-Trip time
+CBD V/C over time
+ticks
+V/C
 0.0
 10.0
 0.0
-10.0
+1.5
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ifelse all-periods != (list) [plot mean all-periods] [plot 0]"
+"inner" 1.0 0 -2674135 true "" "plot mean-vc-at \"inner\""
+"boundary" 1.0 0 -1184463 true "" "plot mean-vc-at \"boundary\""
+"peripheral" 1.0 0 -10899396 true "" "plot mean-vc-at \"peripheral\""
 
 PLOT
 785
 175
 1070
 335
-Trip time histogram
-Time step
-Vehicle
+V/C by hour of day
+hour
+mean V/C (inner)
 0.0
-1000.0
+24.0
 0.0
-10.0
-true
+1.5
+false
 false
 "" ""
 PENS
-"default" 1.0 1 -16777216 true "" "histogram all-periods\nset-histogram-num-bars 100"
+"hourly" 1.0 1 -13345367 true "" "draw-hourly-hist"
 
 PLOT
 785
 595
 1070
 715
-Number of planned trips histogram
-NIL
-NIL
+Cordon crossings (cumulative/day)
+ticks
+vehicles
 0.0
-5.0
+10.0
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 1 -16777216 true "" "histogram n-trips-list\n"
+"SH1N" 1.0 0 -16777216 true "" "plot cordon-xings \"SH1N\""
+"SH1S" 1.0 0 -2674135 true "" "plot cordon-xings \"SH1S\""
+"SH16" 1.0 0 -13345367 true "" "plot cordon-xings \"SH16\""
 
 SWITCH
 25
@@ -296,24 +291,24 @@ PLOT
 465
 1070
 595
-Number of activity modification requests
-Time step
-Vehicle
+On-road vehicles by sector
+sector N ES W Art local
+vehicles
+0.0
+5.0
 0.0
 10.0
-0.0
-10.0
-true
+false
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count vehicles with [modify? = true]"
+"sector" 1.0 1 -10899396 true "" "draw-sector-bars"
 
 SLIDER
-210
-675
-380
-708
+220
+535
+390
+568
 current-seed
 current-seed
 0
@@ -325,10 +320,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-210
-640
-380
-673
+220
+500
+390
+533
 control-seed?
 control-seed?
 0
@@ -336,85 +331,10 @@ control-seed?
 -1000
 
 SLIDER
-25
-295
-197
-328
-w1
-w1
-0
-1
-0.4
-0.05
-1
-NIL
-HORIZONTAL
-
-SLIDER
-25
-330
-197
-363
-w2
-w2
-0
-1
-0.3
-0.05
-1
-NIL
-HORIZONTAL
-
-SLIDER
-25
-365
-197
-398
-w3
-w3
-0
-1
-0.2
-0.05
-1
-NIL
-HORIZONTAL
-
-SLIDER
-25
-400
-197
-433
-w4
-w4
-0
-1
-0.1
-0.05
-1
-NIL
-HORIZONTAL
-
-SLIDER
-25
-435
-197
-468
-w-std
-w-std
-0
-0.2
-0.02
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
 24
-528
+358
 196
-561
+391
 mean-tolerance
 mean-tolerance
 0
@@ -457,14 +377,14 @@ HORIZONTAL
 
 SLIDER
 24
-493
+323
 196
-526
+356
 min-delay-threshold
 min-delay-threshold
 0
 20
-20.0
+5.0
 1
 1
 NIL
@@ -475,28 +395,20 @@ PLOT
 335
 1070
 465
-Delays histogram
-NIL
-NIL
--200.0
-300.0
+Roads by V/C band
+ticks
+# roads
+0.0
+10.0
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 1 -16777216 true "" "histogram all-delays\nset-histogram-num-bars 100"
-
-TEXTBOX
-25
-470
-205
-490
-Minimum delay threshold at which an activity modification is requested is only reached if w = 1
-8
-0.0
-1
+"green <0.5" 1.0 0 -10899396 true "" "plot count roads with [r-vc < 0.5]"
+"yellow .5-.7" 1.0 0 -1184463 true "" "plot count roads with [r-vc >= 0.5 and r-vc < 0.7]"
+"red >0.7" 1.0 0 -2674135 true "" "plot count roads with [r-vc >= 0.7]"
 
 TEXTBOX
 25
@@ -519,25 +431,427 @@ Maximum number of ticks that the vehicle moves earlier than it should to reach i
 1
 
 TEXTBOX
-215
-610
-385
-630
+225
+470
+395
+490
 Control the seed value (Note that go-infinite increments the current-seed value every tick)
 8
 0.0
 1
 
 SWITCH
-450
-645
-612
-678
+460
+505
+622
+538
 show-boundary?
 show-boundary?
-1
+0
 1
 -1000
+
+CHOOSER
+1075
+25
+1265
+70
+decision-rule
+decision-rule
+"Exp-Decay" "El Farol" "Q-Learning"
+0
+
+CHOOSER
+1075
+73
+1265
+118
+fee-regime
+fee-regime
+"No-Charge" "flat" "tou"
+0
+
+SLIDER
+1075
+121
+1265
+154
+flat-fee-level
+flat-fee-level
+0
+10
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+157
+1265
+190
+base-beta
+base-beta
+0.1
+1.5
+0.5
+0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+193
+1265
+226
+el-farol-threshold
+el-farol-threshold
+0.3
+0.9
+0.6
+0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+229
+1265
+262
+ql-alpha
+ql-alpha
+0.01
+0.5
+0.1
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+265
+1265
+298
+ql-gamma
+ql-gamma
+0.5
+0.99
+0.9
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+301
+1265
+334
+ql-epsilon-init
+ql-epsilon-init
+0.05
+0.9
+0.4
+0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+337
+1265
+370
+ql-epsilon-decay
+ql-epsilon-decay
+0.99
+0.999
+0.997
+0.001
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+373
+1265
+406
+n-sim-days
+n-sim-days
+1
+50
+20.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+409
+1265
+442
+ticks-per-hour
+ticks-per-hour
+60
+1200
+600.0
+60
+1
+NIL
+HORIZONTAL
+
+BUTTON
+25
+505
+195
+538
+go-days
+go-days
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
+SLIDER
+1075
+485
+1265
+518
+sim-start-hour
+sim-start-hour
+0
+23
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1075
+523
+1265
+568
+Time (HH:MM)
+clock-string
+17
+1
+11
+
+MONITOR
+1075
+575
+1148
+620
+SH1N V/C
+sh-vc \"SH1N\"
+3
+1
+11
+
+MONITOR
+1151
+575
+1224
+620
+SH1S V/C
+sh-vc \"SH1S\"
+3
+1
+11
+
+MONITOR
+1227
+575
+1300
+620
+SH16 V/C
+sh-vc \"SH16\"
+3
+1
+11
+
+SLIDER
+1075
+628
+1300
+661
+boundary-inflow-share
+boundary-inflow-share
+0
+1
+0.7
+0.05
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1075
+665
+1148
+710
+SH1N xings
+cordon-xings \"SH1N\"
+0
+1
+11
+
+MONITOR
+1151
+665
+1224
+710
+SH1S xings
+cordon-xings \"SH1S\"
+0
+1
+11
+
+MONITOR
+1227
+665
+1300
+710
+SH16 xings
+cordon-xings \"SH16\"
+0
+1
+11
+
+SLIDER
+1075
+718
+1300
+751
+scale-factor
+scale-factor
+1
+2000
+300.0
+10
+1
+veh/agent
+HORIZONTAL
+
+SLIDER
+1075
+754
+1300
+787
+capacity-base
+capacity-base
+100
+5000
+400.0
+50
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+790
+1300
+823
+bpr-alpha
+bpr-alpha
+0
+1
+0.15
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+826
+1300
+859
+bpr-beta
+bpr-beta
+1
+8
+4.0
+0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1075
+862
+1300
+895
+vc-threshold
+vc-threshold
+0.5
+1.2
+0.85
+0.05
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1075
+899
+1300
+944
+% links congested (V/C > threshold)
+pct-congested
+1
+1
+11
+
+MONITOR
+1075
+950
+1185
+995
+max V/C
+max-vc
+2
+1
+11
+
+MONITOR
+1190
+950
+1300
+995
+veh on road
+veh-on-road
+0
+1
+11
+
+SLIDER
+1075
+1001
+1300
+1034
+through-share
+through-share
+0
+1
+0.3
+0.05
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 Overview

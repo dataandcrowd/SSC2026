@@ -10,6 +10,12 @@ roads-own [
   speed_limmit ; Speed limit of the road
   current_speeds ; Current speeds on the road (Any element cannot be higher than the speed_limmit)
   current_period ; last period taken to make the trip
+  r-cbd?         ; SSC2026 pricing: TRUE if road is inside the cordon
+  r-position     ; SSC2026 pricing: "inner" | "boundary" | "peripheral"
+  r-sh           ; SSC2026: state highway tag "SH1N" | "SH1S" | "SH16" | ""
+  r-capacity     ; SSC2026: link capacity in real vehicles (V/C denominator)
+  r-load         ; SSC2026: agents currently on the link (recomputed each tick)
+  r-vc           ; SSC2026: volume/capacity = r-load * scale-factor / r-capacity
 ]
 
 ; Define the variables for nodes
@@ -17,12 +23,19 @@ nodes-own[
   n-id ; ID of node
   n-xpos ; x-position of node
   n-ypos ; y-position of node
+  signal? ; SSC2026: TRUE if a signalised intersection
 ]
 
 ; Procedure to load the network from CSV files
 to load-network
   ;; Set the network context to nodes and roads
   nw:set-context nodes roads
+
+  ;; SSC2026: load observed ADT per link (AT Average Daily Traffic Counts)
+  set link-adt table:make
+  foreach but-first (csv:from-file "Data/akl_link_capacity.csv") [ rr ->
+    table:put link-adt (item 0 rr) (item 1 rr)
+  ]
 
   ;; Load the node list from a CSV file
   let csv-data csv:from-file "Data/akl_node_list.csv"
@@ -115,7 +128,15 @@ to load-network
             set color gray
           ]
           ;; calculate the current_period
-          set current_period distance_to_destination / speed_limmit 
+          set current_period distance_to_destination / speed_limmit
+          ;; SSC2026: capacity derived from observed ADT (AT counts), normalised
+          ;; so a typical ~15k-ADT arterial maps to capacity-base x 1.0. Links with
+          ;; no ADT match fall back to the road-class multiplier.
+          ifelse table:has-key? link-adt r-id
+            [ set r-capacity capacity-base * (table:get link-adt r-id) / 15000 ]
+            [ set r-capacity capacity-base * capacity-mult speed_limmit ]
+          set r-load 0
+          set r-vc 0
         ]
       ]
     ][

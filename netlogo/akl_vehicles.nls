@@ -28,6 +28,23 @@ vehicles-own [
   tolerance           ; the tolerance of individuals for long trips
   modify?             ; whether the agent requests an activity modification or not
   initial-step?       ; whether the vehicle is at the initial trip from home or not
+  ;; --- SSC2026 pricing extension (see akl_pricing.nls) ---
+  vot                 ; value of time (NZ$/hr), lognormal
+  beta                ; price sensitivity, inversely related to vot
+  base-trip-rate      ; baseline CBD trip propensity
+  essential-trip-prob ; probability the CBD trip is essential (fee-insensitive)
+  essential-today?    ; whether today's CBD trip is essential
+  enters-cbd?         ; decision outcome: enters the CBD today
+  has-cbd-trip?       ; whether the agent has any CBD destination
+  trip-hour           ; intended CBD arrival hour (for the fee)
+  el-weights          ; El Farol predictor weights
+  el-scores           ; El Farol predictor scores
+  q-table             ; Q-Learning table (24 states x 2 actions)
+  q-epsilon           ; Q-Learning exploration rate
+  depart-tick         ; clock-anchored tick for the outbound (first) leg
+  return-tick         ; clock-anchored tick for the return-home (final) leg
+  corridors-today     ; SSC2026: list of motorway corridors used today (cordon count)
+  through?            ; SSC2026: pass-through trip (boundary->boundary, skips CBD)
 ]
 
 globals [
@@ -55,7 +72,7 @@ to vehicles-init [number-of-vehicles]
 ;    set tolerance truncated-normal 1 20 mean-tolerance 1
     set tolerance truncated-normal 0 1 mean-tolerance 0.3
     set buffer-period random max-buffer-period
-    set v-home one-of buildings with [ b-type = "home" ]     ; Select a random starting point
+    set v-home pick-home     ; SSC2026: weighted toward motorway boundary inflows
     set location v-home
     move-to location
     set top-speed ( random-float ( 1.0 - slowest-vehicle ) ) + ( 1.0 * slowest-vehicle ) ; Set random maximum speed
@@ -81,12 +98,18 @@ to vehicles-init [number-of-vehicles]
     set active? true
     set top-speed ( random-float ( 1.0 - slowest-vehicle ) ) + ( 1.0 * slowest-vehicle ) ; Set random maximum speed
     set speed top-speed                  ; Set initial speed to maximum speed
+    ;; SSC2026: a share of boundary inflow is pass-through traffic (enters one
+    ;; boundary, exits via another, does not stop in the CBD, and is not charged).
+    set through? ((member? ([b-sector] of v-home) (list "North" "East-South" "West" "Arterial"))
+                  and (random-float 1 < through-share))
     ;; generate the required number of trips
-    let n-trips (random max-n-activities) + 1
+    let n-trips ifelse-value through? [1] [(random max-n-activities) + 1]
     let temp-building nobody
     ;; iterate through the trips to allocate parameter values
     repeat n-trips [
-      set temp-building one-of buildings with [ b-type != "home" and not member? self [b-destinations] of myself ]
+      ifelse through?
+        [ set temp-building cross-sector-boundary-home ([b-sector] of v-home) ]
+        [ set temp-building one-of buildings with [ b-type != "home" and not member? self [b-destinations] of myself ] ]
       set b-destinations lput temp-building b-destinations
       let a one-of activity-options
       set activity lput a activity
@@ -105,8 +128,8 @@ to vehicles-init [number-of-vehicles]
       ]
       set activity-weight lput w activity-weight
     ]
-    ;; add the home as the final trip if required
-    if return-home? = true [
+    ;; add the home as the final trip if required (pass-through agents do not return)
+    if return-home? = true and not through? [
       set b-destinations lput v-home b-destinations
       set activity lput 0 activity
       set activity-weight lput 1 activity-weight
@@ -117,7 +140,7 @@ to vehicles-init [number-of-vehicles]
     let trip-temp nobody
     let o [nearest-node] of v-home
     let d [nearest-node] of b-destination
-    ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+    set trip-temp cached-path o d ;; SSC2026: cached free-flow shortest path
     ;; If no path found, set trip to empty list
     ifelse is-list? trip-temp [ ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ] ] [ set trip [] ]
     ;; set the target times and expected periods to reach b-destinations
@@ -145,7 +168,7 @@ to-report report-target-time [input-destination]
   [set o [nearest-node] of v-home] ;; if the b-destination is the first, move from home
   [set o [nearest-node] of item (i - 1) b-destinations] ;; else, move from the prior destination
   let trip-temp nobody
-  ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+  set trip-temp cached-path o d ;; SSC2026: cached free-flow shortest path
   let expected-period-temp 0
   ;; Check if path exists (not false)
   if is-list? trip-temp [
@@ -171,7 +194,7 @@ to-report report-expected-period [input-destination]
   [set o [nearest-node] of v-home] ;; if the b-destination is the first, move from home
   [set o [nearest-node] of item (i - 1) b-destinations] ;; else, move from the prior destination
   let trip-temp nobody
-  ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+  set trip-temp cached-path o d ;; SSC2026: cached free-flow shortest path
   let expected-period-temp 0
   ;; Check if path exists (not false)
   if is-list? trip-temp [
@@ -193,7 +216,7 @@ to vehicles-travel
       let o [nearest-node] of location ;; origin is location because vehicle is at an activity
       let d [nearest-node] of item i-destination b-destinations
       let trip-temp nobody
-      ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+      set trip-temp cached-path o d ;; SSC2026: cached free-flow shortest path
       ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ]
     ]
     ;; if the vehicle is targeting the last b-destination and the destination is very close
@@ -207,7 +230,11 @@ to vehicles-travel
     set expected-periods replace-item i-destination expected-periods expected-period
     ;; find the target time and remove from activity if the trip must start
     let target-time item i-destination target-times
-    if ticks + buffer-period + expected-period >= target-time [
+    ;; SSC2026: clock-anchor departures. The first (outbound) leg cannot start
+    ;; before depart-tick; the final return-home leg cannot start before return-tick.
+    let gate-tick depart-tick
+    if return-home? and not through? and i-destination = (length b-destinations - 1) [ set gate-tick return-tick ]
+    if (ticks + buffer-period + expected-period >= target-time) and (ticks >= gate-tick) and (not empty? trip) [
       let o-node nobody
       ifelse i-destination = 0 [set o-node [nearest-node] of v-home]
       [set o-node [nearest-node] of item (i-destination - 1) b-destinations]
@@ -288,7 +315,7 @@ to vehicles-travel
         let o [nearest-node] of location ;; origin is location because vehicle is at an activity
         let d [nearest-node] of b-destination
         let trip-temp nobody
-        ask o [ set trip-temp nw:weighted-path-to d current_period ] ;; generate the expected trip
+        set trip-temp cached-path o d ;; SSC2026: cached free-flow shortest path
         ifelse is-list? trip-temp [ set trip trip-temp ] [ set trip [] ]
       ]
       [ ;; if the vehicle reached its last b-destination
@@ -347,6 +374,9 @@ to move-at-correct-speed
   if speed > speed-restriction [
     set speed speed-restriction
   ]
+  ;; SSC2026: slow down on congested links (V/C-based BPR penalty)
+  let lnk current-link
+  if is-link? lnk [ set speed speed * bpr-speed-factor ([r-vc] of lnk) ]
   fd speed ; Move forward
   if destination = 0 [type self type " | b-destinations = " type b-destinations type "\n"]
   set remaining-progress distance destination ; Update remaining progress distance
@@ -386,7 +416,7 @@ end
 ;; `new-location` refers to the new origin of the trip,
 ;; when called by a vehicle, this `new-location` (new origin) is the vehicle's previous `destination` (old destination)
 to set-destination [new-location]
-  
+  if empty? trip [ stop ]   ;; SSC2026: no path -> do not start this leg
   let new-road first trip
   set trip but-first trip
   let new-destination 0

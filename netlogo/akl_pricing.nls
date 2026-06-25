@@ -1,0 +1,671 @@
+;; =====================================================================
+;; akl_pricing.nls
+;; SSC2026 congestion-pricing extension for akl_traffic.nlogo
+;; ---------------------------------------------------------------------
+;; Adds a cordon charge and three CBD-entry decision rules, ported from
+;; code/congestion_tou_v3.py so the NetLogo and Python results are
+;; comparable. The agent decision here is binary CBD ENTRY (enter / do
+;; not enter today), exactly as in the Python model, but congestion is
+;; now EMERGENT from real movement on the Auckland network rather than
+;; a hand-coded HOURLY_VC_PROFILE.
+;;
+;; Requires the following extra variables (declared in the existing files):
+;;   roads-own   : r-cbd? r-position
+;;   vehicles-own: vot beta base-trip-rate essential-trip-prob essential-today?
+;;                 enters-cbd? has-cbd-trip? trip-hour
+;;                 el-weights el-scores q-table q-epsilon
+;; Interface (chooser/sliders) variables used as globals:
+;;   decision-rule  ("Exp-Decay" | "El Farol" | "Q-Learning")
+;;   fee-regime     ("No-Charge" | "flat" | "tou")
+;;   flat-fee-level base-beta el-farol-threshold
+;;   ql-alpha ql-gamma ql-epsilon-init ql-epsilon-decay
+;;   n-sim-days ticks-per-hour
+;; =====================================================================
+
+globals [
+  attendance-history     ;; list of realised CBD congestion signals (one per day)
+  current-sim-day        ;; day counter for the multi-day loop
+  median-vot             ;; population median value of time
+  vot-q20 vot-q80        ;; 20th / 80th percentile VOT thresholds (income proxy)
+  cbd-roads              ;; agentset of roads inside / on the cordon
+  day-records            ;; list of per-day summary rows for export
+  path-cache             ;; table: "oWho-dWho" -> cached shortest path (speed)
+  signal-cycle           ;; signal cycle length in ticks
+  signal-green-ratio     ;; green time / cycle (also the g/C capacity factor)
+  w1 w2 w3 w4 w-std      ;; activity-weight means/std (fixed; were UI sliders)
+  hourly-vc-sum          ;; per-hour accumulated inner V/C (24 elements)
+  hourly-vc-count        ;; per-hour sample count (24 elements)
+  link-adt               ;; table: link id -> observed ADT (AT counts)
+]
+
+;; ---------------------------------------------------------------------
+;; SETUP: tag CBD roads, initialise heterogeneous population
+;; Call AFTER load-network / load-buildings / vehicles-init in setup.
+;; ---------------------------------------------------------------------
+to pricing-init
+  set attendance-history (list 0.5)
+  set current-sim-day 0
+  set day-records (list)
+  tag-cbd-roads
+  tag-motorways
+  set signal-cycle 120
+  set signal-green-ratio 0.5
+  setup-signals
+  init-population
+  assign-departures
+  ask vehicles [ set corridors-today [] ]
+  set hourly-vc-sum n-values 24 [0]
+  set hourly-vc-count n-values 24 [0]
+end
+
+;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
+to record-hourly-vc
+  let h current-hour
+  set hourly-vc-sum replace-item h hourly-vc-sum ((item h hourly-vc-sum) + mean-vc-at "inner")
+  set hourly-vc-count replace-item h hourly-vc-count ((item h hourly-vc-count) + 1)
+end
+
+to-report hourly-vc-mean [h]
+  let c item h hourly-vc-count
+  ifelse c = 0 [ report 0 ] [ report (item h hourly-vc-sum) / c ]
+end
+
+;; Plot 24 hourly-mean V/C bars (called as the histogram pen's update command).
+to draw-hourly-hist
+  plot-pen-reset
+  let h 0
+  while [h < 24] [ plot hourly-vc-mean h  set h h + 1 ]
+end
+
+;; Signalised intersections: major non-motorway junctions. They cut the capacity
+;; of their approach links by the g/C ratio, so arterial corridors (Ponsonby,
+;; Newton/CMJ, Parnell, Newmarket) congest while free-flow motorways do not.
+to setup-signals
+  ask nodes [
+    set signal? ((count my-roads >= 3) and (not any? my-roads with [r-sh != ""]))
+  ]
+  ask roads with [ [signal?] of end1 or [signal?] of end2 ] [
+    set r-capacity r-capacity * signal-green-ratio
+  ]
+  ask nodes with [signal?] [ set size 1.2  set color lime ]  ;; visible before go
+end
+
+;; Cycle the signal display: green/red dots at signalised nodes, desynchronised.
+to update-signals
+  let cyc max (list 1 signal-cycle)
+  let green-ticks cyc * signal-green-ratio
+  ask nodes with [signal?] [
+    ifelse ((ticks + (who mod cyc)) mod cyc) < green-ticks
+      [ set color lime ] [ set color red ]
+  ]
+end
+
+;; Per-tick corridor-use tally: record each corridor a vehicle uses, once per day.
+to tally-cordon
+  ask vehicles with [at-activity? = false] [
+    let lnk current-link
+    if is-link? lnk [
+      let cor [r-sh] of lnk
+      if cor != "" and not member? cor corridors-today [
+        set corridors-today lput cor corridors-today
+      ]
+    ]
+  ]
+end
+
+;; The road link a moving vehicle currently occupies (between location and destination).
+to-report current-link
+  if location = 0 or destination = 0 [ report nobody ]
+  report road ([who] of location) ([who] of destination)
+end
+
+;; Daily count of UNIQUE vehicles that used a corridor ("SH1N" | "SH1S" | "SH16").
+;; A round-trip commuter counts once, so multiply by ~2 to compare with both-way AADT.
+to-report cordon-xings [corridor]
+  report count vehicles with [member? corridor corridors-today]
+end
+
+;; Roads are CBD ("inner") if both endpoint nodes are near a CBD building,
+;; "boundary" if exactly one endpoint is, "peripheral" otherwise.
+to tag-cbd-roads
+  let cbd-nodes (turtle-set [nearest-node] of buildings with [is-cbd? = true])
+  ask roads [
+    let e1-in member? end1 cbd-nodes
+    let e2-in member? end2 cbd-nodes
+    ifelse e1-in and e2-in [ set r-cbd? true  set r-position "inner" ]
+    [ ifelse e1-in or e2-in [ set r-cbd? false set r-position "boundary" ]
+      [ set r-cbd? false set r-position "peripheral" ] ]
+  ]
+  set cbd-roads roads with [r-position = "inner"]
+end
+
+;; Heterogeneous WTP, mirroring DriverPopulation in congestion_tou_v3.py
+to init-population
+  ;; Value of time: lognormal(mu=2.3, sigma=0.6) -> median ~10, mean ~12 NZ$/hr
+  ask vehicles [ set vot exp (random-normal 2.3 0.6) ]
+  set median-vot median [vot] of vehicles
+  let sorted-vot sort [vot] of vehicles
+  set vot-q20 percentile-of sorted-vot 20
+  set vot-q80 percentile-of sorted-vot 80
+
+  ask vehicles [
+    ;; price sensitivity inversely proportional to VOT, clipped to [0.1, 2.0]
+    set beta clip (base-beta * (median-vot / vot)) 0.1 2.0
+    ;; essential-trip probability by income proxy (low income -> more essential)
+    ifelse vot <= vot-q20 [ set essential-trip-prob 0.15 ]
+    [ ifelse vot >= vot-q80 [ set essential-trip-prob 0.05 ] [ set essential-trip-prob 0.08 ] ]
+    set base-trip-rate 0.3 + random-float 0.4         ;; uniform(0.3, 0.7)
+    ;; El Farol predictor weights / scores (n-pred = 5)
+    set el-weights n-values 5 [ random-float 1 ]
+    set el-scores  n-values 5 [ 0 ]
+    ;; Q-table: 24 states x 2 actions, small random init
+    set q-table n-values 24 [ (list (random-float 0.2 - 0.1) (random-float 0.2 - 0.1)) ]
+    set q-epsilon ql-epsilon-init
+    set enters-cbd? false
+    set has-cbd-trip? false
+    set trip-hour 8
+  ]
+end
+
+;; ---------------------------------------------------------------------
+;; CLOCK-ANCHORED DEPARTURES
+;; Each vehicle is released onto the network at an outbound hour drawn from
+;; an AM-weighted demand profile, and (if it returns home) at a return hour
+;; drawn from a PM-weighted profile. This makes the 7-9am inbound surge and
+;; the 4-7pm motorway peak emergent rather than assumed.
+;; ---------------------------------------------------------------------
+;; Relative hourly demand weights, indexed by clock hour 0..23.
+;; Outbound ramps from ~5am with a sharp 7-9am peak (heavily weighted at 8am)
+;; so that a large cohort is concurrently on the network at the peak. (hour 0..23)
+to-report outbound-demand
+  report (list 1 1 1 1 1 3 8 20 30 16 7 5 5 5 5 6 9 8 5 3 2 1 1 1)
+end
+
+;; Return peaks 16-18 (4-6pm) and tails to 7pm.
+to-report return-demand
+  report (list 1 1 1 1 1 1 2 3 4 5 6 6 6 7 8 10 14 17 13 8 5 3 2 1)
+end
+
+;; Weighted random clock hour (0..23) from a 24-element weight list.
+to-report sample-hour [weights]
+  let total sum weights
+  let r random-float total
+  let cum 0
+  let h 0
+  while [h < 24] [
+    set cum cum + item h weights
+    if r < cum [ report h ]
+    set h h + 1
+  ]
+  report 23
+end
+
+;; Convert a clock hour to a simulation tick (sim begins at sim-start-hour:00),
+;; with a uniform within-hour jitter so departures spread across the hour.
+to-report hour-to-tick [h]
+  report ((h - sim-start-hour) mod 24) * ticks-per-hour + random (floor ticks-per-hour)
+end
+
+to assign-departures
+  ask vehicles [
+    set depart-tick hour-to-tick (sample-hour outbound-demand)
+    set return-tick hour-to-tick (sample-hour return-demand)
+    ;; ensure the return leg is gated to AFTER the outbound leg
+    if return-tick <= depart-tick [ set return-tick depart-tick + ticks-per-hour ]
+  ]
+end
+
+;; ---------------------------------------------------------------------
+;; CALIBRATION REFERENCE (user-supplied, 2023 Census + NZTA)
+;; Region total 1,656,486 (2023). Sector populations and motorway AADT below
+;; are the targets for OD seeding. NOTE: the loaded network is centred on the
+;; central isthmus with motorway stubs, so North Shore / West / East-South
+;; residents enter via the SH1 / SH16 / Southern boundary nodes rather than as
+;; homes. Use these as scaling targets when seeding boundary inflows.
+;; ---------------------------------------------------------------------
+to-report sector-populations   ;; [sector rough-population]
+  report (list
+    (list "North Shore" 350000)
+    (list "West"        270000)
+    (list "Isthmus"     430000)
+    (list "East/South"  600000)
+    (list "Islands"      10000))
+end
+
+;; Corrected from NZTA TMS screenline counts (both directions, latest year).
+to-report motorway-aadt        ;; [corridor AADT-both-ways heavy-%]
+  report (list
+    (list "SH1N Harbour Bridge"        160000 7.5)
+    (list "SH1S Southern Ellerslie"    122000 6.0)
+    (list "SH16 Northwestern St Lukes" 119000 4.0))
+end
+
+;; TMS screenline -> network boundary mouth mapping (for cordon validation).
+to-report tms-screenlines      ;; [sector boundary-node corridor lat lon]
+  report (list
+    (list "North"      "n_id165"  "SH1N" -36.8253 174.7492)
+    (list "East-South" "n_id1246" "SH1S" -36.9023 174.8107)
+    (list "West"       "n_id9"    "SH16" -36.8686 174.7382))
+end
+
+;; Home selection weighted toward motorway boundary inflows. boundary-inflow-share
+;; sets the fraction of agents that are external (motorway) commuters. The sector
+;; split makes the SOUTH dominant, reflecting that the Southern Motorway carries
+;; the largest inflow into the Auckland isthmus (East/South 0.48, North 0.30,
+;; West 0.22).
+to-report pick-home
+  if random-float 1 < boundary-inflow-share [
+    ;; 45% of boundary inflow enters via arterial edges, 55% via the motorways
+    ifelse random-float 1 < 0.45 [
+      let ha one-of buildings with [b-sector = "Arterial"]
+      if ha != nobody [ report ha ]
+    ] [
+      let r random-float 1
+      let sec ifelse-value (r < 0.30) ["North"] [ ifelse-value (r < 0.78) ["East-South"] ["West"] ]
+      let h one-of buildings with [b-sector = sec]
+      if h != nobody [ report h ]
+    ]
+  ]
+  report one-of buildings with [b-type = "home" and b-sector = "local"]
+end
+
+to-report sector-count [sec]
+  report count vehicles with [is-building? v-home and [b-sector] of v-home = sec]
+end
+
+;; Vehicles from a sector currently on the road (moving).
+to-report sector-on-road [sec]
+  report count vehicles with [is-building? v-home and [b-sector] of v-home = sec and at-activity? = false]
+end
+
+;; Plot on-road vehicles by sector as bars (pen update command for the sector plot).
+to draw-sector-bars
+  plot-pen-reset
+  foreach (list "North" "East-South" "West" "Arterial" "local") [ s -> plot sector-on-road s ]
+end
+
+;; Cached shortest path between two nodes. The route is computed once per OD pair
+;; (free-flow weights) and reused, which makes large agent counts tractable.
+;; NOTE: routes are therefore fixed and do not re-route around congestion.
+to-report cached-path [o d]
+  let key (word [who] of o "-" [who] of d)
+  ifelse table:has-key? path-cache key
+    [ report table:get path-cache key ]
+    [ let p 0
+      ask o [ set p nw:weighted-path-to d current_period ]
+      if not is-list? p [ set p [] ]
+      table:put path-cache key p
+      report p ]
+end
+
+;; A boundary home in a sector other than from-sec, for pass-through trips.
+to-report cross-sector-boundary-home [from-sec]
+  let opts remove from-sec (list "North" "East-South" "West" "Arterial")
+  let target-sec one-of opts
+  let h one-of buildings with [b-sector = target-sec]
+  ifelse h != nobody [ report h ] [ report one-of buildings with [b-sector = "cbd"] ]
+end
+
+;; ---------------------------------------------------------------------
+;; FEE SCHEDULE (ported from get_tou_fee / get_flat_fee)
+;; ---------------------------------------------------------------------
+to-report current-hour
+  report (sim-start-hour + floor (ticks / ticks-per-hour)) mod 24
+end
+
+;; "HH:MM" clock-of-day for the interface monitor (tick 0 = sim-start-hour:00)
+to-report clock-string
+  let mins floor (((ticks mod ticks-per-hour) / ticks-per-hour) * 60)
+  report (word (two-digit current-hour) ":" (two-digit mins))
+end
+
+to-report two-digit [n]
+  report ifelse-value (n < 10) [ (word "0" n) ] [ (word n) ]
+end
+
+;; Time-of-use fee with 30-min linear interpolation at transitions.
+to-report get-tou-fee [h m]
+  let t h + m / 60.0
+  let pts (list
+    (list 0.0 2.0) (list 5.5 2.0) (list 6.0 4.0) (list 7.5 4.0)
+    (list 8.0 6.0) (list 9.0 6.0) (list 9.5 4.0) (list 15.5 4.0)
+    (list 16.0 6.0) (list 18.0 6.0) (list 18.5 4.0) (list 20.5 4.0)
+    (list 21.0 2.0) (list 24.0 2.0))
+  let i 0
+  while [i < (length pts - 1)] [
+    let t1 item 0 (item i pts)        let f1 item 1 (item i pts)
+    let t2 item 0 (item (i + 1) pts)  let f2 item 1 (item (i + 1) pts)
+    if (t >= t1 and t < t2) [
+      ifelse t2 = t1 [ report f1 ]
+      [ report f1 + ((t - t1) / (t2 - t1)) * (f2 - f1) ]
+    ]
+    set i i + 1
+  ]
+  report 2.0
+end
+
+to-report get-flat-fee [level]
+  report level
+end
+
+;; Fee a CBD-bound agent faces at its intended trip hour.
+to-report current-fee [h]
+  if fee-regime = "No-Charge" [ report 0 ]
+  if fee-regime = "flat" [ report get-flat-fee flat-fee-level ]
+  report get-tou-fee h 0
+end
+
+;; ---------------------------------------------------------------------
+;; DECISION DISPATCHER (turtle reporter). Returns TRUE if the agent
+;; enters the CBD today. `fee` is the charge at the agent's trip-hour.
+;; ---------------------------------------------------------------------
+to-report decide-enter? [fee h]
+  set essential-today? (random-float 1 < essential-trip-prob)
+  if decision-rule = "Exp-Decay"  [ report decide-baseline fee ]
+  if decision-rule = "El Farol"    [ report decide-el-farol fee ]
+  if decision-rule = "Q-Learning"  [ report decide-qlearning fee h ]
+  report decide-baseline fee
+end
+
+;; --- Model 1: Baseline (exponential decay) ---------------------------
+;; p_enter = base_trip_rate * exp(-beta * fee / vot)   (Python L196)
+to-report decide-baseline [fee]
+  let p-raw base-trip-rate * exp (- beta * fee / vot)
+  let p-enter clip p-raw 0.05 0.95
+  if essential-today? [ set p-enter max (list p-enter 0.8) ]
+  report random-float 1 < p-enter
+end
+
+;; --- Model 2: El Farol (minority game) -------------------------------
+to-report decide-el-farol [fee]
+  let predicted el-predict attendance-history
+  let fee-ratio fee / median-vot
+  let adj-threshold el-farol-threshold - fee-ratio * beta * 0.3
+  let will-enter predicted < adj-threshold
+  if random-float 1 < 0.08 [ set will-enter not will-enter ]   ;; bounded rationality
+  if essential-today? [ set will-enter true ]
+  report will-enter
+end
+
+to-report el-predict [hist]
+  if length hist < 2 [ report 0.3 + random-float 0.4 ]
+  let best position (max el-scores) el-scores
+  let w item best el-weights
+  let recent last-n hist 10
+  report w * (mean recent) + (1 - w) * (last recent)
+end
+
+to el-update [hist actual]
+  let j 0
+  while [j < 5] [
+    let w item j el-weights
+    let pred 0.5
+    if length hist >= 2 [
+      let prior but-last hist
+      set pred w * (mean last-n prior 10) + (1 - w) * (item ((length hist) - 2) hist)
+    ]
+    let err abs (pred - actual)
+    set el-scores replace-item j el-scores (0.9 * (item j el-scores) + (1 - err))
+    set j j + 1
+  ]
+end
+
+;; --- Model 3: Q-Learning ---------------------------------------------
+to-report q-state [h vc]
+  let tb 0
+  ifelse h < 5 [ set tb 0 ] [ ifelse h < 8 [ set tb 1 ] [ ifelse h < 10 [ set tb 2 ]
+    [ ifelse h < 15 [ set tb 3 ] [ ifelse h < 19 [ set tb 4 ] [ set tb 5 ] ] ] ] ]
+  let cb 0
+  ifelse vc < 0.3 [ set cb 0 ] [ ifelse vc < 0.5 [ set cb 1 ] [ ifelse vc < 0.7 [ set cb 2 ] [ set cb 3 ] ] ]
+  report tb * 4 + cb
+end
+
+to-report decide-qlearning [fee h]
+  let vc last attendance-history
+  let s q-state h vc
+  ifelse random-float 1 < q-epsilon
+  [ report random 2 = 1 ]                                   ;; explore
+  [ let qs item s q-table
+    report (item 1 qs) > (item 0 qs) ]                      ;; exploit (action 1 = enter)
+end
+
+;; reward = vot/10 - fee - congestion_cost ; updated at end of day
+to q-update [h vc-before vc-after entered fee essential]
+  let s q-state h vc-before
+  let s2 q-state h vc-after
+  let a ifelse-value entered [1] [0]
+  let reward 0
+  ifelse entered [
+    let congestion-cost vc-after * 3.0
+    set reward (vot / 10.0) - fee - congestion-cost
+    if fee > vot [ set reward reward - (fee - vot) * 1.5 ]
+    if essential [ set reward reward + 2.0 ]
+  ] [ set reward 0.3 - 0.15 * (vot / 10.0) ]
+  let qs item s q-table
+  let best-next max (item s2 q-table)
+  let td reward + ql-gamma * best-next - (item a qs)
+  set qs replace-item a qs ((item a qs) + ql-alpha * td)
+  set q-table replace-item s q-table qs
+  set q-epsilon max (list 0.05 (q-epsilon * ql-epsilon-decay))
+end
+
+;; ---------------------------------------------------------------------
+;; CONGESTION SIGNAL (emergent): mean normalised density on CBD roads.
+;; Density proxy = vehicles currently on the road / road length.
+;; ---------------------------------------------------------------------
+;; --- Volume/Capacity congestion engine -------------------------------
+;; Each agent represents scale-factor real vehicles, so a small population
+;; reproduces realistic V/C. Recompute link load and V/C once per tick.
+;; Capacity-by-class ratios grounded in AT observed ADT (motorway ~100k,
+;; major arterial ~30k, arterial ~15-20k, local ~1-5k).
+to-report capacity-mult [spd]
+  if spd >= 0.8 [ report 3.5 ]    ;; motorway   (~100k ADT)
+  if spd >= 0.6 [ report 1.5 ]    ;; major arterial (~30k)
+  if spd >= 0.5 [ report 1.0 ]    ;; arterial   (~15-20k)
+  if spd >= 0.4 [ report 0.6 ]    ;; collector
+  report 0.3                      ;; local
+end
+
+to update-vc
+  ask roads [ set r-load 0 ]
+  ask vehicles with [at-activity? = false] [
+    let lnk current-link
+    if is-link? lnk [ ask lnk [ set r-load r-load + 1 ] ]
+  ]
+  ask roads [
+    set r-vc (r-load * scale-factor) / (max (list 1 r-capacity))
+    ;; colour each link by congestion: greener = free, redder = jammed
+    ifelse r-vc < 0.3 [ set color green ]
+    [ ifelse r-vc < 0.5 [ set color yellow ]
+      [ ifelse r-vc < 0.7 [ set color orange ]
+        [ ifelse r-vc < 0.9 [ set color red ] [ set color red - 2 ] ] ] ]
+  ]
+end
+
+;; BPR travel-time / speed penalty as a function of a link's V/C.
+;; V/C is capped and the factor is floored so a jammed link always drains
+;; (vehicles crawl rather than deadlock), letting congestion clear after the peak.
+to-report bpr-speed-factor [vc]
+  let v min (list vc 3)
+  report max (list 0.18 (1 / (1 + bpr-alpha * (v ^ bpr-beta))))
+end
+
+;; Congestion signal feeding the decision rules: mean V/C on inner CBD links.
+to-report cbd-congestion
+  if not any? cbd-roads [ report 0 ]
+  report clip (mean [r-vc] of cbd-roads) 0 1.5
+end
+
+;; Mean V/C by road position and by motorway corridor (for figures / monitors).
+to-report mean-vc-at [pos]
+  let rs roads with [r-position = pos]
+  if not any? rs [ report 0 ]
+  report mean [r-vc] of rs
+end
+
+to-report sh-vc [corridor]
+  let rs roads with [r-sh = corridor]
+  if not any? rs [ report 0 ]
+  report mean [r-vc] of rs
+end
+
+;; Share of links above the congestion threshold (network-wide jam indicator).
+to-report pct-congested
+  if not any? roads [ report 0 ]
+  report 100 * (count roads with [r-vc > vc-threshold]) / (count roads)
+end
+
+;; Diagnostics for calibration.
+to-report max-vc
+  if not any? roads [ report 0 ]
+  report max [r-vc] of roads
+end
+
+to-report veh-on-road
+  report count vehicles with [at-activity? = false]
+end
+
+to-report road-density   ;; road reporter (self = road)
+  let n1 [who] of end1
+  let n2 [who] of end2
+  let len max (list 0.001 distance_to_destination)
+  let n count vehicles with [at-activity? = false and
+        ([who] of location = n1 or [who] of location = n2)]
+  report n / (len * 2)
+end
+
+;; V/C-style summary by road position, for the spatial-displacement figure.
+to-report mean-density-at [pos]
+  let rs roads with [r-position = pos]
+  if not any? rs [ report 0 ]
+  report mean [ road-density ] of rs
+end
+
+;; Identify SH1 (Northern + Southern Motorway) and SH16 (Northwestern Motorway)
+;; from the street names in r-name, so motorway congestion can be tracked as it
+;; emerges from routing rather than being assumed.
+to tag-motorways
+  ask roads [ set r-sh "" ]
+  ask roads with [ is-string? r-name and member? "Northern Motorway" r-name ]
+    [ set r-sh "SH1N" ]   ;; North Shore corridor (Harbour Bridge screenline)
+  ask roads with [ is-string? r-name and member? "Southern Motorway" r-name ]
+    [ set r-sh "SH1S" ]   ;; East/South corridor (Ellerslie-Panmure screenline)
+  ask roads with [ is-string? r-name and member? "Northwestern Motorway" r-name ]
+    [ set r-sh "SH16" ]   ;; West corridor (St Lukes screenline)
+end
+
+;; Mean density on a state highway ("SH1" | "SH16").
+to-report sh-density [sh]
+  let rs roads with [r-sh = sh]
+  if not any? rs [ report 0 ]
+  report mean [ road-density ] of rs
+end
+
+;; ---------------------------------------------------------------------
+;; MULTI-DAY LOOP with persistent learning.
+;; Unlike `go`, this does NOT clear-all between days, so VOT, El Farol
+;; scores and Q-tables survive across days (needed for learning).
+;; Run `setup` then `pricing-init` once, then `go-days`.
+;; ---------------------------------------------------------------------
+to go-days
+  repeat n-sim-days [ run-one-day ]
+end
+
+to run-one-day
+  set current-sim-day current-sim-day + 1
+  ask vehicles [ set corridors-today [] ]   ;; reset daily corridor-use flags
+  new-day-decisions          ;; each agent decides whether to enter the CBD today
+  run-day-movement           ;; advance until all active trips finish
+  end-of-day-update          ;; observe outcome, update learners, record
+end
+
+;; Decide today's CBD entry for every agent that has a CBD destination.
+;; Suppressed CBD destinations are skipped for the day (see integration note).
+to new-day-decisions
+  ask vehicles [
+    set has-cbd-trip? any? (turtle-set b-destinations) with [is-cbd? = true]
+    ifelse has-cbd-trip? [
+      set trip-hour draw-trip-hour
+      let fee current-fee trip-hour
+      set enters-cbd? decide-enter? fee trip-hour
+    ] [ set enters-cbd? false ]
+  ]
+end
+
+;; Peak-weighted intended arrival hour so a temporal pattern can emerge.
+to-report draw-trip-hour
+  let r random-float 1
+  if r < 0.30 [ report 7 + random 3 ]    ;; 7-9  AM peak
+  if r < 0.55 [ report 16 + random 3 ]   ;; 16-18 PM peak
+  if r < 0.80 [ report 9 + random 7 ]    ;; 9-15 inter
+  report 19 + random 4                   ;; 19-22 evening / off-peak edge
+end
+
+to run-day-movement
+  let guard 0
+  while [ (any? vehicles with [active?]) and guard < (24 * ticks-per-hour) ] [
+    ask roads [ set current_speeds (list) ]
+    update-vc
+    update-signals
+    record-hourly-vc
+    ask vehicles [ vehicles-move ]
+    tally-cordon
+    tick
+    set guard guard + 1
+  ]
+end
+
+;; Observe realised CBD attendance / congestion and update learners.
+to end-of-day-update
+  let realised-attendance (count vehicles with [enters-cbd? = true]) /
+                          (max (list 1 count vehicles with [has-cbd-trip? = true]))
+  let realised-cong cbd-congestion
+  ;; El Farol agents update predictor scores against realised congestion
+  ask vehicles with [decision-rule = "El Farol"] [ el-update attendance-history realised-cong ]
+  ;; Q-Learning agents update Q against realised congestion
+  let prev-cong last attendance-history
+  ask vehicles with [decision-rule = "Q-Learning" and has-cbd-trip? = true] [
+    q-update trip-hour prev-cong realised-cong enters-cbd? (current-fee trip-hour) essential-today?
+  ]
+  ;; push realised congestion to the shared history
+  set attendance-history lput realised-cong attendance-history
+  if length attendance-history > 100 [ set attendance-history last-n attendance-history 100 ]
+  ;; record a summary row
+  set day-records lput (list current-sim-day decision-rule fee-regime
+    realised-attendance realised-cong
+    (mean-vc-at "inner") (mean-vc-at "boundary") (mean-vc-at "peripheral")
+    (cordon-xings "SH1N") (cordon-xings "SH1S") (cordon-xings "SH16")
+    (mean [fee-paid-today] of vehicles)) day-records
+end
+
+to-report fee-paid-today   ;; vehicle reporter
+  ifelse enters-cbd? [ report current-fee trip-hour ] [ report 0 ]
+end
+
+;; Equity: financial burden (fee / VOT) by income proxy, current regime.
+to-report burden-quintile [q]   ;; q in 1..5 by VOT band
+  let lo 0  let hi 999
+  if q = 1 [ set hi vot-q20 ]
+  if q = 5 [ set lo vot-q80 ]
+  let grp vehicles with [vot > lo and vot <= hi and enters-cbd? = true]
+  if not any? grp [ report 0 ]
+  report mean [ (current-fee trip-hour) / vot ] of grp
+end
+
+;; ---------------------------------------------------------------------
+;; SMALL HELPERS
+;; ---------------------------------------------------------------------
+to-report clip [x lo hi]
+  report max (list lo (min (list hi x)))
+end
+
+to-report last-n [lst k]
+  ifelse length lst <= k [ report lst ] [ report sublist lst (length lst - k) (length lst) ]
+end
+
+;; nearest-rank percentile of an already-sorted list (p in 0..100)
+to-report percentile-of [sorted-lst p]
+  if empty? sorted-lst [ report 0 ]
+  let idx int (p / 100 * (length sorted-lst - 1))
+  report item idx sorted-lst
+end

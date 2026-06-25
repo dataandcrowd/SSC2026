@@ -9,6 +9,7 @@ buildings-own[
   b-id ; ID of building
   nearest-node ; nearest node to building
   is-cbd? ; whether building is in CBD area
+  b-sector ; SSC2026: "cbd" | "local" | "North" | "East-South" | "West"
 ]
 
 ; Procedure to load buildings from a CSV file
@@ -34,6 +35,7 @@ to load-buildings
       set b-type "commercial"
       set color red
       set is-cbd? true
+      set b-sector "cbd"
       set nearest-node min-one-of nodes [distance myself]
     ]
   ]
@@ -60,15 +62,16 @@ end
 
 ;; Create residential buildings near outskirt nodes
 to create-residential-buildings
-  ;; Find nodes in residential areas
+  ;; SSC2026: spread homes across the whole torus interior (not just the edges),
+  ;; leaving only the CBD core to commercial buildings, so the residential
+  ;; population fills the map and local trips use the whole network.
   let residential-nodes nodes with [
-    (n-xpos / max-pxcor < 0.25) or   ;; Left side (Ponsonby/Grey Lynn)
-    (n-ypos / max-pycor < 0.25) or   ;; Bottom (Newton/Kingsland/Newmarket)
-    (n-xpos / max-pxcor > 0.75)      ;; Right side (Parnell)
+    not (n-xpos / max-pxcor > 0.45 and n-xpos / max-pxcor < 0.70 and
+         n-ypos / max-pycor > 0.45 and n-ypos / max-pycor < 0.75)
   ]
 
-  ;; Select 150 random nodes from residential areas to place homes
-  let target-homes min (list 150 count residential-nodes)
+  ;; Select random nodes across the map to place homes
+  let target-homes min (list 300 count residential-nodes)
   let selected-nodes n-of target-homes residential-nodes
 
   ;; Collect node data into a list first (observer context)
@@ -94,8 +97,56 @@ to create-residential-buildings
       set b-type "home"
       set color blue
       set is-cbd? false
+      set b-sector "local"
       set nearest-node my-node
     ]
     set home-count home-count + 1
+  ]
+  create-boundary-homes
+end
+
+;; SSC2026: motorway boundary inflow origins at the network-edge mouths, so that
+;; North Shore / East-South / West commuters enter via SH1N / SH1S / SH16 and
+;; their motorway crossings emerge from routing. Mouth nodes identified as the
+;; deg-1 corridor termini farthest from the CBD centroid.
+to create-boundary-homes
+  ;; Spread each sector's inflow across the corridor's 10 outermost nodes so that
+  ;; agents do not all share one origin node (which deadlocks the one-vehicle-per-
+  ;; origin spawn rule). Nodes are the corridor termini farthest from the CBD.
+  let sector-nodes (list
+    (list "North" (list "n_id163" "n_id165" "n_id161" "n_id154" "n_id143"
+                        "n_id141" "n_id123" "n_id329" "n_id137" "n_id140"))
+    (list "East-South" (list "n_id1246" "n_id1240" "n_id1237" "n_id1229" "n_id1194"
+                             "n_id1175" "n_id1170" "n_id1111" "n_id1072" "n_id1073"))
+    (list "West" (list "n_id9" "n_id11" "n_id13" "n_id23" "n_id25"
+                       "n_id29" "n_id41" "n_id63" "n_id110" "n_id128"))
+    ;; all non-motorway arterial entries around the map edge (so vehicles enter
+    ;; from every entry road, not only the motorways)
+    (list "Arterial" (list "n_id0" "n_id4" "n_id14" "n_id45" "n_id84" "n_id92"
+                           "n_id94" "n_id97" "n_id112" "n_id127" "n_id129" "n_id133"
+                           "n_id134" "n_id250" "n_id395" "n_id415" "n_id421" "n_id422"
+                           "n_id430" "n_id431" "n_id476" "n_id515" "n_id517" "n_id1152"
+                           "n_id1387" "n_id1522" "n_id1531" "n_id1532" "n_id1533"
+                           "n_id1534" "n_id1541")))
+  foreach sector-nodes [ entry ->
+    let sec item 0 entry
+    foreach (item 1 entry) [ nid ->
+      let m one-of nodes with [n-id = nid]
+      if m != nobody [
+        create-buildings 1 [
+          set b-id (word "boundary_" sec "_" nid)
+          set b-type "home"
+          set is-cbd? false
+          set b-sector sec
+          set nearest-node m
+          set b-xpos [n-xpos] of m
+          set b-ypos [n-ypos] of m
+          setxy b-xpos b-ypos
+          set shape "house"
+          set size 2
+          set color green
+        ]
+      ]
+    ]
   ]
 end
