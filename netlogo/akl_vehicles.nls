@@ -263,9 +263,8 @@ to vehicles-travel
     if distance location >= progress and not empty? trip [
       if check-ahead [
         set destination-time ticks ; update the destination time
-        ask road [who] of location [who] of destination [ ; allocate the period to the road link
-          set current_period [destination-time] of myself - [location-time] of myself
-        ]
+        let lk-a road ([who] of location) ([who] of destination) ; allocate the period to the road link
+        if is-link? lk-a [ ask lk-a [ set current_period [destination-time] of myself - [location-time] of myself ] ]
         set location-time ticks ; update the new location time
         let difference distance location - progress ; Calculate remaining distance
                                                     ; remove current trip link and proceed to the next link (new origin is the old destination)
@@ -282,9 +281,8 @@ to vehicles-travel
     ; If the vehicle reaches end of road and it is the last road link in the trip
     if distance location >= progress and empty? trip [
       set destination-time ticks ; update the destination time
-      ask road [who] of location [who] of destination [ ; allocate the period to the road link
-        set current_period [destination-time] of myself - [location-time] of myself
-      ]
+      let lk-b road ([who] of location) ([who] of destination) ; allocate the period to the road link
+      if is-link? lk-b [ ask lk-b [ set current_period [destination-time] of myself - [location-time] of myself ] ]
       set location-time ticks ; update the new location time
       set location b-destination
       move-to b-destination

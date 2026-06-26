@@ -453,9 +453,9 @@ show-boundary?
 
 CHOOSER
 1075
-25
+288
 1265
-70
+333
 decision-rule
 decision-rule
 "Exp-Decay" "El Farol" "Q-Learning"
@@ -463,9 +463,9 @@ decision-rule
 
 CHOOSER
 1075
-73
+336
 1265
-118
+381
 fee-regime
 fee-regime
 "No-Charge" "flat" "tou"
@@ -473,9 +473,9 @@ fee-regime
 
 SLIDER
 1075
-121
+384
 1265
-154
+417
 flat-fee-level
 flat-fee-level
 0
@@ -488,9 +488,9 @@ HORIZONTAL
 
 SLIDER
 1075
-157
+420
 1265
-190
+453
 base-beta
 base-beta
 0.1
@@ -503,9 +503,9 @@ HORIZONTAL
 
 SLIDER
 1075
-193
+456
 1265
-226
+489
 el-farol-threshold
 el-farol-threshold
 0.3
@@ -518,9 +518,9 @@ HORIZONTAL
 
 SLIDER
 1075
-229
+492
 1265
-262
+525
 ql-alpha
 ql-alpha
 0.01
@@ -533,9 +533,9 @@ HORIZONTAL
 
 SLIDER
 1075
-265
+528
 1265
-298
+561
 ql-gamma
 ql-gamma
 0.5
@@ -548,9 +548,9 @@ HORIZONTAL
 
 SLIDER
 1075
-301
+564
 1265
-334
+597
 ql-epsilon-init
 ql-epsilon-init
 0.05
@@ -563,9 +563,9 @@ HORIZONTAL
 
 SLIDER
 1075
-337
+600
 1265
-370
+633
 ql-epsilon-decay
 ql-epsilon-decay
 0.99
@@ -578,14 +578,14 @@ HORIZONTAL
 
 SLIDER
 1075
-373
+636
 1265
-406
+669
 n-sim-days
 n-sim-days
 1
-50
-20.0
+20
+3.0
 1
 1
 NIL
@@ -593,9 +593,9 @@ HORIZONTAL
 
 SLIDER
 1075
-409
+672
 1265
-442
+705
 ticks-per-hour
 ticks-per-hour
 60
@@ -625,9 +625,9 @@ NIL
 
 SLIDER
 1075
-485
+708
 1265
-518
+741
 sim-start-hour
 sim-start-hour
 0
@@ -640,9 +640,9 @@ HORIZONTAL
 
 MONITOR
 1075
-523
+25
 1265
-568
+70
 Time (HH:MM)
 clock-string
 17
@@ -651,9 +651,9 @@ clock-string
 
 MONITOR
 1075
-575
+74
 1148
-620
+119
 SH1N V/C
 sh-vc \"SH1N\"
 3
@@ -662,9 +662,9 @@ sh-vc \"SH1N\"
 
 MONITOR
 1151
-575
+74
 1224
-620
+119
 SH1S V/C
 sh-vc \"SH1S\"
 3
@@ -673,9 +673,9 @@ sh-vc \"SH1S\"
 
 MONITOR
 1227
-575
+74
 1300
-620
+119
 SH16 V/C
 sh-vc \"SH16\"
 3
@@ -684,9 +684,9 @@ sh-vc \"SH16\"
 
 SLIDER
 1075
-628
+744
 1300
-661
+777
 boundary-inflow-share
 boundary-inflow-share
 0
@@ -699,9 +699,9 @@ HORIZONTAL
 
 MONITOR
 1075
-665
+123
 1148
-710
+168
 SH1N xings
 cordon-xings \"SH1N\"
 0
@@ -710,9 +710,9 @@ cordon-xings \"SH1N\"
 
 MONITOR
 1151
-665
+123
 1224
-710
+168
 SH1S xings
 cordon-xings \"SH1S\"
 0
@@ -721,9 +721,9 @@ cordon-xings \"SH1S\"
 
 MONITOR
 1227
-665
+123
 1300
-710
+168
 SH16 xings
 cordon-xings \"SH16\"
 0
@@ -732,9 +732,9 @@ cordon-xings \"SH16\"
 
 SLIDER
 1075
-718
+780
 1300
-751
+813
 scale-factor
 scale-factor
 1
@@ -747,9 +747,9 @@ HORIZONTAL
 
 SLIDER
 1075
-754
+816
 1300
-787
+849
 capacity-base
 capacity-base
 100
@@ -762,9 +762,9 @@ HORIZONTAL
 
 SLIDER
 1075
-790
+852
 1300
-823
+885
 bpr-alpha
 bpr-alpha
 0
@@ -777,9 +777,9 @@ HORIZONTAL
 
 SLIDER
 1075
-826
+888
 1300
-859
+921
 bpr-beta
 bpr-beta
 1
@@ -792,9 +792,9 @@ HORIZONTAL
 
 SLIDER
 1075
-862
+924
 1300
-895
+957
 vc-threshold
 vc-threshold
 0.5
@@ -807,9 +807,9 @@ HORIZONTAL
 
 MONITOR
 1075
-899
+172
 1300
-944
+217
 % links congested (V/C > threshold)
 pct-congested
 1
@@ -818,9 +818,9 @@ pct-congested
 
 MONITOR
 1075
-950
+221
 1185
-995
+266
 max V/C
 max-vc
 2
@@ -829,9 +829,9 @@ max-vc
 
 MONITOR
 1190
-950
+221
 1300
-995
+266
 veh on road
 veh-on-road
 0
@@ -840,9 +840,9 @@ veh-on-road
 
 SLIDER
 1075
-1001
+960
 1300
-1034
+993
 through-share
 through-share
 0
@@ -1274,214 +1274,25 @@ setup
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="250327 OAT SA" repetitions="100" runMetricsEveryStep="true">
+  <experiment name="SSC2026 3x3 scenarios" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
-    <go>go</go>
-    <metric>times</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>count vehicles with [modify? = true] / count vehicles</metric>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
+    <go>go-days</go>
+    <postRun>save-records save-hourly save-links save-plots</postRun>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <enumeratedValueSet variable="decision-rule">
+      <value value="&quot;Exp-Decay&quot;"/>
+      <value value="&quot;El Farol&quot;"/>
+      <value value="&quot;Q-Learning&quot;"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="number_of_vehicles" first="100" step="100" last="500"/>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
+    <enumeratedValueSet variable="fee-regime">
+      <value value="&quot;No-Charge&quot;"/>
+      <value value="&quot;flat&quot;"/>
+      <value value="&quot;tou&quot;"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="slowest-vehicle" first="0.1" step="0.1" last="0.5"/>
-  </experiment>
-  <experiment name="250327 OAT SA (dummy data)" repetitions="4" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>times</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>(count vehicles with [modify? = true] / count vehicles) * 100</metric>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="number_of_vehicles" first="100" step="100" last="500"/>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="slowest-vehicle" first="0.1" step="0.1" last="0.5"/>
-  </experiment>
-  <experiment name="250327 baseline" repetitions="100" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>times</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>(count vehicles with [modify? = true] / count vehicles) * 100</metric>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number_of_vehicles">
-      <value value="300"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="slowest-vehicle">
-      <value value="0.2"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="250604 Sensitivity" repetitions="100" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>times</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>(count vehicles with [modify? = true] / count vehicles) * 100</metric>
-    <metric>activity-record</metric>
-    <metric>weight-record</metric>
-    <metric>time-record</metric>
-    <metric>threshold-record</metric>
-    <enumeratedValueSet variable="control-seed?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="current-seed">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-tolerance">
-      <value value="10"/>
+    <enumeratedValueSet variable="n-sim-days">
       <value value="20"/>
-      <value value="30"/>
-      <value value="40"/>
-      <value value="50"/>
-      <value value="60"/>
-      <value value="70"/>
-      <value value="80"/>
-      <value value="90"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number_of_vehicles">
-      <value value="300"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="slowest-vehicle">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w1">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w2">
-      <value value="0.3"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w3">
-      <value value="0.2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w4">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w-std">
-      <value value="0.02"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="250604 Baseline" repetitions="100" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>times</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>(count vehicles with [modify? = true] / count vehicles) * 100</metric>
-    <metric>activity-record</metric>
-    <metric>weight-record</metric>
-    <metric>time-record</metric>
-    <metric>threshold-record</metric>
-    <enumeratedValueSet variable="control-seed?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="current-seed">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-tolerance">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number_of_vehicles">
-      <value value="300"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="slowest-vehicle">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w1">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w2">
-      <value value="0.3"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w3">
-      <value value="0.2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w4">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w-std">
-      <value value="0.02"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="250616 Sensitivty" repetitions="100" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>all-delays</metric>
-    <metric>all-periods</metric>
-    <metric>count vehicles with [modify? = true]</metric>
-    <metric>(count vehicles with [modify? = true] / count vehicles) * 100</metric>
-    <metric>activity-record</metric>
-    <metric>weight-record</metric>
-    <metric>delay-record</metric>
-    <metric>threshold-record</metric>
-    <metric>period-record</metric>
-    <enumeratedValueSet variable="control-seed?">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="current-seed">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-activity-duration">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-buffer-period">
-      <value value="40"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-n-activities">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="mean-tolerance" first="0.1" step="0.1" last="1"/>
-    <enumeratedValueSet variable="min-delay-threshold">
-      <value value="25"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number_of_vehicles">
-      <value value="100"/>
-      <value value="300"/>
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="return-home?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="slowest-vehicle">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w1">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w2">
-      <value value="0.3"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w3">
-      <value value="0.2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w4">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="w-std">
-      <value value="0.02"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

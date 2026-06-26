@@ -25,6 +25,10 @@
 globals [
   attendance-history     ;; list of realised CBD congestion signals (one per day)
   current-sim-day        ;; day counter for the multi-day loop
+  day-start-tick         ;; tick at which the current simulated day began
+  peak-vc-inner          ;; peak inner-CBD V/C reached during the current day
+  peak-vc-boundary       ;; peak cordon-boundary V/C during the current day
+  peak-vc-peripheral     ;; peak peripheral V/C during the current day
   median-vot             ;; population median value of time
   vot-q20 vot-q80        ;; 20th / 80th percentile VOT thresholds (income proxy)
   cbd-roads              ;; agentset of roads inside / on the cordon
@@ -33,8 +37,11 @@ globals [
   signal-cycle           ;; signal cycle length in ticks
   signal-green-ratio     ;; green time / cycle (also the g/C capacity factor)
   w1 w2 w3 w4 w-std      ;; activity-weight means/std (fixed; were UI sliders)
-  hourly-vc-sum          ;; per-hour accumulated inner V/C (24 elements)
-  hourly-vc-count        ;; per-hour sample count (24 elements)
+  hourly-vc-sum          ;; per-hour accumulated inner V/C (24 elements, cumulative)
+  hourly-vc-count        ;; per-hour sample count (24 elements, cumulative)
+  day-h-sum              ;; per-hour inner V/C accumulated within the current day
+  day-h-count            ;; per-hour sample count within the current day
+  hourly-records         ;; rows [day rule regime hour vc] for per-hour variability
   link-adt               ;; table: link id -> observed ADT (AT counts)
 ]
 
@@ -56,13 +63,20 @@ to pricing-init
   ask vehicles [ set corridors-today [] ]
   set hourly-vc-sum n-values 24 [0]
   set hourly-vc-count n-values 24 [0]
+  set day-h-sum n-values 24 [0]
+  set day-h-count n-values 24 [0]
+  set hourly-records (list)
+  ask roads [ set r-vc-peak 0 ]
 end
 
 ;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
 to record-hourly-vc
   let h current-hour
-  set hourly-vc-sum replace-item h hourly-vc-sum ((item h hourly-vc-sum) + mean-vc-at "inner")
+  let vi mean-vc-at "inner"
+  set hourly-vc-sum replace-item h hourly-vc-sum ((item h hourly-vc-sum) + vi)
   set hourly-vc-count replace-item h hourly-vc-count ((item h hourly-vc-count) + 1)
+  set day-h-sum replace-item h day-h-sum ((item h day-h-sum) + vi)
+  set day-h-count replace-item h day-h-count ((item h day-h-count) + 1)
 end
 
 to-report hourly-vc-mean [h]
@@ -472,14 +486,28 @@ to update-vc
     let lnk current-link
     if is-link? lnk [ ask lnk [ set r-load r-load + 1 ] ]
   ]
+  let si 0  let ni 0
+  let sb 0  let nb 0
+  let sp 0  let np 0
   ask roads [
     set r-vc (r-load * scale-factor) / (max (list 1 r-capacity))
+    if r-vc > r-vc-peak [ set r-vc-peak r-vc ]
     ;; colour each link by congestion: greener = free, redder = jammed
     ifelse r-vc < 0.3 [ set color green ]
     [ ifelse r-vc < 0.5 [ set color yellow ]
       [ ifelse r-vc < 0.7 [ set color orange ]
         [ ifelse r-vc < 0.9 [ set color red ] [ set color red - 2 ] ] ] ]
+    if r-position = "inner"      [ set si si + r-vc  set ni ni + 1 ]
+    if r-position = "boundary"   [ set sb sb + r-vc  set nb nb + 1 ]
+    if r-position = "peripheral" [ set sp sp + r-vc  set np np + 1 ]
   ]
+  ;; track the peak position-mean V/C reached during the day (for daily metrics)
+  let cur-inner ifelse-value (ni > 0) [si / ni] [0]
+  let cur-bound ifelse-value (nb > 0) [sb / nb] [0]
+  let cur-peri  ifelse-value (np > 0) [sp / np] [0]
+  if cur-inner > peak-vc-inner      [ set peak-vc-inner cur-inner ]
+  if cur-bound > peak-vc-boundary   [ set peak-vc-boundary cur-bound ]
+  if cur-peri  > peak-vc-peripheral [ set peak-vc-peripheral cur-peri ]
 end
 
 ;; BPR travel-time / speed penalty as a function of a link's V/C.
@@ -567,16 +595,94 @@ end
 ;; scores and Q-tables survive across days (needed for learning).
 ;; Run `setup` then `pricing-init` once, then `go-days`.
 ;; ---------------------------------------------------------------------
+;; Forever-button procedure: advance one day per call, stop after n-sim-days.
 to go-days
-  repeat n-sim-days [ run-one-day ]
+  if current-sim-day >= n-sim-days [ stop ]
+  run-one-day
 end
 
 to run-one-day
   set current-sim-day current-sim-day + 1
-  ask vehicles [ set corridors-today [] ]   ;; reset daily corridor-use flags
+  set day-start-tick ticks                 ;; anchor this day's clock
+  set peak-vc-inner 0  set peak-vc-boundary 0  set peak-vc-peripheral 0
+  set day-h-sum n-values 24 [0]  set day-h-count n-values 24 [0]
+  new-day-reset              ;; return agents home and re-anchor today's departures
   new-day-decisions          ;; each agent decides whether to enter the CBD today
   run-day-movement           ;; advance until all active trips finish
   end-of-day-update          ;; observe outcome, update learners, record
+end
+
+;; Reset each agent to the start of a new day (home, active, trips re-armed) while
+;; preserving learning state (VOT, beta, Q-table, El Farol scores). Departures are
+;; re-anchored to THIS day's clock so the AM/PM peaks recur every day.
+to new-day-reset
+  ask vehicles [
+    move-to v-home
+    set location v-home
+    set at-activity? true
+    set active? true
+    set initial-step? true
+    set i-destination 0
+    if not empty? b-destinations [
+      set b-destination item 0 b-destinations
+      set trip cached-path ([nearest-node] of v-home) ([nearest-node] of b-destination)
+    ]
+    set times (list)
+    set delays (list)
+    set periods (list)
+    set corridors-today []
+    set depart-tick day-start-tick + hour-to-tick (sample-hour outbound-demand)
+    set return-tick day-start-tick + hour-to-tick (sample-hour return-demand)
+    if return-tick <= depart-tick [ set return-tick depart-tick + ticks-per-hour ]
+  ]
+end
+
+;; Export the accumulated per-day records to output/tables, named by scenario.
+;; Run this in the Command Center after each go-days run.
+to save-records
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let header (list "day" "rule" "regime" "attendance" "cbd_vc"
+    "vc_inner" "vc_boundary" "vc_peripheral" "x_SH1N" "x_SH1S" "x_SH16" "mean_fee")
+  let fname (word "../output/tables/days_" rname "_" fee-regime ".csv")
+  csv:to-file fname (fput header day-records)
+  print (word "Saved " (length day-records) " rows to " fname)
+end
+
+;; Export the per-day hourly V/C profile (day x hour), so each hour's mean and
+;; spread (SD/quartiles) across days can be drawn as a variability band.
+to save-hourly
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let header (list "day" "rule" "regime" "hour" "vc_inner")
+  let fname (word "../output/tables/hourly_" rname "_" fee-regime ".csv")
+  csv:to-file fname (fput header hourly-records)
+  print (word "Saved " (length hourly-records) " hourly rows to " fname)
+end
+
+;; Export per-link peak V/C and geometry (for the spatial redistribution map).
+to save-links
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let header (list "link_id" "sh" "position" "vc_peak" "x1" "y1" "x2" "y2")
+  let body [ (list r-id r-sh r-position r-vc-peak
+               [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2) ] of roads
+  let fname (word "../output/tables/links_" rname "_" fee-regime ".csv")
+  csv:to-file fname (fput header body)
+  print (word "Saved " (length body) " links to " fname)
+end
+
+;; Export all interface plots as CSV, named by scenario (needs Update plots ON).
+to save-plots
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let tag (word rname "_" fee-regime)
+  export-plot "CBD V/C over time"            (word "../output/tables/plot_cbdvc_" tag ".csv")
+  export-plot "V/C by hour of day"           (word "../output/tables/plot_hourly_" tag ".csv")
+  export-plot "Cordon crossings (cumulative/day)" (word "../output/tables/plot_cordon_" tag ".csv")
+  export-plot "Roads by V/C band"            (word "../output/tables/plot_band_" tag ".csv")
+  export-plot "On-road vehicles by sector"   (word "../output/tables/plot_sector_" tag ".csv")
+  print (word "Exported plots for " tag)
 end
 
 ;; Decide today's CBD entry for every agent that has a CBD destination.
@@ -588,6 +694,9 @@ to new-day-decisions
       set trip-hour draw-trip-hour
       let fee current-fee trip-hour
       set enters-cbd? decide-enter? fee trip-hour
+      ;; ENFORCE the decision: a CBD-bound agent that does not enter stays off the
+      ;; road today, so the charge actually reduces demand and congestion.
+      if not enters-cbd? [ set active? false ]
     ] [ set enters-cbd? false ]
   ]
 end
@@ -619,7 +728,7 @@ end
 to end-of-day-update
   let realised-attendance (count vehicles with [enters-cbd? = true]) /
                           (max (list 1 count vehicles with [has-cbd-trip? = true]))
-  let realised-cong cbd-congestion
+  let realised-cong peak-vc-inner   ;; peak inner-CBD V/C reached during the day
   ;; El Farol agents update predictor scores against realised congestion
   ask vehicles with [decision-rule = "El Farol"] [ el-update attendance-history realised-cong ]
   ;; Q-Learning agents update Q against realised congestion
@@ -627,13 +736,21 @@ to end-of-day-update
   ask vehicles with [decision-rule = "Q-Learning" and has-cbd-trip? = true] [
     q-update trip-hour prev-cong realised-cong enters-cbd? (current-fee trip-hour) essential-today?
   ]
+  ;; record this day's hourly inner-CBD V/C profile (for per-hour variability bands)
+  let hh 0
+  while [hh < 24] [
+    let cc item hh day-h-count
+    let vv ifelse-value (cc > 0) [(item hh day-h-sum) / cc] [0]
+    set hourly-records lput (list current-sim-day decision-rule fee-regime hh vv) hourly-records
+    set hh hh + 1
+  ]
   ;; push realised congestion to the shared history
   set attendance-history lput realised-cong attendance-history
   if length attendance-history > 100 [ set attendance-history last-n attendance-history 100 ]
   ;; record a summary row
   set day-records lput (list current-sim-day decision-rule fee-regime
     realised-attendance realised-cong
-    (mean-vc-at "inner") (mean-vc-at "boundary") (mean-vc-at "peripheral")
+    peak-vc-inner peak-vc-boundary peak-vc-peripheral
     (cordon-xings "SH1N") (cordon-xings "SH1S") (cordon-xings "SH16")
     (mean [fee-paid-today] of vehicles)) day-records
 end

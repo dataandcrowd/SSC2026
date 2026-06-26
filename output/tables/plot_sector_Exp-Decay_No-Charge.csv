@@ -1,0 +1,22 @@
+"export-plot data (NetLogo 6.4.0)"
+"akl_traffic.nlogo"
+"06/26/2026 22:53:26:525 +1200"
+
+"MODEL SETTINGS"
+"return-home?","ql-epsilon-decay","bpr-beta","mean-tolerance","scale-factor","bpr-alpha","ql-alpha","decision-rule","show-boundary?","number_of_vehicles","fee-regime","capacity-base","sim-start-hour","ql-epsilon-init","slowest-vehicle","n-sim-days","current-seed","flat-fee-level","control-seed?","ql-gamma","max-activity-duration","base-beta","through-share","boundary-inflow-share","el-farol-threshold","max-n-activities","ticks-per-hour","max-buffer-period","vc-threshold","min-delay-threshold"
+"true","0.997","4","0.1","300","0.15","0.1","""Exp-Decay""","true","2500","""No-Charge""","400","5","0.4","0.4","20","11","2","true","0.9","100","0.5","0.3","0.7","0.6","4","600","40","0.85","5"
+
+"""On-road vehicles by sector"""
+"x min","x max","y min","y max","autoplot?","current pen","legend open?","number of pens"
+"0","5","0","10","false","""sector""","false","1"
+
+"pen name","pen down?","mode","interval","color","x"
+"""sector""","true","1","1","55","4"
+
+"""sector"""
+"x","y","color","pen down?"
+"0","0","55","true"
+"1","0","55","true"
+"2","0","55","true"
+"3","0","55","true"
+"4","0","55","true"

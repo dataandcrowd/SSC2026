@@ -16,6 +16,7 @@ roads-own [
   r-capacity     ; SSC2026: link capacity in real vehicles (V/C denominator)
   r-load         ; SSC2026: agents currently on the link (recomputed each tick)
   r-vc           ; SSC2026: volume/capacity = r-load * scale-factor / r-capacity
+  r-vc-peak      ; SSC2026: peak V/C reached on this link this scenario (for maps)
 ]
 
 ; Define the variables for nodes

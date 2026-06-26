@@ -5,6 +5,15 @@ Open repository for the Social Simulation Conference 2026.
 This project contains an agent-based model (ABM) of congestion pricing in Auckland CBD. The central question is how congestion shifts -- both spatially across road types and temporally across hours of the day -- when a cordon charge is introduced, and how different agent decision rules shape that redistribution. Three decision models (Baseline exponential decay, El Farol bar problem, and Q-Learning) are compared under three fee regimes (no charge, flat $2, and time-of-use pricing) using the real Auckland road network (1542 nodes, 2691 links). The model tracks V/C ratios separately for inner CBD, boundary, and peripheral roads to reveal whether pricing merely displaces congestion to the cordon fringe or achieves a genuine network-wide reduction.
 
 
+## Documentation (wiki)
+
+Full model documentation lives in the [project wiki](https://github.com/dataandcrowd/SSC2026/wiki):
+
+- **[ODD protocol](https://github.com/dataandcrowd/SSC2026/wiki/ODD-protocol)** -- the standard Overview, Design concepts and Details description of the model, including the governing equations of the three decision rules, the V/C and BPR congestion submodel, the ADT-based capacity calibration, the input data and their sources, and the experimental design and sensitivity analysis.
+- **[Calibration notes](https://github.com/dataandcrowd/SSC2026/wiki/Calibration-notes)** -- the development trajectory, the calibration decisions (agent scaling, capacity, BPR, signals, boundary inflow, demand profile), the key engineering decisions and fixes, and the steps to reproduce the runs.
+- **[Supplementary material](https://github.com/dataandcrowd/SSC2026/wiki/Supplementary-material)** -- the full 3 x 3 results table (mean and SD over 20 days), the pricing response, day-to-day variability, the spatial response, and the one-at-a-time parameter sensitivity sweep.
+
+
 ## Repository structure
 
 ```

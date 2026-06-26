@@ -1,0 +1,20 @@
+"export-plot data (NetLogo 6.4.0)"
+"akl_traffic.nlogo"
+"06/26/2026 22:57:51:178 +1200"
+
+"MODEL SETTINGS"
+"number_of_vehicles","slowest-vehicle","max-n-activities","return-home?","current-seed","control-seed?","mean-tolerance","max-activity-duration","max-buffer-period","min-delay-threshold","show-boundary?","decision-rule","fee-regime","flat-fee-level","base-beta","el-farol-threshold","ql-alpha","ql-gamma","ql-epsilon-init","ql-epsilon-decay","n-sim-days","ticks-per-hour","sim-start-hour","boundary-inflow-share","scale-factor","capacity-base","bpr-alpha","bpr-beta","vc-threshold","through-share"
+"2500","0.4","4","true","11","true","0.1","100","40","5","true","""El Farol""","""tou""","2","0.5","0.6","0.1","0.9","0.4","0.997","20","600","5","0.7","300","400","0.15","4","0.85","0.3"
+
+"""CBD V/C over time"""
+"x min","x max","y min","y max","autoplot?","current pen","legend open?","number of pens"
+"0","10","0","1.5","true","""inner""","true","3"
+
+"pen name","pen down?","mode","interval","color","x"
+"""inner""","true","0","1","15","0"
+"""boundary""","true","0","1","45","0"
+"""peripheral""","true","0","1","55","0"
+
+"""inner""",,,,"""boundary""",,,,"""peripheral"""
+"x","y","color","pen down?","x","y","color","pen down?","x","y","color","pen down?"
+"0","0","15","true","0","0","45","true","0","0","55","true"
