@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+
+  <!-- Pay (exponential decay): vary price sensitivity base-beta -->
+  <experiment name="sensitivity-pay" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="base-beta"><value value="0.25"/><value value="0.5"/><value value="1.0"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- El Farol: vary comfort threshold -->
+  <experiment name="sensitivity-elfarol" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;El Farol&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="el-farol-threshold"><value value="0.5"/><value value="0.6"/><value value="0.7"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- Q-learning: vary learning rate alpha -->
+  <experiment name="sensitivity-ql-alpha" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="ql-alpha"><value value="0.05"/><value value="0.1"/><value value="0.2"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- Q-learning: vary exploration epsilon -->
+  <experiment name="sensitivity-ql-epsilon" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="ql-epsilon-init"><value value="0.2"/><value value="0.4"/><value value="0.6"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
+</experiments>
