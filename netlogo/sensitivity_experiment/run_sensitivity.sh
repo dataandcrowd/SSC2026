@@ -20,10 +20,10 @@ OUT="$NETLOGO_DIR/../output/tables"
 mkdir -p "$OUT"
 
 cd "$NETLOGO_DIR"   # so Data/... resolves
-for EXP in sensitivity-pay sensitivity-elfarol sensitivity-ql-alpha sensitivity-ql-epsilon; do
+for EXP in sensitivity-pay sensitivity-elfarol sensitivity-ql-alpha sensitivity-ql-epsilon sensitivity-kfactor; do
   echo ">>> running $EXP"
   bash "$HEADLESS" --model "$MODEL" \
     --setup-file "$XML" --experiment "$EXP" \
-    --table "$OUT/${EXP}.csv" --threads "$(nproc 2>/dev/null || echo 2)"
+    --table "$OUT/${EXP}.csv" --threads "$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)"
 done
 echo "Done. Tables in $OUT. Now run: python3 $HERE/aggregate_sensitivity.py"

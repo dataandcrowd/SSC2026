@@ -29,6 +29,10 @@ globals [
   peak-vc-inner          ;; peak inner-CBD V/C reached during the current day
   peak-vc-boundary       ;; peak cordon-boundary V/C during the current day
   peak-vc-peripheral     ;; peak peripheral V/C during the current day
+  peak-ef-mwy            ;; peak % of MWY traffic at LoS E/F during the current day
+  peak-ef-cbd            ;; peak % of CBD traffic at LoS E/F during the current day
+  peak-ef-east           ;; peak % of East traffic at LoS E/F during the current day
+  peak-ef-west           ;; peak % of West traffic at LoS E/F during the current day
   median-vot             ;; population median value of time
   vot-q20 vot-q80        ;; 20th / 80th percentile VOT thresholds (income proxy)
   cbd-roads              ;; agentset of roads inside / on the cordon
@@ -55,6 +59,7 @@ to pricing-init
   set day-records (list)
   tag-cbd-roads
   tag-motorways
+  tag-los-groups
   set signal-cycle 120
   set signal-green-ratio 0.5
   setup-signals
@@ -66,7 +71,7 @@ to pricing-init
   set day-h-sum n-values 24 [0]
   set day-h-count n-values 24 [0]
   set hourly-records (list)
-  ask roads [ set r-vc-peak 0 ]
+  ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0 ]
 end
 
 ;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
@@ -151,6 +156,20 @@ to tag-cbd-roads
       [ set r-cbd? false set r-position "peripheral" ] ]
   ]
   set cbd-roads roads with [r-position = "inner"]
+end
+
+;; Group links for LoS reporting: all motorway-class links (the SH1/SH16
+;; corridors) as one class "MWY", the remaining local/arterial links split
+;; into inside-cordon "CBD" and, by link midpoint against a fixed
+;; north-south line through patch (63, 31), "East" and "West".
+to tag-los-groups
+  let cx 63
+  ask roads [
+    ifelse motorway-road? [ set r-group "MWY" ]
+    [ ifelse r-position = "inner" [ set r-group "CBD" ]
+      [ ifelse (([xcor] of end1 + [xcor] of end2) / 2) >= cx
+        [ set r-group "East" ] [ set r-group "West" ] ] ]
+  ]
 end
 
 ;; Heterogeneous WTP, mirroring DriverPopulation in congestion_tou_v3.py
@@ -480,6 +499,78 @@ to-report capacity-mult [spd]
   report 0.3                      ;; local
 end
 
+;; --- Level of Service (LoS) ------------------------------------------
+;; LoS bands A..F graded from V/C per the Highway Capacity Manual (TRB 1994),
+;; as tabulated in The Congestion Question WS1 "Defining congestion" Table 1.
+;; Motorways and local/arterial roads use different thresholds, so the same
+;; V/C reads as a worse service level on an arterial than on a motorway.
+to-report motorway-road?   ;; road reporter: 80 km/h links are motorway class
+  report speed_limmit >= 0.8
+end
+
+;; LoS grade 1..6 = A..F for a V/C ratio, by road class.
+to-report los-grade [vc mwy?]
+  ifelse mwy? [
+    if vc < 0.30 [ report 1 ]
+    if vc < 0.48 [ report 2 ]
+    if vc < 0.70 [ report 3 ]
+    if vc < 0.90 [ report 4 ]
+    if vc < 1    [ report 5 ]
+    report 6
+  ][
+    if vc < 0.26 [ report 1 ]
+    if vc < 0.43 [ report 2 ]
+    if vc < 0.62 [ report 3 ]
+    if vc < 0.82 [ report 4 ]
+    if vc < 1    [ report 5 ]
+    report 6
+  ]
+end
+
+to-report los-letter [g]
+  report item (g - 1) ["A" "B" "C" "D" "E" "F"]
+end
+
+to-report los-color [g]
+  report item (g - 1) (list green lime yellow orange red (red - 3))
+end
+
+;; Flow-weighted share (%) of traffic at LoS grade g for one road class.
+;; Weighting by hourly flow means empty side streets (trivially LoS A)
+;; don't dilute the picture: this is the share of travel at that grade.
+to-report los-share [g mwy?]
+  let rs roads with [motorway-road? = mwy?]
+  let tot sum [r-flow] of rs
+  if tot = 0 [ report 0 ]
+  report 100 * (sum [r-flow] of rs with [r-los = g]) / tot
+end
+
+;; Headline congestion indicator: % of a class's traffic at LoS E or worse.
+;; The network target is LoS D; flow destabilises approaching E (V/C ~0.85+).
+to-report pct-los-ef [mwy?]
+  report (los-share 5 mwy?) + (los-share 6 mwy?)
+end
+
+;; Same, per LoS reporting group ("MWY" | "CBD" | "East" | "West").
+to-report los-share-g [g grp]
+  let rs roads with [r-group = grp]
+  let tot sum [r-flow] of rs
+  if tot = 0 [ report 0 ]
+  report 100 * (sum [r-flow] of rs with [r-los = g]) / tot
+end
+
+to-report pct-los-ef-g [grp]
+  report (los-share-g 5 grp) + (los-share-g 6 grp)
+end
+
+;; Flow-weighted mean hourly V/C of a group (continuous congestion signal).
+to-report group-vcf [grp]
+  let rs roads with [r-group = grp]
+  let tot sum [r-flow] of rs
+  if tot = 0 [ report 0 ]
+  report (sum [r-flow * r-vcf] of rs) / tot
+end
+
 to update-vc
   ask roads [ set r-load 0 ]
   ask vehicles with [at-activity? = false] [
@@ -489,14 +580,29 @@ to update-vc
   let si 0  let ni 0
   let sb 0  let nb 0
   let sp 0  let np 0
+  let f-mwy 0  let ef-mwy 0
+  let f-cbd 0  let ef-cbd 0
+  let f-east 0 let ef-east 0
+  let f-west 0 let ef-west 0
   ask roads [
     set r-vc (r-load * scale-factor) / (max (list 1 r-capacity))
     if r-vc > r-vc-peak [ set r-vc-peak r-vc ]
-    ;; colour each link by congestion: greener = free, redder = jammed
-    ifelse r-vc < 0.3 [ set color green ]
-    [ ifelse r-vc < 0.5 [ set color yellow ]
-      [ ifelse r-vc < 0.7 [ set color orange ]
-        [ ifelse r-vc < 0.9 [ set color red ] [ set color red - 2 ] ] ] ]
+    ;; LoS uses hourly-flow V/C (HCM definition), not the instantaneous count:
+    ;; with 1 agent = scale-factor vehicles the snapshot V/C is too lumpy.
+    ;; EMA of entering flow with a one-hour time constant ~ rolling-hour volume.
+    set r-flow r-flow + (1 / ticks-per-hour) * ((r-entries * ticks-per-hour * scale-factor) - r-flow)
+    set r-entries 0
+    set r-vcf r-flow / (max (list 1 r-cap-hr))
+    if r-vcf > r-vcf-peak [ set r-vcf-peak r-vcf ]
+    ;; colour each link by its Level of Service (A green ... F dark red),
+    ;; using class-specific bands so arterials grade stricter than motorways
+    set r-los los-grade r-vcf motorway-road?
+    set color los-color r-los
+    ;; accumulate per-group flow and LoS E/F flow for the daily peak trackers
+    if r-group = "MWY"  [ set f-mwy f-mwy + r-flow    if r-los >= 5 [ set ef-mwy ef-mwy + r-flow ] ]
+    if r-group = "CBD"  [ set f-cbd f-cbd + r-flow    if r-los >= 5 [ set ef-cbd ef-cbd + r-flow ] ]
+    if r-group = "East" [ set f-east f-east + r-flow  if r-los >= 5 [ set ef-east ef-east + r-flow ] ]
+    if r-group = "West" [ set f-west f-west + r-flow  if r-los >= 5 [ set ef-west ef-west + r-flow ] ]
     if r-position = "inner"      [ set si si + r-vc  set ni ni + 1 ]
     if r-position = "boundary"   [ set sb sb + r-vc  set nb nb + 1 ]
     if r-position = "peripheral" [ set sp sp + r-vc  set np np + 1 ]
@@ -508,6 +614,11 @@ to update-vc
   if cur-inner > peak-vc-inner      [ set peak-vc-inner cur-inner ]
   if cur-bound > peak-vc-boundary   [ set peak-vc-boundary cur-bound ]
   if cur-peri  > peak-vc-peripheral [ set peak-vc-peripheral cur-peri ]
+  ;; track the daily peak share of traffic at LoS E/F per reporting group
+  if f-mwy > 0  [ let c 100 * ef-mwy / f-mwy    if c > peak-ef-mwy  [ set peak-ef-mwy c ] ]
+  if f-cbd > 0  [ let c 100 * ef-cbd / f-cbd    if c > peak-ef-cbd  [ set peak-ef-cbd c ] ]
+  if f-east > 0 [ let c 100 * ef-east / f-east  if c > peak-ef-east [ set peak-ef-east c ] ]
+  if f-west > 0 [ let c 100 * ef-west / f-west  if c > peak-ef-west [ set peak-ef-west c ] ]
 end
 
 ;; BPR travel-time / speed penalty as a function of a link's V/C.
@@ -605,7 +716,11 @@ to run-one-day
   set current-sim-day current-sim-day + 1
   set day-start-tick ticks                 ;; anchor this day's clock
   set peak-vc-inner 0  set peak-vc-boundary 0  set peak-vc-peripheral 0
+  set peak-ef-mwy 0  set peak-ef-cbd 0  set peak-ef-east 0  set peak-ef-west 0
   set day-h-sum n-values 24 [0]  set day-h-count n-values 24 [0]
+  ;; ticks pause overnight (movement loop ends with the last trip), so the
+  ;; flow EMA never decays between days: zero it so LoS starts each day fresh
+  ask roads [ set r-flow 0  set r-entries 0 ]
   new-day-reset              ;; return agents home and re-anchor today's departures
   new-day-decisions          ;; each agent decides whether to enter the CBD today
   run-day-movement           ;; advance until all active trips finish
@@ -664,8 +779,13 @@ end
 to save-links
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
-  let header (list "link_id" "sh" "position" "vc_peak" "x1" "y1" "x2" "y2")
-  let body [ (list r-id r-sh r-position r-vc-peak
+  let header (list "link_id" "sh" "position" "class" "group" "vc_peak" "vcf_peak" "los_peak" "x1" "y1" "x2" "y2")
+  let body [ (list r-id r-sh r-position
+               (ifelse-value motorway-road? ["motorway"] ["arterial"])
+               r-group
+               r-vc-peak
+               r-vcf-peak
+               (los-letter (los-grade r-vcf-peak motorway-road?))
                [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2) ] of roads
   let fname (word "../output/tables/links_" rname "_" fee-regime ".csv")
   csv:to-file fname (fput header body)
@@ -680,8 +800,8 @@ to save-plots
   export-plot "CBD V/C over time"            (word "../output/tables/plot_cbdvc_" tag ".csv")
   export-plot "V/C by hour of day"           (word "../output/tables/plot_hourly_" tag ".csv")
   export-plot "Cordon crossings (cumulative/day)" (word "../output/tables/plot_cordon_" tag ".csv")
-  export-plot "Roads by V/C band"            (word "../output/tables/plot_band_" tag ".csv")
-  export-plot "On-road vehicles by sector"   (word "../output/tables/plot_sector_" tag ".csv")
+  export-plot "% traffic at LoS E/F by group"  (word "../output/tables/plot_losef_" tag ".csv")
+  export-plot "Mean flow V/C by group"         (word "../output/tables/plot_gvcf_" tag ".csv")
   print (word "Exported plots for " tag)
 end
 

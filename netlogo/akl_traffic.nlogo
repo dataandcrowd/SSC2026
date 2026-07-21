@@ -257,9 +257,9 @@ PENS
 
 PLOT
 785
-595
+645
 1070
-715
+765
 Cordon crossings (cumulative/day)
 ticks
 vehicles
@@ -285,24 +285,6 @@ return-home?
 0
 1
 -1000
-
-PLOT
-785
-465
-1070
-595
-On-road vehicles by sector
-sector N ES W Art local
-vehicles
-0.0
-5.0
-0.0
-10.0
-false
-false
-"" ""
-PENS
-"sector" 1.0 1 -10899396 true "" "draw-sector-bars"
 
 SLIDER
 220
@@ -395,20 +377,86 @@ PLOT
 335
 1070
 465
-Roads by V/C band
+% traffic at LoS E/F by group
 ticks
-# roads
+% of traffic
 0.0
 10.0
 0.0
-10.0
+100.0
 true
 true
 "" ""
 PENS
-"green <0.5" 1.0 0 -10899396 true "" "plot count roads with [r-vc < 0.5]"
-"yellow .5-.7" 1.0 0 -1184463 true "" "plot count roads with [r-vc >= 0.5 and r-vc < 0.7]"
-"red >0.7" 1.0 0 -2674135 true "" "plot count roads with [r-vc >= 0.7]"
+"MWY" 1.0 0 -16777216 true "" "plot pct-los-ef-g \"MWY\""
+"CBD" 1.0 0 -2674135 true "" "plot pct-los-ef-g \"CBD\""
+"East" 1.0 0 -13345367 true "" "plot pct-los-ef-g \"East\""
+"West" 1.0 0 -10899396 true "" "plot pct-los-ef-g \"West\""
+
+PLOT
+785
+465
+1070
+595
+Mean flow V/C by group
+ticks
+V/C
+0.0
+10.0
+0.0
+1.5
+true
+true
+"" ""
+PENS
+"MWY" 1.0 0 -16777216 true "" "plot group-vcf \"MWY\""
+"CBD" 1.0 0 -2674135 true "" "plot group-vcf \"CBD\""
+"East" 1.0 0 -13345367 true "" "plot group-vcf \"East\""
+"West" 1.0 0 -10899396 true "" "plot group-vcf \"West\""
+
+MONITOR
+785
+595
+853
+640
+MWY E/F %
+pct-los-ef-g \"MWY\"
+1
+1
+11
+
+MONITOR
+856
+595
+924
+640
+CBD E/F %
+pct-los-ef-g \"CBD\"
+1
+1
+11
+
+MONITOR
+927
+595
+995
+640
+East E/F %
+pct-los-ef-g \"East\"
+1
+1
+11
+
+MONITOR
+998
+595
+1070
+640
+West E/F %
+pct-los-ef-g \"West\"
+1
+1
+11
 
 TEXTBOX
 25
@@ -853,6 +901,21 @@ through-share
 NIL
 HORIZONTAL
 
+SLIDER
+1075
+996
+1300
+1029
+k-factor
+k-factor
+0.05
+0.2
+0.1
+0.01
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 Overview
 --------
@@ -1290,6 +1353,32 @@ setup
       <value value="&quot;No-Charge&quot;"/>
       <value value="&quot;flat&quot;"/>
       <value value="&quot;tou&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days">
+      <value value="20"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="sensitivity-kfactor" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <enumeratedValueSet variable="decision-rule">
+      <value value="&quot;Exp-Decay&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime">
+      <value value="&quot;No-Charge&quot;"/>
+      <value value="&quot;tou&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="k-factor">
+      <value value="0.08"/>
+      <value value="0.1"/>
+      <value value="0.12"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="n-sim-days">
       <value value="20"/>

@@ -41,6 +41,26 @@
     <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
   </experiment>
 
+  <!-- LoS capacity assumption: vary the design-hour K-factor.
+       k-factor is measurement-only (hourly capacity = ADT x K), so traffic
+       dynamics are identical across values; this tests how robust the
+       group-level LoS E/F conclusions are to the capacity assumption. -->
+  <experiment name="sensitivity-kfactor" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="k-factor"><value value="0.08"/><value value="0.1"/><value value="0.12"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Q-learning: vary exploration epsilon -->
   <experiment name="sensitivity-ql-epsilon" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>

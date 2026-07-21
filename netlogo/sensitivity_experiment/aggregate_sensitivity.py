@@ -34,8 +34,11 @@ for exp, pvar in PARAM.items():
     hdr, data = load(path)
     cm, cf, cp, cr = (hdr.index("peak-vc-inner"), hdr.index("fee-regime"),
                       hdr.index(pvar), hdr.index("[run number]"))
+    cd = hdr.index("current-sim-day")
     series = defaultdict(list); meta = {}
     for r in data:
+        if int(float(r[cd])) < 1:   # skip the step-0 row recorded before day 1
+            continue
         series[r[cr]].append(float(r[cm]))
         meta[r[cr]] = (r[cp].strip('"'), r[cf].strip('"'))
     agg = {}
@@ -50,3 +53,34 @@ for exp, pvar in PARAM.items():
             continue
         red = 100 * (none[0] - tou[0]) / none[0] if none[0] else 0
         print(f"{p:>16}{none[0]:>9.3f}{tou[0]:>9.3f}{red:>7.1f}%{tou[1]:>9.3f}")
+
+# --- k-factor sweep: LoS robustness -----------------------------------------
+# k-factor only rescales the assumed hourly capacity (measurement layer), so
+# traffic dynamics are identical across values. We summarise the mean daily
+# peak % of traffic at LoS E/F per reporting group, for each k and fee regime.
+GROUPS = ["peak-ef-mwy", "peak-ef-cbd", "peak-ef-east", "peak-ef-west"]
+path = os.path.join(TABLES, "sensitivity-kfactor.csv")
+if os.path.exists(path):
+    hdr, data = load(path)
+    cf, cp, cr = hdr.index("fee-regime"), hdr.index("k-factor"), hdr.index("[run number]")
+    cd = hdr.index("current-sim-day")
+    cg = [hdr.index(g) for g in GROUPS]
+    series = defaultdict(lambda: [[] for _ in GROUPS]); meta = {}
+    for r in data:
+        if int(float(r[cd])) < 1:   # skip the step-0 row recorded before day 1
+            continue
+        for j, c in enumerate(cg):
+            series[r[cr]][j].append(float(r[c]))
+        meta[r[cr]] = (r[cp].strip('"'), r[cf].strip('"'))
+    agg = {}
+    for run, cols in series.items():
+        agg[meta[run]] = ([st.mean(v) for v in cols],
+                          [st.pstdev(v) if len(v) > 1 else 0.0 for v in cols])
+    print("\n=== sensitivity-kfactor  (daily-peak % traffic at LoS E/F, mean ± SD over days) ===")
+    print(f"{'k-factor':>10}{'fee':>11}{'MWY':>13}{'CBD':>13}{'East':>13}{'West':>13}")
+    for (p, fee) in sorted(agg, key=lambda t: (float(t[0]), t[1])):
+        m, s = agg[(p, fee)]
+        cells = "".join(f"{m[i]:>7.1f}±{s[i]:<5.1f}" for i in range(4))
+        print(f"{p:>10}{fee:>11}{cells}")
+else:
+    print(f"(skip sensitivity-kfactor: {path} not found)")

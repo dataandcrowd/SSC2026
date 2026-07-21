@@ -35,7 +35,7 @@ if (-not $THREADS) { $THREADS = 2 }
 
 Push-Location $NETLOGO_DIR   # so Data\... resolves
 try {
-    foreach ($EXP in @("sensitivity-pay", "sensitivity-elfarol", "sensitivity-ql-alpha", "sensitivity-ql-epsilon")) {
+    foreach ($EXP in @("sensitivity-pay", "sensitivity-elfarol", "sensitivity-ql-alpha", "sensitivity-ql-epsilon", "sensitivity-kfactor")) {
         Write-Host ">>> running $EXP"
         $table = Join-Path $OUT "$EXP.csv"
         & $HEADLESS --model $MODEL `

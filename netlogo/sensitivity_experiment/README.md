@@ -16,10 +16,20 @@ day. This is a sensitivity check on the main parameters, not an exhaustive grid 
 | sensitivity-elfarol | El Farol | el-farol-threshold | 0.5, **0.6**, 0.7 |
 | sensitivity-ql-alpha | Q-Learning | ql-alpha | 0.05, **0.1**, 0.2 |
 | sensitivity-ql-epsilon | Q-Learning | ql-epsilon-init | 0.2, **0.4**, 0.6 |
+| sensitivity-kfactor | Exp-Decay | k-factor | 0.08, **0.1**, 0.12 |
 
 Because `peak-vc-inner` is recorded for each of the 20 days, the aggregator reports both
 the mean reduction (No-Charge to ToU) and the day-to-day standard deviation (volatility).
 To widen the analysis later, add more values to each `enumeratedValueSet`.
+
+`sensitivity-kfactor` differs from the others: `k-factor` is the design-hour
+capacity assumption behind the Level-of-Service grading (hourly capacity =
+ADT × k), which is measurement-only — traffic dynamics are identical across
+its values. It records the daily-peak % of traffic at LoS E/F per reporting
+group (`peak-ef-mwy/cbd/east/west`) to test how robust the LoS conclusions
+are to the capacity assumption. See `../LOS_IMPLEMENTATION.md` for details
+and results. `plot_sensitivity.py` draws boxplots, the ToU-reduction line
+plot, and the El Farol daily time series into `output/figures/`.
 
 ## How to run
 

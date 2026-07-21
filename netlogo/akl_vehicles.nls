@@ -417,6 +417,7 @@ to set-destination [new-location]
   if empty? trip [ stop ]   ;; SSC2026: no path -> do not start this leg
   let new-road first trip
   set trip but-first trip
+  ask new-road [ set r-entries r-entries + 1 ]  ;; SSC2026: entry count feeds hourly-flow LoS
   let new-destination 0
   
   ; Select the correct end of the road for the new destination

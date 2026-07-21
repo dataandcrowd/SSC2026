@@ -17,6 +17,13 @@ roads-own [
   r-load         ; SSC2026: agents currently on the link (recomputed each tick)
   r-vc           ; SSC2026: volume/capacity = r-load * scale-factor / r-capacity
   r-vc-peak      ; SSC2026: peak V/C reached on this link this scenario (for maps)
+  r-los          ; SSC2026: Level of Service grade 1..6 = A..F (HCM 1994, class-specific V/C bands)
+  r-entries      ; SSC2026: agents that entered this link since the last update-vc (flow counter)
+  r-flow         ; SSC2026: hourly entering flow in real veh/h (EMA, one-hour time constant)
+  r-cap-hr       ; SSC2026: hourly capacity in real veh/h = ADT x k-factor (design-hour volume)
+  r-vcf          ; SSC2026: flow-based hourly V/C = r-flow / r-cap-hr (input to LoS)
+  r-vcf-peak     ; SSC2026: peak flow-based V/C reached this scenario (for maps)
+  r-group        ; SSC2026: LoS reporting group "MWY" | "CBD" | "East" | "West"
 ]
 
 ; Define the variables for nodes
@@ -134,10 +141,17 @@ to load-network
           ;; so a typical ~15k-ADT arterial maps to capacity-base x 1.0. Links with
           ;; no ADT match fall back to the road-class multiplier.
           ifelse table:has-key? link-adt r-id
-            [ set r-capacity capacity-base * (table:get link-adt r-id) / 15000 ]
-            [ set r-capacity capacity-base * capacity-mult speed_limmit ]
+            [ set r-capacity capacity-base * (table:get link-adt r-id) / 15000
+              set r-cap-hr (table:get link-adt r-id) * k-factor ]
+            [ set r-capacity capacity-base * capacity-mult speed_limmit
+              set r-cap-hr 15000 * (capacity-mult speed_limmit) * k-factor ]
           set r-load 0
           set r-vc 0
+          set r-los 1
+          set r-entries 0
+          set r-flow 0
+          set r-vcf 0
+          set r-vcf-peak 0
         ]
       ]
     ][
