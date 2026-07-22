@@ -25,6 +25,19 @@ if (-not (Test-Path $HEADLESS)) {
     throw "netlogo-headless.bat not found at $HEADLESS. Check the NETLOGO path."
 }
 
+# netlogo-headless.bat falls back to a bare "java.exe" (PATH) when JAVA_HOME is
+# unset. NetLogo 6.x bundles a JRE under <install>\runtime; point JAVA_HOME at it
+# so the run does not depend on a system-wide Java being on PATH.
+if (-not $env:JAVA_HOME) {
+    $bundled = Join-Path $env:NETLOGO "runtime"
+    if (Test-Path (Join-Path $bundled "bin\java.exe")) {
+        $env:JAVA_HOME = $bundled
+        Write-Host "Using NetLogo's bundled Java: $bundled"
+    } else {
+        throw "Java not found: JAVA_HOME is unset and no bundled JRE at $bundled. Install Java or set JAVA_HOME to a JDK/JRE."
+    }
+}
+
 $HERE        = $PSScriptRoot
 $NETLOGO_DIR = Split-Path $HERE -Parent
 $MODEL       = Join-Path $NETLOGO_DIR "akl_traffic.nlogo"
