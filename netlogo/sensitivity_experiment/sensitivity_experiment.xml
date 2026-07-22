@@ -61,6 +61,28 @@
     <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
   </experiment>
 
+  <!-- Demand calibration: run the unpriced baseline and export per-link modelled
+       daily volumes vs observed ADT (save-calibration) for scale-factor fitting. -->
+  <experiment name="calibration-demand" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-calibration</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Q-learning: vary exploration epsilon -->
   <experiment name="sensitivity-ql-epsilon" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>

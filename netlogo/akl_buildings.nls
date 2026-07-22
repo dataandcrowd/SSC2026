@@ -54,10 +54,61 @@ to load-buildings
   ;; Residential areas: x < 0.25 (left), y < 0.25 (bottom), x > 0.75 (right)
   create-residential-buildings
 
+  ;; SSC2026: suburban (non-CBD) commercial destinations, so not every non-home
+  ;; trip terminates downtown. Without these, all 1,484 CSV destinations sit in
+  ;; the cordon and uniform destination sampling over-loads CBD arterials (~1.8x
+  ;; observed ADT). Spreading trip-ends across the suburbs is both more realistic
+  ;; (metro travel is mostly suburb-to-suburb) and the spatial-calibration lever.
+  create-suburban-destinations
+
   print (word "Loaded " count buildings " buildings:")
   print (word "  - Homes (blue): " count buildings with [b-type = "home"])
   print (word "  - Universities (yellow): " count buildings with [b-type = "university"])
   print (word "  - Commercial (red): " count buildings with [b-type = "commercial"])
+  print (word "  - Suburban commercial (non-CBD): " count buildings with [b-type = "commercial" and not is-cbd?])
+end
+
+;; Number of suburban commercial destinations to create. Spatial-calibration
+;; lever: raising it dilutes the CBD's share of non-home trip-ends. Tuned so the
+;; CBD group's modelled/observed link-volume ratio approaches 1 (see LOS doc).
+to-report suburban-dest-count
+  report 1400
+end
+
+;; Place suburban commercial buildings at non-CBD interior nodes. Destinations
+;; are drawn uniformly over all non-home buildings, so these compete with the
+;; CBD-list buildings and pull a share of trips into the suburbs.
+to create-suburban-destinations
+  ;; candidate nodes: interior, outside the CBD core box (same box that excludes
+  ;; homes from downtown), so suburban shops sit where people actually live.
+  let cand nodes with [
+    not (n-xpos / max-pxcor > 0.45 and n-xpos / max-pxcor < 0.70 and
+         n-ypos / max-pycor > 0.45 and n-ypos / max-pycor < 0.75)
+  ]
+  if not any? cand [ stop ]
+  let made 0
+  repeat suburban-dest-count [
+    ;; sample a node and read its coords in observer context (create-buildings
+    ;; is observer-only, so it cannot run inside ask node)
+    let m one-of cand
+    let mx [n-xpos] of m
+    let my [n-ypos] of m
+    create-buildings 1 [
+      set b-id (word "sub_" made)
+      set b-type "commercial"
+      set is-cbd? false
+      set b-sector "local"
+      set nearest-node m
+      ;; jitter off the node, clamped so edge-of-network nodes stay in-world
+      set b-xpos median (list min-pxcor (mx + (random-float 2 - 1)) max-pxcor)
+      set b-ypos median (list min-pycor (my + (random-float 2 - 1)) max-pycor)
+      setxy b-xpos b-ypos
+      set shape "square"
+      set size 1
+      set color orange
+    ]
+    set made made + 1
+  ]
 end
 
 ;; Create residential buildings near outskirt nodes

@@ -1,6 +1,6 @@
 # Level of Service (LoS) implementation and sensitivity results
 
-*Session notes, 2026-07-21.*
+*Session notes, 2026-07-21; demand calibration added 2026-07-22.*
 
 ## Motivation
 
@@ -131,18 +131,109 @@ Regenerate with `python3 aggregate_sensitivity.py` and
 - `save-plots` exported the deleted "On-road vehicles by sector" plot, which
   would have thrown at runtime; the line was removed.
 
+## Demand calibration (2026-07-22)
+
+Modelled daily link volumes are now calibrated to AT observed ADT along two
+axes — **total volume** (`scale-factor`) and **spatial distribution**
+(suburban destinations) — leaving **temporal peaking** (implied k) as the one
+measured-but-unresolved residual.
+
+Infrastructure: `r-entries-cum` (cumulative link-entry counter, never reset),
+`r-peak-hr-entries` (peak clock-hour entries, for implied k), `r-vcf-am-*`
+(AM-peak 07-09 mean flow V/C), `save-calibration` (per-link CSV: observed ADT
+vs modelled veh/day, implied k, AM V/C), BehaviorSpace experiment
+`calibration-demand` (No-Charge, Exp-Decay, 5 days), and
+`sensitivity_experiment/calibrate_demand.py` (ratios, implied k, suggested
+`scale-factor`, log-log scatter).
+
+**1. Total volume (`scale-factor` 300 → 160).** Link entries are
+route-determined (cached shortest paths; every trip completes each day), so
+modelled volumes scale linearly in `scale-factor` and the fit is a one-shot
+division. All 1,634 links match an ADT count. At the original sf = 300 the
+flow-weighted ratio sum(model)/sum(obs) was 1.543 (→ sf ≈ 195); after adding
+suburban destinations (axis 2) it rose to 1.225 (suburban trips lengthen mean
+route), giving **sf = 160**. Final verification at sf = 160: ratio **1.013**,
+median per-link ratio 1.010, fitted line on top of y = x
+(`output/figures/calibration_scatter.png`,
+`output/tables/calibration_summary.txt`). `number_of_vehicles` stays 2500, so
+the model now represents ~400k vehicles.
+
+**2. Spatial distribution (suburban destinations).** The root cause of CBD
+over-loading: all 1,484 non-home destinations from `akl_building_list.csv` sit
+inside the cordon, so uniform destination sampling sent *every* non-home trip
+downtown. `create-suburban-destinations` (in `akl_buildings.nls`,
+`suburban-dest-count` = 1400) places non-CBD commercial trip-ends across the
+suburbs; destinations are then drawn over the combined pool, pulling trips out
+of the CBD. Group flow-weighted ratios (model/obs), before → after, at the
+matched sf:
+
+| Group | sf 300 (orig) | sf 160 (+ suburban) |
+|---|---|---|
+| CBD  | 1.80 | **1.12** |
+| East | 1.30 | 1.20 |
+| MWY  | 0.75 | 0.82 |
+| West | 0.76 | 1.04 |
+
+The inter-group range collapses from [0.75, 1.80] to [0.82, 1.20], and CBD is
+no longer the outlier. (Finer flattening — East is now the high group — would
+need observed trip-end data, which we do not have; link ADT under-determines
+the OD matrix.)
+
+**3. Temporal peaking (implied k = 0.157, unresolved).** With volume and space
+matched, the model's implied design-hour factor — flow-weighted peak clock-hour
+volume ÷ daily volume — is **0.157** (median 0.174), well above the physical
+k = 0.10 that `r-cap-hr` assumes. The departure profile (`outbound-demand`,
+8am weight 30/145 ≈ 21% of outbound trips) concentrates the AM peak harder than
+a real network, so peak-hour flow runs ~1.5× the design-hour capacity even when
+daily volumes match. **This is the residual driver of high peak-hour LoS E/F**,
+and it is a departure-timing limitation, not a demand-level one.
+
+Post-calibration No-Charge LoS (sf 160, 5-day mean, % traffic at LoS E/F):
+
+| Group | Daily-peak-of-EMA | AM-peak-hour mean | (pre-cal daily, sf 300) |
+|---|---|---|---|
+| MWY  | 92.4 | **75.9** | 96.3 |
+| CBD  | 86.9 | **83.3** | 97.8 |
+| East | 87.7 | **83.9** | 96.1 |
+| West | 83.3 | **80.1** | 86.1 |
+
+Calibration lowered every group's daily-peak E/F (CBD most, −11 pp), and the
+AM-peak-hour mean (`pct-los-ef-am-g`, the standard peak-hour LoS a traffic
+engineer would report) reads a further ~4–16 pp lower than the daily peak of
+the EMA. Inner-cordon peak V/C fell to 0.11. Levels are still high because of
+the temporal residual above; the **ToU-vs-No-Charge difference** remains the
+defensible headline, not the absolute E/F level.
+
 ## Caveats / next steps
 
 - LoS is computed from a rolling-hour flow analogue (EMA), not a fixed
-  clock-hour count — state this in the methods.
-- Absolute E/F levels (~90%+ at the daily peak) are high: the daily-peak
-  metric is by construction the worst moment of the day, and model demand
-  appears high relative to ADT-based capacities (max `r-vcf` ≈ 8 on a few
-  local links). Demand-side calibration — match modelled daily link volumes
-  to observed ADT by adjusting `number_of_vehicles` × `scale-factor` — should
-  precede any headline use of absolute LoS levels; `k-factor` then stays at
-  its physical 0.10. An AM-peak-hour mean metric would also read less
-  extreme than the daily peak.
+  clock-hour count — state this in the methods. The AM-peak-hour mean metric
+  (`pct-los-ef-am-g`) is the clock-hour alternative and reads less extreme.
+- **Temporal calibration is the open item.** Implied k = 0.157 vs physical
+  0.10: flatten `outbound-demand`/`return-demand` (and `draw-trip-hour`)
+  toward a ~10%-peak-hour profile so peak-hour flow matches design-hour
+  capacity, then absolute LoS levels become quotable. Until then, report the
+  ToU−NoCharge difference or the AM-peak metric, not absolute daily-peak E/F.
+- Spatial calibration is aggregate-good but not exact (East ~1.2×, MWY ~0.8×);
+  closing this needs observed trip-end/OD data beyond link ADT.
+- **Sensitivity suite re-run is pending (blocked on runtime, not correctness).**
+  The earlier tables were at sf = 300; the calibrated model is sf 160 + suburban
+  destinations. Only `sensitivity-pay` has been re-run on the calibrated model
+  so far (`output/tables/sensitivity-pay.csv`, 2026-07-23 02:53); `-elfarol`,
+  `-ql-alpha`, `-ql-epsilon`, `-kfactor` are still the sf = 300 tables and must
+  not be quoted together with the pay table until re-run.
+  Performance diagnosis (measured on the 8 GB dev machine): the calibrated
+  model costs **~195 s per simulated day** — suburban destinations lengthen
+  trips, so vehicles spend more ticks on-road; setup and the destination scan
+  are negligible by comparison. One 20-day run ≈ 65 min. Worse, BehaviorSpace
+  runs an experiment's 6 runs concurrently in a single JVM heap capped at 50 %
+  of 8 GB (≈4 GB); with 2500 vehicles + 3245 buildings + a scattered-OD path
+  cache per run, the heap thrashes GC and an experiment takes ~4.5 h instead of
+  the ~65 min ideal. To finish overnight, **cap concurrency to `--threads 3`**
+  (≈2.2 h/experiment, ~11 h for all five) or additionally cut `n-sim-days` to
+  ~12. The ToU-improves-LoS direction is expected to hold (k-factor showed
+  robustness to a ±20 % capacity shift; calibration is a demand shift of similar
+  order), but the numbers will change — replace all five tables once re-run.
 - Sensitivity runs are single-seed (repetitions = 1): boxes show day-to-day
   variation within one seed. Replicate with 3–5 seeds for real error bars,
   especially for the El Farol damping claim.

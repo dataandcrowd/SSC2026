@@ -71,7 +71,8 @@ to pricing-init
   set day-h-sum n-values 24 [0]
   set day-h-count n-values 24 [0]
   set hourly-records (list)
-  ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0 ]
+  ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0  set r-entries-cum 0
+    set r-hr-entries 0  set r-peak-hr-entries 0  set r-vcf-am-sum 0  set r-vcf-am-n 0 ]
 end
 
 ;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
@@ -563,6 +564,18 @@ to-report pct-los-ef-g [grp]
   report (los-share-g 5 grp) + (los-share-g 6 grp)
 end
 
+;; AM-peak-hour (07-09) mean flow V/C per link, graded to LoS. Flow-weighted
+;; share (%) of a group's AM traffic at LoS E or worse — the peak-hour LoS a
+;; traffic engineer would report, less extreme than the daily EMA peak.
+to-report pct-los-ef-am-g [grp]
+  let rs roads with [r-group = grp and r-vcf-am-n > 0]
+  let tot sum [r-vcf-am-sum / r-vcf-am-n] of rs   ;; weight by AM mean flow V/C
+  if tot = 0 [ report 0 ]
+  let ef sum [r-vcf-am-sum / r-vcf-am-n] of rs with
+    [ los-grade (r-vcf-am-sum / r-vcf-am-n) motorway-road? >= 5 ]
+  report 100 * ef / tot
+end
+
 ;; Flow-weighted mean hourly V/C of a group (continuous congestion signal).
 to-report group-vcf [grp]
   let rs roads with [r-group = grp]
@@ -591,9 +604,24 @@ to update-vc
     ;; with 1 agent = scale-factor vehicles the snapshot V/C is too lumpy.
     ;; EMA of entering flow with a one-hour time constant ~ rolling-hour volume.
     set r-flow r-flow + (1 / ticks-per-hour) * ((r-entries * ticks-per-hour * scale-factor) - r-flow)
+    set r-entries-cum r-entries-cum + r-entries
+    ;; per-clock-hour entry tally, for the implied design-hour factor k
+    ;; (peak clock-hour volume / daily volume): accumulate this hour, and at the
+    ;; hour boundary bank it as a peak candidate and reset the hourly counter.
+    set r-hr-entries r-hr-entries + r-entries
+    if (ticks mod ticks-per-hour) = 0 [
+      if r-hr-entries > r-peak-hr-entries [ set r-peak-hr-entries r-hr-entries ]
+      set r-hr-entries 0
+    ]
     set r-entries 0
     set r-vcf r-flow / (max (list 1 r-cap-hr))
     if r-vcf > r-vcf-peak [ set r-vcf-peak r-vcf ]
+    ;; AM-peak-hour mean flow V/C (clock hours 7-9): the standard peak-hour LoS,
+    ;; less extreme than the daily peak of the rolling-hour EMA.
+    if (current-hour >= 7 and current-hour <= 9) [
+      set r-vcf-am-sum r-vcf-am-sum + r-vcf
+      set r-vcf-am-n r-vcf-am-n + 1
+    ]
     ;; colour each link by its Level of Service (A green ... F dark red),
     ;; using class-specific bands so arterials grade stricter than motorways
     set r-los los-grade r-vcf motorway-road?
@@ -788,6 +816,34 @@ to save-links
                (los-letter (los-grade r-vcf-peak motorway-road?))
                [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2) ] of roads
   let fname (word "../output/tables/links_" rname "_" fee-regime ".csv")
+  csv:to-file fname (fput header body)
+  print (word "Saved " (length body) " links to " fname)
+end
+
+;; Export per-link demand-calibration data: observed ADT vs modelled daily volume.
+;; Modelled veh/day = cumulative link entries x scale-factor / days simulated;
+;; entries are counted once per link a vehicle traverses, matching how an ADT
+;; count site tallies passing traffic (both directions on an undirected link).
+;; Run after go-days under No-Charge so volumes reflect unpriced baseline demand.
+to save-calibration
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let days max (list 1 current-sim-day)
+  let header (list "link_id" "class" "group" "position" "adt_obs" "veh_day_model"
+                   "implied_k" "vcf_am")
+  let body [ (list r-id
+               (ifelse-value motorway-road? ["motorway"] ["arterial"])
+               r-group
+               r-position
+               (ifelse-value (table:has-key? link-adt r-id) [table:get link-adt r-id] [-1])
+               (r-entries-cum * scale-factor / days)
+               ;; implied design-hour factor = peak clock-hour volume / daily volume
+               (ifelse-value (r-entries-cum > 0)
+                 [(r-peak-hr-entries * days) / r-entries-cum] [0])
+               ;; AM-peak-hour (07-09) mean flow V/C
+               (ifelse-value (r-vcf-am-n > 0) [r-vcf-am-sum / r-vcf-am-n] [0])) ] of roads
+  let fname (word "../output/tables/calibration_" rname "_" fee-regime
+                  "_n" number_of_vehicles "_sf" scale-factor ".csv")
   csv:to-file fname (fput header body)
   print (word "Saved " (length body) " links to " fname)
 end

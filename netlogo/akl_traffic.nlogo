@@ -787,7 +787,7 @@ scale-factor
 scale-factor
 1
 2000
-300.0
+160.0
 10
 1
 veh/agent

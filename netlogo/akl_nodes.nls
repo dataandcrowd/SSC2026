@@ -19,6 +19,11 @@ roads-own [
   r-vc-peak      ; SSC2026: peak V/C reached on this link this scenario (for maps)
   r-los          ; SSC2026: Level of Service grade 1..6 = A..F (HCM 1994, class-specific V/C bands)
   r-entries      ; SSC2026: agents that entered this link since the last update-vc (flow counter)
+  r-entries-cum  ; SSC2026: total agent entries since setup (never reset; demand calibration vs ADT)
+  r-hr-entries   ; SSC2026: agent entries within the current clock hour (implied-k measurement)
+  r-peak-hr-entries ; SSC2026: max clock-hour entries seen this run (never reset; implied-k numerator)
+  r-vcf-am-sum   ; SSC2026: sum of r-vcf over AM-peak clock hours (7-9), accumulated across days
+  r-vcf-am-n     ; SSC2026: count of AM-peak samples (for the AM-peak-hour mean LoS metric)
   r-flow         ; SSC2026: hourly entering flow in real veh/h (EMA, one-hour time constant)
   r-cap-hr       ; SSC2026: hourly capacity in real veh/h = ADT x k-factor (design-hour volume)
   r-vcf          ; SSC2026: flow-based hourly V/C = r-flow / r-cap-hr (input to LoS)
@@ -149,6 +154,11 @@ to load-network
           set r-vc 0
           set r-los 1
           set r-entries 0
+          set r-entries-cum 0
+          set r-hr-entries 0
+          set r-peak-hr-entries 0
+          set r-vcf-am-sum 0
+          set r-vcf-am-n 0
           set r-flow 0
           set r-vcf 0
           set r-vcf-peak 0
