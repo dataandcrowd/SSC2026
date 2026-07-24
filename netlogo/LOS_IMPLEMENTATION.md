@@ -73,41 +73,54 @@ runner scripts, and the model's embedded BehaviorSpace list):
 k ∈ {0.08, 0.10, 0.12} × fee ∈ {No-Charge, tou}, Exp-Decay, 20 days,
 recording the four daily-peak group E/F metrics.
 
-Results (mean ± SD over 20 days, daily-peak % of traffic at LoS E/F):
+Results on the **calibrated model** (sf 160 + suburban destinations; full
+suite re-run on Windows, completed 2026-07-25), mean ± SD over 20 days,
+daily-peak % of traffic at LoS E/F:
 
 | k | fee | MWY | CBD | East | West |
 |---|---|---|---|---|---|
-| 0.08 | No-Charge | 97.4±0.2 | 98.6±0.3 | 97.4±0.3 | 89.4±2.0 |
-| 0.08 | tou | 96.9±0.3 | 97.6±0.6 | 96.2±0.5 | 87.3±2.0 |
-| 0.10 | No-Charge | 96.3±0.3 | 97.8±0.4 | 96.1±0.6 | 86.1±2.8 |
-| 0.10 | tou | 95.3±0.5 | 96.2±0.7 | 94.2±1.2 | 82.2±1.9 |
-| 0.12 | No-Charge | 94.7±0.5 | 96.8±0.5 | 94.7±0.8 | 82.0±2.5 |
-| 0.12 | tou | 93.3±0.6 | 94.3±1.4 | 91.7±1.3 | 76.9±2.1 |
+| 0.08 | No-Charge | 94.5±0.6 | 91.5±1.5 | 90.6±0.9 | 85.9±0.9 |
+| 0.08 | tou | 93.8±0.7 | 88.3±2.3 | 88.7±1.0 | 84.9±1.2 |
+| 0.10 | No-Charge | 91.9±0.6 | 86.9±1.9 | 87.1±1.1 | 83.0±1.1 |
+| 0.10 | tou | 90.8±1.2 | 82.1±2.7 | 84.9±1.5 | 81.8±1.2 |
+| 0.12 | No-Charge | 87.1±2.3 | 82.0±1.7 | 84.1±1.0 | 80.5±1.6 |
+| 0.12 | tou | 83.6±2.3 | 77.5±2.5 | 81.0±2.2 | 78.6±1.9 |
 
-**Headline: at every k and in every group, ToU lowers the LoS E/F share — the
-LoS-improvement conclusion is robust to the capacity assumption.** The effect
-is largest for Arterial West (78.1→73.2 pp at k = 0.12 in the earlier
-mean-only table; boxes barely overlap in the boxplot).
+**Headline holds after calibration: at every k and in every group, ToU lowers
+the LoS E/F share — the LoS-improvement conclusion is robust to the capacity
+assumption.** The ToU gap is largest for CBD (≈3–5 pp) and smallest for
+Arterial West (≈1 pp). Absolute E/F levels are ~5–10 pp lower than the
+pre-calibration (sf 300) tables, but still high because of the temporal
+residual (implied k = 0.157; see Demand calibration below).
 
-## Behavioural sensitivity (re-run, day-0 bug fixed)
+## Behavioural sensitivity (calibrated model, 2026-07-25)
 
-ToU reduction in 20-day mean of daily peak inner-cordon V/C:
+ToU reduction in 20-day mean of daily peak inner-cordon V/C. Calibration
+lowered the No-Charge baseline from ~0.45 to ~0.12, so these are proportional
+reductions off a much lower congestion level:
 
-- Exp-Decay base-beta 0.25 / 0.5 / 1.0 → 11.5% / 21.3% / 30.5% (monotone in
-  price sensitivity; No-Charge baseline identical across beta by construction).
-- El Farol threshold 0.5 / 0.6 / 0.7 → 1.2% / 7.8% / 11.1%, with large
-  day-to-day SD (0.245 at 0.5).
-- Q-Learning alpha 0.05 / 0.1 / 0.2 → 20.3% / 17.9% / 19.4% (insensitive).
-- Q-Learning epsilon 0.2 / 0.4 / 0.6 → 26.4% / 17.9% / 15.3% (more
-  exploration, less effect).
+- Exp-Decay base-beta 0.25 / 0.5 / 1.0 → 9.5% / 21.3% / 25.9% (still monotone
+  in price sensitivity; No-Charge baseline identical across beta by
+  construction).
+- El Farol threshold 0.5 / 0.6 / 0.7 → 3.7% / **−1.1%** / 0.7% — essentially
+  no effect, and day-to-day SD collapsed to ~0.02 (was 0.245 at sf 300).
+- Q-Learning alpha 0.05 / 0.1 / 0.2 → 27.4% / 32.2% / 30.5% (stronger than at
+  sf 300; insensitive to alpha).
+- Q-Learning epsilon 0.2 / 0.4 / 0.6 → 42.7% / 32.2% / 27.9% (stronger; still
+  decreasing with more exploration).
 
-The El Farol time series shows the boxplot spread is endogenous oscillation,
-not noise: at threshold 0.5 near-perfect alternate-day cycling
-(V/C 0.15 ↔ 0.7) that ToU barely dents; at threshold 0.7 No-Charge keeps
-oscillating widely while **ToU visibly damps the amplitude** (≈0.5–0.65 band).
-Under El Farol, pricing acts less by lowering the mean than by damping
-collective over-correction — a day-to-day reliability benefit. (Single seed;
-needs a multi-seed replication before claiming it in the paper.)
+**El Farol changed qualitatively under calibration — treat the earlier
+"pricing damps oscillation" story as an artifact.** At sf 300 the El Farol
+rule produced near-perfect alternate-day V/C cycling (0.15 ↔ 0.7) that ToU
+appeared to damp. On the calibrated model that oscillation is gone (daily peak
+sits in a narrow 0.13–0.21 band, No-Charge and ToU nearly overlapping, see
+`sensitivity_elfarol_timeseries.png`), and the ToU effect is ~0. The
+oscillation was driven by the over-loaded uncalibrated network, not by the
+attendance game itself; with realistic demand there is little collective
+congestion swing for pricing to act on. The reliability-benefit claim should
+not be made from this rule without, at minimum, a multi-seed replication.
+Exp-Decay and Q-Learning, by contrast, keep a clear positive ToU effect after
+calibration.
 
 ## Figures and tables
 
@@ -117,10 +130,12 @@ needs a multi-seed replication before claiming it in the paper.)
 - `output/figures/sensitivity_reduction.png` — ToU reduction (%) vs parameter.
 - `output/figures/sensitivity_elfarol_timeseries.png` — El Farol daily series.
 - `output/tables/sensitivity-*.csv` — raw BehaviorSpace tables (6 runs × 20
-  days each); `sensitivity_summary.txt` — aggregated means/SDs.
+  days each), calibrated model, 2026-07-25; `sensitivity_summary.txt` —
+  aggregated means/SDs.
 
-Regenerate with `python3 aggregate_sensitivity.py` and
-`python3 plot_sensitivity.py` in `sensitivity_experiment/`.
+All figures and the summary are regenerated from the CSVs with
+`python3 aggregate_sensitivity.py` and `python3 plot_sensitivity.py` in
+`sensitivity_experiment/` (needs `matplotlib` for the plots).
 
 ## Fixes made along the way
 
@@ -216,24 +231,24 @@ defensible headline, not the absolute E/F level.
   ToU−NoCharge difference or the AM-peak metric, not absolute daily-peak E/F.
 - Spatial calibration is aggregate-good but not exact (East ~1.2×, MWY ~0.8×);
   closing this needs observed trip-end/OD data beyond link ADT.
-- **Sensitivity suite re-run is pending (blocked on runtime, not correctness).**
-  The earlier tables were at sf = 300; the calibrated model is sf 160 + suburban
-  destinations. Only `sensitivity-pay` has been re-run on the calibrated model
-  so far (`output/tables/sensitivity-pay.csv`, 2026-07-23 02:53); `-elfarol`,
-  `-ql-alpha`, `-ql-epsilon`, `-kfactor` are still the sf = 300 tables and must
-  not be quoted together with the pay table until re-run.
-  Performance diagnosis (measured on the 8 GB dev machine): the calibrated
-  model costs **~195 s per simulated day** — suburban destinations lengthen
-  trips, so vehicles spend more ticks on-road; setup and the destination scan
-  are negligible by comparison. One 20-day run ≈ 65 min. Worse, BehaviorSpace
-  runs an experiment's 6 runs concurrently in a single JVM heap capped at 50 %
-  of 8 GB (≈4 GB); with 2500 vehicles + 3245 buildings + a scattered-OD path
-  cache per run, the heap thrashes GC and an experiment takes ~4.5 h instead of
-  the ~65 min ideal. To finish overnight, **cap concurrency to `--threads 3`**
-  (≈2.2 h/experiment, ~11 h for all five) or additionally cut `n-sim-days` to
-  ~12. The ToU-improves-LoS direction is expected to hold (k-factor showed
-  robustness to a ±20 % capacity shift; calibration is a demand shift of similar
-  order), but the numbers will change — replace all five tables once re-run.
+- **Sensitivity suite re-run is DONE (2026-07-25).** All five experiments
+  were re-run on the calibrated model (sf 160 + suburban destinations) on a
+  Windows machine and pushed (commit `edc7fce`); the tables above and the
+  figures now reflect the calibrated model. The ToU-improves-LoS direction
+  held for k-factor, Exp-Decay and Q-Learning; El Farol's effect collapsed
+  to ~0 (see the behavioural section). The Windows run took ~14 h wall-clock
+  at `--threads 3` (each simulated day ≈ 195 s; suburban destinations lengthen
+  trips so vehicles spend more ticks on-road). For future re-runs the plotting
+  step needs `matplotlib` on the run host, or regenerate figures elsewhere with
+  `python3 plot_sensitivity.py` — the Windows run produced the tables and the
+  summary but not the PNGs (matplotlib absent), which were regenerated on the
+  Mac.
+- **El Farol needs a multi-seed check before any claim.** The qualitative
+  change between sf 300 (wild oscillation, apparent ToU damping) and the
+  calibrated model (no oscillation, ~0 ToU effect) rests on single-seed runs
+  (repetitions = 1). Replicate El Farol with 3–5 seeds to confirm the
+  oscillation really is demand-driven and not seed-specific. The other rules'
+  positive ToU effect is large enough to be less seed-fragile, but multi-seed
+  error bars would strengthen all of them.
 - Sensitivity runs are single-seed (repetitions = 1): boxes show day-to-day
-  variation within one seed. Replicate with 3–5 seeds for real error bars,
-  especially for the El Farol damping claim.
+  variation within one seed, not run-to-run uncertainty.
