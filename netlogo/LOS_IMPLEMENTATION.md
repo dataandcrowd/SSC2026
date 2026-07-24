@@ -295,6 +295,23 @@ be varied through an `enumeratedValueSet` on `current-seed` (as
 the existing `sensitivity-elfarol` result), 20 days, full 12-metric set. Ten
 runs. Tests whether the two single-seed El Farol findings — ToU effect ≈ 0 and
 the disappearance of the sf300 alternate-day oscillation — are demand-driven
-or seed-specific. Runtime: ~16 h on the 8 GB Windows machine at
-`--threads 3`, ~5–7 h on the 14-core Mac; cutting `n-sim-days` to 12 roughly
-halves it at the cost of direct comparability with the 20-day tables.
+or seed-specific.
+
+**`n-sim-days` is now 5 in every experiment (was 20), set 2026-07-25; nothing
+has been re-run at 5 days yet.** This cuts a full-suite re-run to roughly a
+quarter of the 20-day cost (the calibrated model costs ~195 s per simulated
+day). Two consequences to keep in mind when the runs happen:
+
+- **Not directly comparable with the 20-day tables above.** Those tables stay
+  valid for what they measured; 5-day results are a separate series and should
+  not be quoted alongside them without saying so.
+- **5 days is short relative to how the rules learn.** Exp-Decay, El Farol
+  predictor scores and the Q-tables all update once per day, and
+  `ql-epsilon-decay` = 0.997/day barely moves in 5 days, so a 5-day run
+  measures largely transient rather than settled behaviour — Q-Learning
+  especially. It is adequate for a No-Charge baseline (which is why
+  `calibration-demand` always used 5 days) and probably adequate to see whether
+  El Farol oscillates at all (the sf300 cycle alternated day-to-day, so 5 days
+  is ~2 cycles), but the ToU effect sizes will not be the converged ones.
+  Consider 5 days for a fast diagnostic pass and a longer run for the numbers
+  that go in the paper.
