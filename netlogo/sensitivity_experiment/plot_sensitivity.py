@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Boxplots for the BehaviorSpace sensitivity tables.
+"""Figures for the BehaviorSpace sensitivity tables.
 
-Each run's 20 daily values (peak-vc-inner, or peak % traffic at LoS E/F per
-group for the k-factor sweep) become one box, paired No-Charge vs ToU at each
-parameter value, so the day-to-day spread that the mean/SD summary hides is
-visible directly.
+Reads  output/tables/sensitivity-*.csv  (override dir with SENS_TABLES)
+Writes output/figures/                  (override dir with SENS_FIGS)
 
-Reads  netlogo/output/tables/sensitivity-*.csv
-Writes netlogo/output/figures/sensitivity_box_behaviour.png
-       netlogo/output/figures/sensitivity_box_kfactor.png
+  sensitivity_box_behaviour.png    daily peak inner V/C, one box per run
+  sensitivity_box_kfactor.png      group LoS E/F over the k-factor sweep
+  sensitivity_reduction.png        ToU reduction by cordon position
+  sensitivity_positions.png        peak V/C by position at each rule baseline
+  sensitivity_elfarol_timeseries.png  El Farol day-by-day oscillation
+
+A box is one run's per-day values, paired No-Charge vs ToU, so the day-to-day
+spread the mean/SD summary hides stays visible.
+
+The two position figures need peak-vc-boundary / peak-vc-peripheral, which only
+exist in tables written after the metric set was expanded (2026-07-25). Older
+tables are handled: those series are skipped and a note is printed.
 """
 import csv, os
 from collections import defaultdict
@@ -17,8 +24,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TABLES = os.path.join(HERE, "..", "..", "output", "tables")
-FIGS = os.path.join(HERE, "..", "..", "output", "figures")
+# Paths can be redirected (SENS_TABLES / SENS_FIGS) to run the figures against
+# a test fixture without touching output/.
+TABLES = os.environ.get("SENS_TABLES") or os.path.join(HERE, "..", "..", "output", "tables")
+FIGS = os.environ.get("SENS_FIGS") or os.path.join(HERE, "..", "..", "output", "figures")
 os.makedirs(FIGS, exist_ok=True)
 
 FEE_ORDER = ["No-Charge", "tou"]
@@ -31,6 +40,13 @@ def load(path):
         rows = list(csv.reader(f))
     hdr_i = next(i for i, r in enumerate(rows) if r and r[0] == "[run number]")
     return rows[hdr_i], [r for r in rows[hdr_i + 1:] if r]
+
+
+def has_metric(path, metric):
+    """True if the table carries this metric column. Tables written before the
+    metric set was expanded (2026-07-25) only have peak-vc-inner, so the
+    position figures must degrade gracefully rather than crash."""
+    return metric in load(path)[0]
 
 
 def daily_series(path, pvar, metric):
@@ -128,40 +144,97 @@ if os.path.exists(path):
 else:
     print(f"(skip k-factor figure: {path} not found)")
 
-# --- Figure 3: ToU reduction (%) in mean daily peak inner V/C, by parameter -
-fig, axes = plt.subplots(2, 2, figsize=(9, 6), sharey=True)
+# --- Figure 3: ToU reduction (%) by cordon position, per parameter ----------
+# Three positions on one axis: if pricing relieves the inner cordon while
+# pushing queues onto the boundary, the boundary line drops below zero.
+POSITIONS = [("peak-vc-inner", "inner", "#4878a8"),
+             ("peak-vc-boundary", "boundary", "#d1893a"),
+             ("peak-vc-peripheral", "peripheral", "#5aa469")]
+
+
+def reductions(series, params):
+    """ToU reduction (%) off the No-Charge mean, per parameter value."""
+    out = []
+    for p in params:
+        none = series.get((p, "No-Charge")); tou = series.get((p, "tou"))
+        if not (none and tou):
+            out.append(float("nan")); continue
+        m0 = sum(none) / len(none); m1 = sum(tou) / len(tou)
+        out.append(100 * (m0 - m1) / m0 if m0 else 0.0)
+    return out
+
+
+fig, axes = plt.subplots(2, 2, figsize=(9.5, 6.5), sharey=True)
 drew = False
+missing_pos = []
 for ax, (exp, pvar, title) in zip(axes.flat, BEHAVIOUR):
     path = os.path.join(TABLES, f"{exp}.csv")
     if not os.path.exists(path):
         ax.set_axis_off(); continue
-    series = daily_series(path, pvar, "peak-vc-inner")
-    params = sorted({p for p, _ in series}, key=float)
-    reds = []
-    for p in params:
-        none = series.get((p, "No-Charge")); tou = series.get((p, "tou"))
-        if not (none and tou):
-            reds.append(float("nan")); continue
-        m0 = sum(none) / len(none); m1 = sum(tou) / len(tou)
-        reds.append(100 * (m0 - m1) / m0 if m0 else 0.0)
-    ax.plot([float(p) for p in params], reds, "o-", color="#4878a8", lw=2)
-    for x, y in zip(params, reds):
-        ax.annotate(f"{y:.1f}%", (float(x), y), textcoords="offset points",
-                    xytext=(0, 8), ha="center", fontsize=8)
+    for metric, label, colour in POSITIONS:
+        if not has_metric(path, metric):
+            missing_pos.append(f"{exp}:{label}")
+            continue
+        series = daily_series(path, pvar, metric)
+        params = sorted({p for p, _ in series}, key=float)
+        ax.plot([float(p) for p in params], reductions(series, params),
+                "o-", color=colour, lw=2, label=label)
     ax.axhline(0, color="gray", lw=0.8)
     ax.set_title(title, fontsize=10)
     ax.set_xlabel(pvar)
-    ax.set_ylabel("ToU reduction in peak inner V/C (%)")
+    ax.set_ylabel("ToU reduction in daily peak V/C (%)")
     ax.grid(axis="y", alpha=0.3)
-    ax.margins(y=0.15)
+    ax.margins(y=0.18)
     drew = True
 if drew:
-    fig.suptitle("ToU effect vs behavioural parameters (reduction in 20-day mean of daily peak inner V/C)")
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    if handles:
+        fig.legend(handles, labels, loc="upper right", ncol=3, frameon=False,
+                   title="cordon position", bbox_to_anchor=(0.99, 0.97))
+    fig.suptitle("ToU effect by cordon position (reduction in mean daily peak V/C)")
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
     out = os.path.join(FIGS, "sensitivity_reduction.png")
     fig.savefig(out, dpi=200)
     print("wrote", out)
+    if missing_pos:
+        print("  note: boundary/peripheral absent from older tables —",
+              f"{len(missing_pos)} series skipped (re-run to populate)")
 plt.close(fig)
+
+# --- Figure 3b: absolute levels by position, at each rule's baseline --------
+# Reduction percentages off a small base can mislead, so show the levels too.
+BASELINE = {"sensitivity-pay": 0.5, "sensitivity-elfarol": 0.6,
+            "sensitivity-ql-alpha": 0.1, "sensitivity-ql-epsilon": 0.4}
+if any(os.path.exists(os.path.join(TABLES, f"{e}.csv"))
+       and has_metric(os.path.join(TABLES, f"{e}.csv"), "peak-vc-boundary")
+       for e, _, _ in BEHAVIOUR):
+    fig, axes = plt.subplots(2, 2, figsize=(9.5, 6.5), sharey=True)
+    for ax, (exp, pvar, title) in zip(axes.flat, BEHAVIOUR):
+        path = os.path.join(TABLES, f"{exp}.csv")
+        if not (os.path.exists(path) and has_metric(path, "peak-vc-boundary")):
+            ax.set_axis_off(); continue
+        base = BASELINE[exp]
+        per_pos = {}
+        for metric, label, _ in POSITIONS:
+            series = daily_series(path, pvar, metric)
+            for (p, fee), vals in series.items():
+                if abs(float(p) - base) < 1e-9:
+                    per_pos[(label, fee)] = vals
+        labels = [lab for _, lab, _ in POSITIONS]
+        paired_boxes(ax, {(lab, fee): per_pos.get((lab, fee), [])
+                          for lab in labels for fee in FEE_ORDER},
+                     labels, "daily peak V/C", f"{title}  ({pvar} = {base})")
+        ax.set_xlabel("cordon position")
+    fig.legend(handles=legend_handles(), loc="upper right", ncol=2,
+               frameon=False, bbox_to_anchor=(0.99, 0.97))
+    fig.suptitle("Daily peak V/C by cordon position, at each rule's baseline parameter")
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    out = os.path.join(FIGS, "sensitivity_positions.png")
+    fig.savefig(out, dpi=200)
+    print("wrote", out)
+    plt.close(fig)
+else:
+    print("(skip position-levels figure: no table has peak-vc-boundary yet)")
 
 # --- Figure 4: El Farol daily time series (oscillation made visible) --------
 path = os.path.join(TABLES, "sensitivity-elfarol.csv")

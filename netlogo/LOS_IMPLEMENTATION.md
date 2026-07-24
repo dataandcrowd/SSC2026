@@ -127,8 +127,21 @@ calibration.
 - `output/figures/sensitivity_box_behaviour.png` — paired No-Charge/ToU boxes
   (20 days per box) for the four behavioural experiments.
 - `output/figures/sensitivity_box_kfactor.png` — same, per group, k sweep.
-- `output/figures/sensitivity_reduction.png` — ToU reduction (%) vs parameter.
+- `output/figures/sensitivity_reduction.png` — ToU reduction (%) vs parameter,
+  with one line per cordon position (inner / boundary / peripheral). A position
+  whose line falls below zero got *worse* under pricing, which is what
+  displacement onto the cordon boundary would look like.
+- `output/figures/sensitivity_positions.png` — daily peak V/C by position,
+  No-Charge vs ToU, at each rule's baseline parameter. Shows the levels behind
+  the percentages (a large % off the small inner base can look bigger than it
+  is next to the boundary's ~0.5).
 - `output/figures/sensitivity_elfarol_timeseries.png` — El Farol daily series.
+
+The two position figures need `peak-vc-boundary` / `peak-vc-peripheral` and so
+stay empty until a run made after 2026-07-25 exists; `plot_sensitivity.py`
+skips them with a printed note rather than failing. `SENS_TABLES` /
+`SENS_FIGS` env vars redirect input/output dirs (used to test the figures
+against a fixture).
 - `output/tables/sensitivity-*.csv` — raw BehaviorSpace tables (6 runs × 20
   days each), calibrated model, 2026-07-25; `sensitivity_summary.txt` —
   aggregated means/SDs.
