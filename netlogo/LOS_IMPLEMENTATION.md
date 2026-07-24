@@ -135,7 +135,12 @@ calibration.
   No-Charge vs ToU, at each rule's baseline parameter. Shows the levels behind
   the percentages (a large % off the small inner base can look bigger than it
   is next to the boundary's ~0.5).
-- `output/figures/sensitivity_elfarol_timeseries.png` — El Farol daily series.
+- `output/figures/sensitivity_elfarol_timeseries.png` — El Farol daily series,
+  one row per cordon position (inner / boundary / peripheral) x one column per
+  threshold. Rows keep separate y-scales on purpose: the boundary sits near 0.5
+  while inner and peripheral sit near 0.1, and a shared scale would flatten the
+  oscillation the figure exists to show. Falls back to an inner-only single row
+  on pre-2026-07-25 tables.
 
 The two position figures need `peak-vc-boundary` / `peak-vc-peripheral` and so
 stay empty until a run made after 2026-07-25 exists; `plot_sensitivity.py`

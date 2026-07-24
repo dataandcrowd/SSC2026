@@ -8,20 +8,23 @@ Writes output/figures/                  (override dir with SENS_FIGS)
   sensitivity_box_kfactor.png      group LoS E/F over the k-factor sweep
   sensitivity_reduction.png        ToU reduction by cordon position
   sensitivity_positions.png        peak V/C by position at each rule baseline
-  sensitivity_elfarol_timeseries.png  El Farol day-by-day oscillation
+  sensitivity_elfarol_timeseries.png  El Farol day-by-day oscillation,
+                                      one row per cordon position
 
 A box is one run's per-day values, paired No-Charge vs ToU, so the day-to-day
 spread the mean/SD summary hides stays visible.
 
-The two position figures need peak-vc-boundary / peak-vc-peripheral, which only
+The position breakdowns need peak-vc-boundary / peak-vc-peripheral, which only
 exist in tables written after the metric set was expanded (2026-07-25). Older
-tables are handled: those series are skipped and a note is printed.
+tables are handled: those series are skipped (the El Farol figure falls back to
+an inner-only single row) and a note is printed.
 """
 import csv, os
 from collections import defaultdict
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Paths can be redirected (SENS_TABLES / SENS_FIGS) to run the figures against
@@ -237,26 +240,42 @@ else:
     print("(skip position-levels figure: no table has peak-vc-boundary yet)")
 
 # --- Figure 4: El Farol daily time series (oscillation made visible) --------
+# One row per cordon position, one column per threshold. Rows share a y-axis
+# but rows differ from each other by design: the boundary sits near 0.5 while
+# inner and peripheral sit near 0.1, so a single shared scale would flatten the
+# oscillation this figure exists to show.
 path = os.path.join(TABLES, "sensitivity-elfarol.csv")
 if os.path.exists(path):
-    series = daily_series(path, "el-farol-threshold", "peak-vc-inner")
-    params = sorted({p for p, _ in series}, key=float)
-    fig, axes = plt.subplots(1, len(params), figsize=(11, 3.6), sharey=True)
-    for ax, p in zip(axes, params):
-        for fee in FEE_ORDER:
-            vals = series.get((p, fee), [])
-            ax.plot(range(1, len(vals) + 1), vals, "o-", ms=3, lw=1.4,
-                    color=FEE_COLOR[fee], label=FEE_LABEL[fee])
-        ax.set_title(f"threshold = {p}", fontsize=10)
-        ax.set_xlabel("day")
-        ax.grid(alpha=0.3)
-    axes[0].set_ylabel("daily peak inner V/C")
-    axes[0].legend(frameon=False, fontsize=8)
-    fig.suptitle("El Farol: day-to-day oscillation of peak inner-cordon V/C")
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    avail = [(m, lab) for m, lab, _ in POSITIONS if has_metric(path, m)]
+    params = sorted({p for p, _ in daily_series(path, "el-farol-threshold",
+                                                avail[0][0])}, key=float)
+    nrow, ncol = len(avail), len(params)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(3.7 * ncol, 2.7 * nrow + 0.6),
+                             sharey="row", sharex=True, squeeze=False)
+    for i, (metric, lab) in enumerate(avail):
+        series = daily_series(path, "el-farol-threshold", metric)
+        for j, p in enumerate(params):
+            ax = axes[i][j]
+            for fee in FEE_ORDER:
+                vals = series.get((p, fee), [])
+                ax.plot(range(1, len(vals) + 1), vals, "o-", ms=3, lw=1.4,
+                        color=FEE_COLOR[fee], label=FEE_LABEL[fee])
+            if i == 0:
+                ax.set_title(f"threshold = {p}", fontsize=10)
+            if i == nrow - 1:
+                ax.set_xlabel("day")
+            ax.grid(alpha=0.3)
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        axes[i][0].set_ylabel(f"{lab}\ndaily peak V/C")
+    fig.legend(handles=legend_handles(), loc="upper right", ncol=2,
+               frameon=False, bbox_to_anchor=(0.99, 0.99))
+    fig.suptitle("El Farol: day-to-day oscillation of peak V/C, by cordon position")
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
     out = os.path.join(FIGS, "sensitivity_elfarol_timeseries.png")
     fig.savefig(out, dpi=200)
     print("wrote", out)
+    if len(avail) < len(POSITIONS):
+        print(f"  note: only {[l for _, l in avail]} available in this table")
     plt.close(fig)
 else:
     print(f"(skip El Farol time-series figure: {path} not found)")
