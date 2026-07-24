@@ -252,3 +252,49 @@ defensible headline, not the absolute E/F level.
   error bars would strengthen all of them.
 - Sensitivity runs are single-seed (repetitions = 1): boxes show day-to-day
   variation within one seed, not run-to-run uncertainty.
+
+## Metric coverage gap and the seed trap (found 2026-07-25)
+
+Two defects in the experiment definitions, both now fixed in
+`sensitivity_experiment.xml`; **they invalidate nothing already computed, but
+they limited what the completed runs can answer.**
+
+**1. Only the inner cordon was recorded.** The four behavioural experiments
+recorded just `peak-vc-inner` (+ `current-sim-day`) — a leftover from the
+pricing work, where inner-CBD V/C is the congestion signal fed to the decision
+rules (`cbd-congestion`). The group LoS reporters added this session were wired
+only into `sensitivity-kfactor`, and `peak-vc-boundary` / `peak-vc-peripheral`
+were being computed every tick but never recorded. All seven experiments now
+record a common 12-metric set: inner / boundary / peripheral peak V/C, the four
+daily-peak group E/F shares, and the four AM-peak (07–09) group E/F shares
+(`pct-los-ef-am-g`, the clock-hour LoS a traffic engineer would report).
+
+This matters because **the boundary is far more congested than the inner
+cordon**: a validated 1-day calibrated run gives peak V/C inner 0.145,
+**boundary 0.518**, peripheral 0.099 — the same ordering the GUI's "CBD V/C
+over time" plot has shown all along (boundary pen above inner). So the headline
+`peak-vc-inner` ≈ 0.12 describes the *least* congested of the three positions,
+and every ToU reduction reported above (9.5–42.7 %) is measured there. Whether
+pricing improves the cordon boundary — or merely displaces queues onto it —
+cannot be answered from the completed tables. Re-running with the full metric
+set is what settles it.
+
+**2. `repetitions` does not vary the seed.** `setup` calls
+`random-seed current-seed` whenever `control-seed?` is on, and it is on with
+`current-seed` = 11. Verified headless: a 2-repetition experiment produced
+bit-identical runs (vehicle x-coordinate sum 137349.8696 in both). Every
+sensitivity result to date is therefore one seed, and raising `repetitions`
+would have silently produced duplicate rows rather than replicates. Seeds must
+be varied through an `enumeratedValueSet` on `current-seed` (as
+`elfarol-seeds` does), or `control-seed?` set false.
+
+## Planned: El Farol multi-seed replication
+
+`elfarol-seeds` — El Farol at the baseline threshold 0.6, No-Charge vs ToU,
+`current-seed` ∈ {11, 101, 202, 303, 404} (seed 11 first so one cell reproduces
+the existing `sensitivity-elfarol` result), 20 days, full 12-metric set. Ten
+runs. Tests whether the two single-seed El Farol findings — ToU effect ≈ 0 and
+the disappearance of the sf300 alternate-day oscillation — are demand-driven
+or seed-specific. Runtime: ~16 h on the 8 GB Windows machine at
+`--threads 3`, ~5–7 h on the 14-core Mac; cutting `n-sim-days` to 12 roughly
+halves it at the cost of direct comparability with the 20-day tables.

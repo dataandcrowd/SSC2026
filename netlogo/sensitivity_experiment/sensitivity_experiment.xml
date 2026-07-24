@@ -9,6 +9,16 @@
     <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
     <metric>peak-vc-inner</metric>
     <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="base-beta"><value value="0.25"/><value value="0.5"/><value value="1.0"/></enumeratedValueSet>
@@ -22,6 +32,16 @@
     <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
     <metric>peak-vc-inner</metric>
     <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
     <enumeratedValueSet variable="decision-rule"><value value="&quot;El Farol&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="el-farol-threshold"><value value="0.5"/><value value="0.6"/><value value="0.7"/></enumeratedValueSet>
@@ -35,6 +55,16 @@
     <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
     <metric>peak-vc-inner</metric>
     <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="ql-alpha"><value value="0.05"/><value value="0.1"/><value value="0.2"/></enumeratedValueSet>
@@ -51,10 +81,16 @@
     <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
     <metric>peak-vc-inner</metric>
     <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
     <metric>peak-ef-mwy</metric>
     <metric>peak-ef-cbd</metric>
     <metric>peak-ef-east</metric>
     <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="k-factor"><value value="0.08"/><value value="0.1"/><value value="0.12"/></enumeratedValueSet>
@@ -83,6 +119,47 @@
     <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
   </experiment>
 
+  <!-- El Farol multi-seed replication.
+       Purpose: the calibrated model shows El Farol's ToU effect collapsing to
+       ~0 and the sf300 alternate-day oscillation disappearing. Both findings
+       rest on a single seed, so this varies the seed at the baseline
+       threshold (0.6) to check they are demand-driven, not seed-specific.
+
+       IMPORTANT: `setup` runs `random-seed current-seed` whenever
+       control-seed? is on (it is, seed 11), so raising `repetitions` does NOT
+       vary the seed - every repetition is bit-identical (verified headless).
+       Seeds must be varied through this enumeratedValueSet. Seed 11 is kept
+       first so one cell reproduces the existing sensitivity-elfarol result. -->
+  <experiment name="elfarol-seeds" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;El Farol&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="el-farol-threshold"><value value="0.6"/></enumeratedValueSet>
+    <enumeratedValueSet variable="control-seed?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="current-seed">
+      <value value="11"/>
+      <value value="101"/>
+      <value value="202"/>
+      <value value="303"/>
+      <value value="404"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="20"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Q-learning: vary exploration epsilon -->
   <experiment name="sensitivity-ql-epsilon" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>
@@ -90,6 +167,16 @@
     <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
     <metric>peak-vc-inner</metric>
     <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="ql-epsilon-init"><value value="0.2"/><value value="0.4"/><value value="0.6"/></enumeratedValueSet>
