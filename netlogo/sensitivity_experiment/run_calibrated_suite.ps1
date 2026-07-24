@@ -2,11 +2,16 @@
 # suburban destinations) on Windows. PowerShell equivalent of
 # run_calibrated_suite.sh.
 #
-# Concurrency is capped at 3 (not NUMBER_OF_PROCESSORS): on an 8 GB machine
-# BehaviorSpace shares one ~4 GB JVM heap across an experiment's parallel runs,
-# and 6-way concurrency thrashes GC (~4.5 h/experiment) while 3-way runs
-# near-linearly (~2.2 h/experiment, ~11 h total). See LOS_IMPLEMENTATION.md.
-# On a machine with >=16 GB RAM you can raise it: $env:THREADS = 6.
+# Concurrency defaults to 8. IMPORTANT: BehaviorSpace shares ONE JVM heap
+# (~50 % of system RAM) across an experiment's parallel runs, so the safe
+# thread count scales with RAM, not cores. On the 8 GB dev laptop 8-way
+# concurrency thrashes GC badly - use $env:THREADS = 3 there (measured
+# ~2.2 h/experiment at 3-way vs ~4.5 h at 6-way). 8-way needs >=16 GB.
+# See LOS_IMPLEMENTATION.md.
+#
+# n-sim-days is 14 for the sensitivity experiments (5 for calibration-demand),
+# set in sensitivity_experiment.xml. At 14 days expect roughly 0.7x the
+# 20-day runtimes quoted above.
 #
 # The script keeps Windows awake for its duration (SetThreadExecutionState) so
 # you do not need a caffeinate equivalent; sleep resumes when it exits.
@@ -14,6 +19,10 @@
 # Usage (PowerShell):
 #   $env:NETLOGO = "C:\Program Files\NetLogo 6.4.0"
 #   .\run_calibrated_suite.ps1
+#
+# Low-RAM machine, or to run only the El Farol seed replication:
+#   $env:THREADS = 3
+#   $env:EXPERIMENTS = "elfarol-seeds"
 
 $ErrorActionPreference = "Stop"
 
@@ -46,7 +55,7 @@ $OUT         = Join-Path $NETLOGO_DIR "..\output\tables"
 New-Item -ItemType Directory -Force -Path $OUT | Out-Null
 $OUT = (Resolve-Path $OUT).Path
 
-$THREADS = if ($env:THREADS) { $env:THREADS } else { 3 }
+$THREADS = if ($env:THREADS) { $env:THREADS } else { 8 }
 $LOG = Join-Path $env:TEMP "suite_calibrated.log"
 "" | Set-Content $LOG
 
@@ -66,7 +75,13 @@ public static class Sleepless {
 Push-Location $NETLOGO_DIR   # so Data\... resolves
 try {
     "[{0}] calibrated suite start (threads=$THREADS)" -f (Get-Date -Format 's') | Tee-Object -FilePath $LOG -Append
-    foreach ($EXP in @("sensitivity-pay", "sensitivity-elfarol", "sensitivity-ql-alpha", "sensitivity-ql-epsilon", "sensitivity-kfactor")) {
+    $EXPERIMENTS = if ($env:EXPERIMENTS) {
+        $env:EXPERIMENTS -split '[,\s]+' | Where-Object { $_ }
+    } else {
+        @("sensitivity-pay", "sensitivity-elfarol", "sensitivity-ql-alpha",
+          "sensitivity-ql-epsilon", "sensitivity-kfactor", "elfarol-seeds")
+    }
+    foreach ($EXP in $EXPERIMENTS) {
         "[{0}] >>> $EXP" -f (Get-Date -Format 's') | Tee-Object -FilePath $LOG -Append
         $table = Join-Path $OUT "$EXP.csv"
         & $HEADLESS --model $MODEL `
@@ -78,7 +93,14 @@ try {
     Push-Location $HERE
     try {
         python aggregate_sensitivity.py *>> $LOG
-        python plot_sensitivity.py      *>> $LOG
+        # Figures need matplotlib; a missing module must not fail the whole run
+        # (the Windows host lacked it on 2026-07-25 and the tables were fine).
+        python -c "import matplotlib" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            python plot_sensitivity.py *>> $LOG
+        } else {
+            "[{0}] matplotlib not installed - skipping figures. Run 'python plot_sensitivity.py' on a host that has it (or: pip install matplotlib)." -f (Get-Date -Format 's') | Tee-Object -FilePath $LOG -Append
+        }
     } finally { Pop-Location }
     "[{0}] ALL DONE" -f (Get-Date -Format 's') | Tee-Object -FilePath $LOG -Append
 }

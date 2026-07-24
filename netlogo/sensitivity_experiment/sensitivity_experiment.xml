@@ -22,7 +22,7 @@
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="base-beta"><value value="0.25"/><value value="0.5"/><value value="1.0"/></enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
   <!-- El Farol: vary comfort threshold -->
@@ -45,7 +45,7 @@
     <enumeratedValueSet variable="decision-rule"><value value="&quot;El Farol&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="el-farol-threshold"><value value="0.5"/><value value="0.6"/><value value="0.7"/></enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
   <!-- Q-learning: vary learning rate alpha -->
@@ -68,7 +68,7 @@
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="ql-alpha"><value value="0.05"/><value value="0.1"/><value value="0.2"/></enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
   <!-- LoS capacity assumption: vary the design-hour K-factor.
@@ -94,7 +94,7 @@
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="k-factor"><value value="0.08"/><value value="0.1"/><value value="0.12"/></enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
   <!-- Demand calibration: run the unpriced baseline and export per-link modelled
@@ -157,7 +157,7 @@
       <value value="303"/>
       <value value="404"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
   <!-- Q-learning: vary exploration epsilon -->
@@ -180,7 +180,7 @@
     <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
     <enumeratedValueSet variable="ql-epsilon-init"><value value="0.2"/><value value="0.4"/><value value="0.6"/></enumeratedValueSet>
-    <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
 </experiments>
