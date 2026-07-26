@@ -78,7 +78,9 @@ to pricing-init
   set hr-los-records (list)
   set hr-los-f n-values 6 [0]
   set hr-los-ticks 0
-  set hr-cur-hour current-hour
+  ;; pricing-init runs before reset-ticks, so `current-hour` (which reads ticks)
+  ;; would error here; tick 0 is sim-start-hour:00 by definition, same value.
+  set hr-cur-hour sim-start-hour
   ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0  set r-entries-cum 0
     set r-hr-entries 0  set r-peak-hr-entries 0  set r-vcf-am-sum 0  set r-vcf-am-n 0 ]
 end

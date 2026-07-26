@@ -155,6 +155,16 @@ Full write-up with tables: `CALIBRATION_AND_SENSITIVITY.md`.
   oscillation the figure exists to show. Falls back to an inner-only single row
   on pre-2026-07-25 tables.
 
+- `output/figures/sensitivity_hourly_profile.png` — hour-of-day inner-cordon
+  V/C, one panel per rule, No-Charge vs ToU, min–max band over days 8+, ToU
+  $6/$4 fee windows shaded (from `hourly_<Rule>_<fee>.csv`).
+- `output/figures/sensitivity_los_bands.png` — flow-weighted LoS A–F mix by
+  2-hour band (07–09 … 21–23 + all day), No-Charge vs ToU bars, one row per
+  rule; `sensitivity_los_daily.png` — the same mix by simulated day (from
+  `los_hours_<Rule>_<fee>.csv`).
+- `output/figures/los_bpr_schematic.png` — BPR speed curve with the HCM LoS
+  bands on the V/C axis, per road class (methods figure, no run needed).
+
 The two position figures need `peak-vc-boundary` / `peak-vc-peripheral` and so
 stay empty until a run made after 2026-07-25 exists; `plot_sensitivity.py`
 skips them with a printed note rather than failing. `SENS_TABLES` /
@@ -176,6 +186,11 @@ All figures and the summary are regenerated from the CSVs with
 - Flow EMA carried over between days (see above); now reset per day.
 - `save-plots` exported the deleted "On-road vehicles by sector" plot, which
   would have thrown at runtime; the line was removed.
+- `pricing-init` initialised `hr-cur-hour` from `current-hour` (which reads
+  `ticks`) although it runs before `reset-ticks`, so `setup` failed outright
+  with "The tick counter has not been started yet". Now uses `sim-start-hour`,
+  the value tick 0 corresponds to. Found 2026-07-27 when the two within-day
+  experiments would not start.
 
 ## Demand calibration (2026-07-22)
 
@@ -347,47 +362,82 @@ day). Two consequences to keep in mind when the runs happen:
   Consider 5 days for a fast diagnostic pass and a longer run for the numbers
   that go in the paper.
 
-## TODO — pending runs (Windows server, added 2026-07-26)
+## Within-day results: hourly profile and LoS bands (run 2026-07-27)
 
-Current state: the full suite (`sensitivity-*`, `elfarol-seeds`) has been
-re-run at 14 days on the calibrated model (tables 2026-07-26; write-up in
-`CALIBRATION_AND_SENSITIVITY.md`), superseding the 5-day note above. Two NEW
-experiments were added afterwards and have **not** been run yet — a local run
-was started on the 8 GB Mac and aborted in favour of the server:
-
-1. **`hourly-profile`** — 3 rules × 2 fee regimes at the baseline (slider
-   defaults), 14 days, `final` = `save-hourly` →
-   `output/tables/hourly_<Rule>_<fee>.csv`. Feeds `plot_hourly_profile.py` →
-   `sensitivity_hourly_profile.png` (hour-of-day inner-cordon V/C profile,
-   min–max band, ToU $6/$4 fee windows shaded). This is the figure that shows
-   the within-day ToU mechanism (AM-peak shaving) that the daily-peak series
-   hides. NOTE: overwrites the stale 2026-06-28 `hourly_*.csv`, which are
-   pre-calibration.
-2. **`los-bands`** — same 6 runs, `final` = `save-los-hours` →
-   `output/tables/los_hours_<Rule>_<fee>.csv` (day × clock hour × network
-   flow at each LoS grade A–F, flow-weighted over all links). Feeds
-   `plot_los_bands.py` → `sensitivity_los_bands.png` (stacked A–F shares by
-   2-hour band 07–09 … 21–23 + all-day, No-Charge vs ToU bars) and
-   `sensitivity_los_daily.png` (same by simulated day). **Requires the new
-   recording code in `akl_pricing.nls`** (`hr-los-records`, `flush-hr-los`,
-   `save-los-hours`, accumulation in `update-vc`) — pull/commit before
-   running.
-
-Run only these two on the server (PowerShell; ~1 h each at full threads):
+The two remaining experiments — `hourly-profile` and `los-bands` — were run on
+the Windows server on 2026-07-27 (14 days, 3 rules × 2 fee regimes at the
+slider baselines, calibrated model, `--threads 8`, ~3.3 h each). Both exited 0
+and all twelve tables were written. Command used:
 
 ```powershell
 $env:NETLOGO = "C:\Program Files\NetLogo 6.4.0"
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
 $env:EXPERIMENTS = "hourly-profile los-bands"
 .\netlogo\sensitivity_experiment\run_calibrated_suite.ps1
 ```
 
-Then generate the figures (needs matplotlib; can equally be run on the Mac
-after pulling the tables):
+`JAVA_HOME` is **required** on this host: NetLogo 6.4.0's bundled `runtime`
+directory ships no `java.exe`, so the runner's bundled-JRE fallback fails and
+`netlogo-headless.bat` has no Java on PATH. JDK 17 is installed at the path
+above. Figures were then generated in place (matplotlib installed on the
+server, 3.11.1):
 
 ```powershell
 python netlogo\sensitivity_experiment\plot_hourly_profile.py
 python netlogo\sensitivity_experiment\plot_los_bands.py
 ```
 
+**Blocker fixed before the run.** `pricing-init` set `hr-cur-hour` from
+`current-hour`, which reads `ticks`, but `pricing-init` runs *before*
+`reset-ticks` in `setup` (and after `clear-all`, which un-starts the tick
+counter). Every run therefore died with `RUNTIME ERROR: The tick counter has
+not been started yet` — the new LoS-hour recording code made `setup` itself
+unusable in the GUI as well as headless. Tick 0 is `sim-start-hour`:00 by
+definition, so the initialiser now uses `sim-start-hour` directly. A 2-day
+diagnostic also confirmed each simulated day consumes exactly 24 × 600 ticks
+(`day-start-tick` 0 → 14400, `current-hour` back to 5 at each day end), so the
+absolute-tick `current-hour` stays aligned with the day clock across days and
+the hour labels in both new tables are trustworthy.
+
+**1. Hour-of-day profile** (`sensitivity_hourly_profile.png`; mean inner-cordon
+V/C over days 8+, min–max band, ToU fee windows shaded):
+
+| Rule | AM 07–09 | PM 16–18 | all day |
+|---|---|---|---|
+| Exp-Decay | 0.055 → 0.043 (−22.0 %) | 0.033 → 0.026 (−20.1 %) | 0.020 → 0.016 (−21.3 %) |
+| El Farol | 0.092 → 0.090 (−2.2 %) | 0.057 → 0.059 (**+3.2 %**) | 0.037 → 0.037 (−1.1 %) |
+| Q-Learning | 0.056 → 0.029 (−48.8 %) | 0.035 → 0.017 (−50.6 %) | 0.022 → 0.011 (−49.1 %) |
+
+(No-Charge → ToU.) The profile is twin-peaked (AM peak ≈ 08–09, PM peak ≈
+17–18) in every cell. **The ToU effect is not peak-shaving: the proportional
+reduction is essentially the same in the AM peak, the PM peak and the daily
+mean**, so pricing shifts the whole day's level rather than redistributing
+trips out of the charged windows — the earlier "AM-peak shaving" wording was a
+hypothesis, and this figure does not support it. El Farol again shows no
+effect, and its PM peak is marginally *worse* under ToU, consistent with the
+~0 daily-peak result and the five-seed null above.
+
+**2. Hourly LoS mix** (`sensitivity_los_bands.png` by 2-hour band,
+`sensitivity_los_daily.png` by day; flow-weighted over all 1,634 links, days
+8+, % of traffic at LoS E or F):
+
+| Rule | all day | 07–09 | 09–11 |
+|---|---|---|---|
+| Exp-Decay | 56.3 → 49.4 (−7.0 pp) | 64.2 → 59.6 (−4.6 pp) | 83.2 → 79.8 (−3.5 pp) |
+| El Farol | 71.8 → 71.5 (−0.4 pp) | 76.3 → 76.5 (**+0.2 pp**) | 89.3 → 89.2 (−0.1 pp) |
+| Q-Learning | 58.0 → 40.0 (−18.0 pp) | 64.5 → 48.8 (−15.7 pp) | 84.9 → 71.1 (−13.7 pp) |
+
+The worst band is 09–11, not 07–09, because `r-flow` is a one-hour EMA and so
+lags the departure peak by roughly its time constant. Absolute E/F levels are
+high for the reason given under Demand calibration (implied k = 0.157 against
+an assumed 0.10), so read the No-Charge → ToU difference, not the level. The
+daily figure also shows Q-Learning still improving at the end of the run under
+ToU — its E/F share falls 56.2 % (day 1) → 37.8 % (day 14) and is still
+declining — while Exp-Decay (≈ 49–50 %) and El Farol (≈ 71–72 %) are flat from
+day 2, and all three No-Charge baselines are flat throughout. **The Q-Learning
+ToU numbers above are therefore not converged**; a longer run would report a
+larger effect for that rule.
+
 `los_bpr_schematic.png` (BPR speed curve + LoS bands on the V/C axis, the
-methods figure) needs no simulation run and is already generated.
+methods figure) needs no simulation run and is regenerated by
+`plot_los_bands.py`.
