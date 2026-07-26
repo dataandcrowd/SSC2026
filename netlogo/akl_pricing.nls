@@ -46,6 +46,10 @@ globals [
   day-h-sum              ;; per-hour inner V/C accumulated within the current day
   day-h-count            ;; per-hour sample count within the current day
   hourly-records         ;; rows [day rule regime hour vc] for per-hour variability
+  hr-los-records         ;; rows [day hour fA..fF]: mean flow (veh/h) at each LoS grade that hour
+  hr-los-f               ;; per-grade flow accumulator for the current clock hour (6 elements)
+  hr-los-ticks           ;; tick count in the current clock hour (divisor for the mean)
+  hr-cur-hour            ;; clock hour the accumulator is filling
   link-adt               ;; table: link id -> observed ADT (AT counts)
 ]
 
@@ -71,8 +75,24 @@ to pricing-init
   set day-h-sum n-values 24 [0]
   set day-h-count n-values 24 [0]
   set hourly-records (list)
+  set hr-los-records (list)
+  set hr-los-f n-values 6 [0]
+  set hr-los-ticks 0
+  set hr-cur-hour current-hour
   ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0  set r-entries-cum 0
     set r-hr-entries 0  set r-peak-hr-entries 0  set r-vcf-am-sum 0  set r-vcf-am-n 0 ]
+end
+
+;; Close out the clock hour being accumulated: append its mean per-grade flows
+;; to hr-los-records and reset the accumulator. Called on hour change and at
+;; end of day (so a partial final hour is not lost).
+to flush-hr-los
+  if hr-los-ticks > 0 [
+    set hr-los-records lput (sentence (list current-sim-day hr-cur-hour)
+      (map [f -> f / hr-los-ticks] hr-los-f)) hr-los-records
+  ]
+  set hr-los-f n-values 6 [0]
+  set hr-los-ticks 0
 end
 
 ;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
@@ -597,6 +617,7 @@ to update-vc
   let f-cbd 0  let ef-cbd 0
   let f-east 0 let ef-east 0
   let f-west 0 let ef-west 0
+  let lf1 0  let lf2 0  let lf3 0  let lf4 0  let lf5 0  let lf6 0
   ask roads [
     set r-vc (r-load * scale-factor) / (max (list 1 r-capacity))
     if r-vc > r-vc-peak [ set r-vc-peak r-vc ]
@@ -626,6 +647,13 @@ to update-vc
     ;; using class-specific bands so arterials grade stricter than motorways
     set r-los los-grade r-vcf motorway-road?
     set color los-color r-los
+    ;; network-wide flow at each LoS grade, feeding the hourly LoS-mix record
+    if r-los = 1 [ set lf1 lf1 + r-flow ]
+    if r-los = 2 [ set lf2 lf2 + r-flow ]
+    if r-los = 3 [ set lf3 lf3 + r-flow ]
+    if r-los = 4 [ set lf4 lf4 + r-flow ]
+    if r-los = 5 [ set lf5 lf5 + r-flow ]
+    if r-los = 6 [ set lf6 lf6 + r-flow ]
     ;; accumulate per-group flow and LoS E/F flow for the daily peak trackers
     if r-group = "MWY"  [ set f-mwy f-mwy + r-flow    if r-los >= 5 [ set ef-mwy ef-mwy + r-flow ] ]
     if r-group = "CBD"  [ set f-cbd f-cbd + r-flow    if r-los >= 5 [ set ef-cbd ef-cbd + r-flow ] ]
@@ -647,6 +675,12 @@ to update-vc
   if f-cbd > 0  [ let c 100 * ef-cbd / f-cbd    if c > peak-ef-cbd  [ set peak-ef-cbd c ] ]
   if f-east > 0 [ let c 100 * ef-east / f-east  if c > peak-ef-east [ set peak-ef-east c ] ]
   if f-west > 0 [ let c 100 * ef-west / f-west  if c > peak-ef-west [ set peak-ef-west c ] ]
+  ;; hourly LoS mix: flush the finished hour on a clock-hour change, then
+  ;; accumulate this tick's per-grade flows into the current hour
+  let h current-hour
+  if h != hr-cur-hour [ flush-hr-los  set hr-cur-hour h ]
+  set hr-los-f (map + hr-los-f (list lf1 lf2 lf3 lf4 lf5 lf6))
+  set hr-los-ticks hr-los-ticks + 1
 end
 
 ;; BPR travel-time / speed penalty as a function of a link's V/C.
@@ -820,6 +854,20 @@ to save-links
   print (word "Saved " (length body) " links to " fname)
 end
 
+;; Export the hourly LoS mix: for each day x clock hour, the mean flow (real
+;; veh/h, network-wide) carried at each LoS grade A..F. Shares are computed by
+;; the plotting script. Feeds the V/C-based LoS figures (by 2-hour band / day).
+to save-los-hours
+  let rname decision-rule
+  if rname = "El Farol" [ set rname "ElFarol" ]
+  let header (list "day" "rule" "regime" "hour" "fA" "fB" "fC" "fD" "fE" "fF")
+  let body map [row -> (sentence (list (item 0 row) decision-rule fee-regime (item 1 row))
+                                 (sublist row 2 8)) ] hr-los-records
+  let fname (word "../output/tables/los_hours_" rname "_" fee-regime ".csv")
+  csv:to-file fname (fput header body)
+  print (word "Saved " (length body) " LoS-hour rows to " fname)
+end
+
 ;; Export per-link demand-calibration data: observed ADT vs modelled daily volume.
 ;; Modelled veh/day = cumulative link entries x scale-factor / days simulated;
 ;; entries are counted once per link a vehicle traverses, matching how an ADT
@@ -902,6 +950,7 @@ end
 
 ;; Observe realised CBD attendance / congestion and update learners.
 to end-of-day-update
+  flush-hr-los               ;; bank the day's final (possibly partial) clock hour
   let realised-attendance (count vehicles with [enters-cbd? = true]) /
                           (max (list 1 count vehicles with [has-cbd-trip? = true]))
   let realised-cong peak-vc-inner   ;; peak inner-CBD V/C reached during the day

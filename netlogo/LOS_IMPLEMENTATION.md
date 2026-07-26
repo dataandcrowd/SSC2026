@@ -93,21 +93,23 @@ Arterial West (≈1 pp). Absolute E/F levels are ~5–10 pp lower than the
 pre-calibration (sf 300) tables, but still high because of the temporal
 residual (implied k = 0.157; see Demand calibration below).
 
-## Behavioural sensitivity (calibrated model, 2026-07-25)
+## Behavioural sensitivity (calibrated model, final 14-day tables 2026-07-26)
 
-ToU reduction in 20-day mean of daily peak inner-cordon V/C. Calibration
+ToU reduction in 14-day mean of daily peak inner-cordon V/C. Calibration
 lowered the No-Charge baseline from ~0.45 to ~0.12, so these are proportional
-reductions off a much lower congestion level:
+reductions off a much lower congestion level. (Numbers from the final
+2026-07-26 tables; an earlier partial re-run quoted slightly different
+values.)
 
-- Exp-Decay base-beta 0.25 / 0.5 / 1.0 → 9.5% / 21.3% / 25.9% (still monotone
-  in price sensitivity; No-Charge baseline identical across beta by
+- Exp-Decay base-beta 0.25 / 0.5 / 1.0 → 11.7% / 23.0% / 25.4% (still
+  monotone in price sensitivity; No-Charge baseline identical across beta by
   construction).
-- El Farol threshold 0.5 / 0.6 / 0.7 → 3.7% / **−1.1%** / 0.7% — essentially
-  no effect, and day-to-day SD collapsed to ~0.02 (was 0.245 at sf 300).
-- Q-Learning alpha 0.05 / 0.1 / 0.2 → 27.4% / 32.2% / 30.5% (stronger than at
-  sf 300; insensitive to alpha).
-- Q-Learning epsilon 0.2 / 0.4 / 0.6 → 42.7% / 32.2% / 27.9% (stronger; still
-  decreasing with more exploration).
+- El Farol threshold 0.5 / 0.6 / 0.7 → 6.6% / 0.2% / 3.6% — essentially no
+  effect, and day-to-day SD collapsed to ~0.02 (was 0.245 at sf 300).
+- Q-Learning alpha 0.05 / 0.1 / 0.2 → 19.2% / 23.8% / 23.8% (insensitive to
+  alpha).
+- Q-Learning epsilon 0.2 / 0.4 / 0.6 → 31.7% / 23.8% / 26.0% (largest at low
+  exploration).
 
 **El Farol changed qualitatively under calibration — treat the earlier
 "pricing damps oscillation" story as an artifact.** At sf 300 the El Farol
@@ -117,10 +119,13 @@ sits in a narrow 0.13–0.21 band, No-Charge and ToU nearly overlapping, see
 `sensitivity_elfarol_timeseries.png`), and the ToU effect is ~0. The
 oscillation was driven by the over-loaded uncalibrated network, not by the
 attendance game itself; with realistic demand there is little collective
-congestion swing for pricing to act on. The reliability-benefit claim should
-not be made from this rule without, at minimum, a multi-seed replication.
-Exp-Decay and Q-Learning, by contrast, keep a clear positive ToU effect after
+congestion swing for pricing to act on. The five-seed replication
+(`elfarol-seeds`, threshold 0.6, seeds 11/101/202/303/404) confirms the null:
+ToU reduction −1.7% ± 2.7 pp across seeds, range [−5.8%, +1.1%]. Exp-Decay
+and Q-Learning, by contrast, keep a clear positive ToU effect after
 calibration.
+
+Full write-up with tables: `CALIBRATION_AND_SENSITIVITY.md`.
 
 ## Figures and tables
 
@@ -135,6 +140,14 @@ calibration.
   No-Charge vs ToU, at each rule's baseline parameter. Shows the levels behind
   the percentages (a large % off the small inner base can look bigger than it
   is next to the boundary's ~0.5).
+- `output/figures/sensitivity_timeseries.png` — daily peak inner V/C over the
+  simulated days, one panel per decision rule at its baseline parameter,
+  No-Charge vs ToU. The two Q-Learning panels show the same runs (alpha = 0.1
+  with epsilon = 0.4 is the shared baseline cell of both sweeps) — kept for
+  side-by-side reading, not independent evidence.
+- `output/figures/sensitivity_timeseries_{pay,elfarol,ql_alpha,ql_epsilon}.png`
+  — per-rule daily series across the full parameter sweep (one column per
+  swept value, inner-cordon daily peak V/C, No-Charge vs ToU).
 - `output/figures/sensitivity_elfarol_timeseries.png` — El Farol daily series,
   one row per cordon position (inner / boundary / peripheral) x one column per
   threshold. Rows keep separate y-scales on purpose: the boundary sits near 0.5
@@ -333,3 +346,48 @@ day). Two consequences to keep in mind when the runs happen:
   is ~2 cycles), but the ToU effect sizes will not be the converged ones.
   Consider 5 days for a fast diagnostic pass and a longer run for the numbers
   that go in the paper.
+
+## TODO — pending runs (Windows server, added 2026-07-26)
+
+Current state: the full suite (`sensitivity-*`, `elfarol-seeds`) has been
+re-run at 14 days on the calibrated model (tables 2026-07-26; write-up in
+`CALIBRATION_AND_SENSITIVITY.md`), superseding the 5-day note above. Two NEW
+experiments were added afterwards and have **not** been run yet — a local run
+was started on the 8 GB Mac and aborted in favour of the server:
+
+1. **`hourly-profile`** — 3 rules × 2 fee regimes at the baseline (slider
+   defaults), 14 days, `final` = `save-hourly` →
+   `output/tables/hourly_<Rule>_<fee>.csv`. Feeds `plot_hourly_profile.py` →
+   `sensitivity_hourly_profile.png` (hour-of-day inner-cordon V/C profile,
+   min–max band, ToU $6/$4 fee windows shaded). This is the figure that shows
+   the within-day ToU mechanism (AM-peak shaving) that the daily-peak series
+   hides. NOTE: overwrites the stale 2026-06-28 `hourly_*.csv`, which are
+   pre-calibration.
+2. **`los-bands`** — same 6 runs, `final` = `save-los-hours` →
+   `output/tables/los_hours_<Rule>_<fee>.csv` (day × clock hour × network
+   flow at each LoS grade A–F, flow-weighted over all links). Feeds
+   `plot_los_bands.py` → `sensitivity_los_bands.png` (stacked A–F shares by
+   2-hour band 07–09 … 21–23 + all-day, No-Charge vs ToU bars) and
+   `sensitivity_los_daily.png` (same by simulated day). **Requires the new
+   recording code in `akl_pricing.nls`** (`hr-los-records`, `flush-hr-los`,
+   `save-los-hours`, accumulation in `update-vc`) — pull/commit before
+   running.
+
+Run only these two on the server (PowerShell; ~1 h each at full threads):
+
+```powershell
+$env:NETLOGO = "C:\Program Files\NetLogo 6.4.0"
+$env:EXPERIMENTS = "hourly-profile los-bands"
+.\netlogo\sensitivity_experiment\run_calibrated_suite.ps1
+```
+
+Then generate the figures (needs matplotlib; can equally be run on the Mac
+after pulling the tables):
+
+```powershell
+python netlogo\sensitivity_experiment\plot_hourly_profile.py
+python netlogo\sensitivity_experiment\plot_los_bands.py
+```
+
+`los_bpr_schematic.png` (BPR speed curve + LoS bands on the V/C axis, the
+methods figure) needs no simulation run and is already generated.

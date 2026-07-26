@@ -97,6 +97,12 @@ def legend_handles():
             for f in FEE_ORDER]
 
 
+def n_days(series):
+    """Longest per-run day count in a daily_series dict (for figure labels;
+    n-sim-days has been 20 and 14 across runs, so read it, don't hard-code)."""
+    return max((len(v) for v in series.values()), default=0)
+
+
 # --- Figure 1: behavioural parameters, daily peak inner-cordon V/C ----------
 BEHAVIOUR = [
     ("sensitivity-pay", "base-beta", "Exp-Decay: price sensitivity"),
@@ -106,6 +112,7 @@ BEHAVIOUR = [
 ]
 fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharey=True)
 drew = False
+ndays = 0
 for ax, (exp, pvar, title) in zip(axes.flat, BEHAVIOUR):
     path = os.path.join(TABLES, f"{exp}.csv")
     if not os.path.exists(path):
@@ -114,11 +121,12 @@ for ax, (exp, pvar, title) in zip(axes.flat, BEHAVIOUR):
     params = sorted({p for p, _ in series}, key=float)
     paired_boxes(ax, series, params, "daily peak inner V/C", title)
     ax.set_xlabel(pvar)
+    ndays = max(ndays, n_days(series))
     drew = True
 if drew:
     fig.legend(handles=legend_handles(), loc="upper right",
                bbox_to_anchor=(0.99, 0.93), ncol=2, frameon=False)
-    fig.suptitle("Sensitivity: daily peak inner-cordon V/C (20 days per box)")
+    fig.suptitle(f"Sensitivity: daily peak inner-cordon V/C ({ndays} days per box)")
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     out = os.path.join(FIGS, "sensitivity_box_behaviour.png")
     fig.savefig(out, dpi=200)
@@ -136,9 +144,10 @@ if os.path.exists(path):
         params = sorted({p for p, _ in series}, key=float)
         paired_boxes(ax, series, params, "daily peak % at LoS E/F", title)
         ax.set_xlabel("k-factor")
+        kf_ndays = n_days(series)
     fig.legend(handles=legend_handles(), loc="upper right",
                bbox_to_anchor=(0.99, 0.93), ncol=2, frameon=False)
-    fig.suptitle("k-factor sweep: daily peak share of traffic at LoS E/F (20 days per box)")
+    fig.suptitle(f"k-factor sweep: daily peak share of traffic at LoS E/F ({kf_ndays} days per box)")
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     out = os.path.join(FIGS, "sensitivity_box_kfactor.png")
     fig.savefig(out, dpi=200)
@@ -279,3 +288,72 @@ if os.path.exists(path):
     plt.close(fig)
 else:
     print(f"(skip El Farol time-series figure: {path} not found)")
+
+# --- Figure 5: all-rules daily time series of inner-cordon V/C --------------
+# One panel per decision rule, at that rule's baseline parameter, No-Charge vs
+# ToU trajectory over the simulated days. Shows how the ToU gap opens and holds
+# across the learning horizon (the box plots collapse the day axis away).
+fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex=True)
+drew = False
+for ax, (exp, pvar, title) in zip(axes.flat, BEHAVIOUR):
+    path = os.path.join(TABLES, f"{exp}.csv")
+    if not os.path.exists(path):
+        ax.set_axis_off(); continue
+    series = daily_series(path, pvar, "peak-vc-inner")
+    base = BASELINE[exp]
+    # match the baseline parameter tolerantly (values are strings like "0.5")
+    pick = next((p for p, _ in series if abs(float(p) - base) < 1e-9), None)
+    for fee in FEE_ORDER:
+        vals = series.get((pick, fee), [])
+        ax.plot(range(1, len(vals) + 1), vals, "o-", ms=3, lw=1.5,
+                color=FEE_COLOR[fee], label=FEE_LABEL[fee])
+    ax.set_title(f"{title}  ({pvar} = {base})", fontsize=10)
+    ax.set_ylabel("daily peak inner V/C")
+    ax.set_xlabel("day")
+    ax.grid(alpha=0.3)
+    ax.margins(y=0.15)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    drew = True
+if drew:
+    fig.legend(handles=legend_handles(), loc="upper right", ncol=2,
+               frameon=False, bbox_to_anchor=(0.99, 0.97))
+    fig.suptitle("Daily peak inner-cordon V/C over time, by decision rule (No-Charge vs ToU)")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    out = os.path.join(FIGS, "sensitivity_timeseries.png")
+    fig.savefig(out, dpi=200)
+    print("wrote", out)
+plt.close(fig)
+
+# --- Figure 5b: per-rule daily time series across the parameter sweep -------
+# One file per experiment: a column per parameter value, inner-cordon daily
+# peak V/C, No-Charge vs ToU. Complements Figure 5 (baseline only) by showing
+# whether the ToU gap's shape changes across the swept parameter.
+SLUG = {"sensitivity-pay": "pay", "sensitivity-elfarol": "elfarol",
+        "sensitivity-ql-alpha": "ql_alpha", "sensitivity-ql-epsilon": "ql_epsilon"}
+for exp, pvar, title in BEHAVIOUR:
+    path = os.path.join(TABLES, f"{exp}.csv")
+    if not os.path.exists(path):
+        continue
+    series = daily_series(path, pvar, "peak-vc-inner")
+    params = sorted({p for p, _ in series}, key=float)
+    fig, axes = plt.subplots(1, len(params), figsize=(3.7 * len(params), 3.2),
+                             sharey=True, squeeze=False)
+    for j, p in enumerate(params):
+        ax = axes[0][j]
+        for fee in FEE_ORDER:
+            vals = series.get((p, fee), [])
+            ax.plot(range(1, len(vals) + 1), vals, "o-", ms=3, lw=1.5,
+                    color=FEE_COLOR[fee], label=FEE_LABEL[fee])
+        ax.set_title(f"{pvar} = {p}", fontsize=10)
+        ax.set_xlabel("day")
+        ax.grid(alpha=0.3)
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    axes[0][0].set_ylabel("daily peak inner V/C")
+    fig.legend(handles=legend_handles(), loc="upper right", ncol=2,
+               frameon=False, bbox_to_anchor=(0.99, 0.99))
+    fig.suptitle(title, x=0.02, ha="left")
+    fig.tight_layout(rect=(0, 0, 1, 0.90))
+    out = os.path.join(FIGS, f"sensitivity_timeseries_{SLUG[exp]}.png")
+    fig.savefig(out, dpi=200)
+    print("wrote", out)
+    plt.close(fig)

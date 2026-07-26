@@ -119,6 +119,38 @@
     <enumeratedValueSet variable="n-sim-days"><value value="5"/></enumeratedValueSet>
   </experiment>
 
+  <!-- Hour-of-day V/C profile: 3 rules x 2 fee regimes at each rule's baseline
+       (slider defaults). save-hourly exports day x hour x inner V/C per run,
+       which is where the ToU mechanism (AM-peak shaving / time shifting)
+       actually shows - daily-peak series hide the within-day pattern. -->
+  <experiment name="hourly-profile" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-hourly</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- Hourly LoS mix: same 3 rules x 2 fees at baselines, exporting for each
+       day x clock hour the network flow at each LoS grade (save-los-hours).
+       Feeds the V/C-based LoS figures: stacked A-F shares by 2-hour band and
+       by day, No-Charge vs ToU. -->
+  <experiment name="los-bands" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-los-hours</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
   <!-- El Farol multi-seed replication.
        Purpose: the calibrated model shows El Farol's ToU effect collapsing to
        ~0 and the sf300 alternate-day oscillation disappearing. Both findings
