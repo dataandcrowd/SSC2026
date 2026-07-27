@@ -164,6 +164,13 @@ Full write-up with tables: `CALIBRATION_AND_SENSITIVITY.md`.
   `los_hours_<Rule>_<fee>.csv`).
 - `output/figures/los_bpr_schematic.png` — BPR speed curve with the HCM LoS
   bands on the V/C axis, per road class (methods figure, no run needed).
+- `output/figures/map_redistribution.png` — link-level change in peak flow V/C
+  under ToU, one panel per rule, blue where pricing lowers the peak and red
+  where it raises it, over a network shaded by the no-charge peak; dashed
+  outline is the cordon (`plot_map_redistribution.py`, from the `paper-figs`
+  experiment). `map_baseline_los.png` is the matching no-charge LoS map, but
+  the daily peak of the flow EMA saturates at grade F on nearly every link, so
+  it carries little information — use the LoS band figure instead.
 
 The two position figures need `peak-vc-boundary` / `peak-vc-peripheral` and so
 stay empty until a run made after 2026-07-25 exists; `plot_sensitivity.py`
@@ -404,9 +411,13 @@ V/C over days 8+, min–max band, ToU fee windows shaded):
 
 | Rule | AM 07–09 | PM 16–18 | all day |
 |---|---|---|---|
-| Exp-Decay | 0.055 → 0.043 (−22.0 %) | 0.033 → 0.026 (−20.1 %) | 0.020 → 0.016 (−21.3 %) |
-| El Farol | 0.092 → 0.090 (−2.2 %) | 0.057 → 0.059 (**+3.2 %**) | 0.037 → 0.037 (−1.1 %) |
-| Q-Learning | 0.056 → 0.029 (−48.8 %) | 0.035 → 0.017 (−50.6 %) | 0.022 → 0.011 (−49.1 %) |
+| Exp-Decay | 0.0524 → 0.0403 (−23.1 %) | 0.0312 → 0.0257 (−17.7 %) | 0.0202 → 0.0159 (−21.3 %) |
+| El Farol | 0.0805 → 0.0819 (**+1.8 %**) | 0.0581 → 0.0599 (**+3.2 %**) | 0.0372 → 0.0368 (−1.1 %) |
+| Q-Learning | 0.0501 → 0.0254 (−49.3 %) | 0.0356 → 0.0172 (−51.8 %) | 0.0216 → 0.0110 (−49.1 %) |
+
+(Bands are half-open, so "07–09" is clock hours 07 and 08 — the same
+convention as the two-hour bands of `sensitivity_los_bands.png`, and what
+`paper_numbers.py` reports.)
 
 (No-Charge → ToU.) The profile is twin-peaked (AM peak ≈ 08–09, PM peak ≈
 17–18) in every cell. **The ToU effect is not peak-shaving: the proportional

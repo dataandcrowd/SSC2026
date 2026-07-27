@@ -2,6 +2,61 @@
 <!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
 <experiments>
 
+  <!-- Paper figures/numbers on the calibrated model: 3 rules x fee regime at
+       the slider baselines, 14 days. Unlike the sensitivity experiments this
+       one exports the per-day scenario records (attendance / entry rate,
+       inner-boundary-peripheral V/C, mean fee) and the per-link peak V/C
+       needed for the spatial-redistribution map. `paper-figs` covers the
+       No-Charge and ToU cells; `paper-figs-flat` adds the flat NZ$2 cells if
+       the paper keeps the three-fee comparison. -->
+  <experiment name="paper-figs" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-records
+save-hourly
+save-links</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
+  <experiment name="paper-figs-flat" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-records
+save-hourly
+save-links</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-east</metric>
+    <metric>peak-ef-west</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "East"</metric>
+    <metric>pct-los-ef-am-g "West"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;flat&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Pay (exponential decay): vary price sensitivity base-beta -->
   <experiment name="sensitivity-pay" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>
