@@ -297,6 +297,35 @@ settings, the benefit scale and the action space**, and the sensitivity of the
 headline to the second (39 % against 14 %) suggests the first deserves a test
 too.
 
+## A declined CBD trip cancels the agent's whole day
+
+Measured at setup, not inferred: of 2,500 agents, 544 are single-stop
+pass-through traffic and the remaining 1,956 carry two or more destinations
+(2.98 on average). Of the 1,500 agents with a CBD destination, **all 1,500 have
+more than one destination**, averaging 3.76. Every CBD-bound agent in this model
+is therefore a multi-stop agent.
+
+When such an agent declines the charge, `new-day-decisions` sets `active?` to
+false for the day, so its non-CBD stops are cancelled along with the CBD one.
+Summed over the CBD-bound population that is 3,171 non-CBD trips. Under the
+price rule ToU moves entry from 0.523 to 0.402, roughly 300 agents, each
+carrying about two non-CBD stops, so of the order of 100,000 vehicle-trips per
+day leave the network outside the cordon for no modelled reason.
+
+This inflates precisely the results the paper leans on. The peripheral
+reductions of 15.7 % for Pay and 27.2 % for Learn, and part of the
+no-displacement conclusion, are produced by traffic that a real network would
+still be carrying: a driver who abandons a city-centre appointment still runs
+the suburban errands. The code comment above the line says "suppressed CBD
+destinations are skipped for the day", which is the intended behaviour; the code
+stops the agent instead.
+
+**The k-factor sensitivity does not address this.** `k-factor` enters the model
+in one place, `r-cap-hr = ADT × k-factor`, which is the denominator of the flow
+V/C used for LoS grading. At a fixed seed the traffic is bit-identical across
+k = 0.08, 0.10 and 0.12; only the grading changes. That sweep therefore tests
+the capacity assumption, and says nothing about whether demand is over-suppressed.
+
 ## What this means for the paper
 
 The behavioural-assumption claim gets sharper, and moves one level up. It is not

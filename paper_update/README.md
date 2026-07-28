@@ -14,13 +14,16 @@ from the pre-calibration model and is superseded here.
 | `conclusions_bullets.md` | Every conclusion as bullets, including what the paper must not claim |
 | `behavioural_extensions.md` | Departure-time and route-choice arms, and who bears the charge |
 | `numbers.md` | Every quoted figure with its source table, for checking |
+| `decisions_log.md` | Why things were done this way, and what was deferred |
 | `../output/논문_개정안_한글.md` | Korean summary of the whole pack |
 
 The presentation `presentation/SSC2026_presentation.pptx` has been updated in
-place to the same numbers (backup: `SSC2026_presentation.pptx.bak`, script:
-`presentation/update_presentation.py`). Slides 2, 3, 5 and 6 carried
-pre-calibration figures from a 500-agent run; two results slides were added
-after slide 5, one for the hour-of-day profile and one for the map.
+place to the same numbers (backups `SSC2026_presentation.pptx.bak` … `.bak7`,
+script `presentation/update_presentation.py`). It grew from 6 slides to 15: the
+original numbers came from a pre-calibration 500-agent run, and slides were
+added for calibration, equity, the two behavioural extensions, the action-space
+comparison and the limitations. Chart images are the plotnine (`_gg`) versions;
+the map stays in matplotlib.
 
 Figures referenced by the revised text (all in `output/figures/`):
 

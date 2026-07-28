@@ -89,6 +89,19 @@ binary, to enter or not to enter, so the model cannot produce departure-time
 substitution and the reductions reported here are deterrence rather than peak
 spreading.
 
+One limitation is structural rather than parametric and bounds the results
+outside the cordon in particular. Every agent with a city-centre destination in
+this model also has others, 3.76 on average, and an agent that declines the
+charge is deactivated for the whole day, so its suburban stops are cancelled
+with its city-centre one. In the order of a hundred thousand vehicle-trips a
+day therefore leave roads outside the cordon for no behavioural reason, which
+inflates the peripheral reductions and flatters the no-displacement result. A
+driver who abandons a city-centre appointment would in reality still run the
+other errands. Note that the k-factor sensitivity does not bear on this: that
+parameter sets the denominator of the flow V/C used for grading, and traffic is
+identical across its values at a fixed seed, so it tests how congestion is
+measured rather than how much demand there is.
+
 Within those bounds, the contribution is not a forecast. It is that an
 agent-based framework can hold competing behavioural theories in one network
 and one pricing environment and show what each of them implies, including when

@@ -86,6 +86,31 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   1.0) suggests a saturating response, but that is price *sensitivity*, not
   price.
 
+## The largest technical limitation: a declined CBD trip cancels the whole day
+
+- **Every CBD-bound agent is a multi-stop agent.** Measured at setup: of 2,500
+  agents, 1,500 have a CBD destination, and **all 1,500 of them carry more than
+  one destination**, 3.76 on average. Only the 544 pass-through agents have a
+  single stop.
+- **Declining the charge removes all of them.** `new-day-decisions` sets
+  `active? false` for the day, so an agent that gives up one CBD stop also gives
+  up its non-CBD stops. Across the CBD-bound population that is **3,171 non-CBD
+  trips** that would vanish if all declined.
+- **Scale of the distortion.** Under Pay, ToU moves entry from 0.523 to 0.402,
+  about 300 agents. At 160 vehicles per agent and roughly two non-CBD stops
+  each, of the order of 100,000 vehicle-trips per day disappear from roads
+  outside the cordon for no modelled reason.
+- **It inflates the results that matter most.** The peripheral reductions
+  (−15.7 % for Pay, −27.2 % for Learn) and part of the no-displacement
+  conclusion are produced by traffic that should still have been on the network.
+- The code comment says "suppressed CBD destinations are skipped for the day",
+  which is what should happen; the code deactivates the agent instead.
+- **The k-factor sweep does not cover this.** `k-factor` appears in one place,
+  `r-cap-hr = ADT × k-factor`, the denominator of the flow V/C used for LoS
+  grading. Traffic trajectories are bit-identical across k at a given seed, so
+  the sweep tests how congestion is *graded*, never how much demand there is.
+  Demand-side over-suppression is untested by it.
+
 ## Open items
 
 - Fee-level sweep on the calibrated model (≈ 9 cells, 5 h) — the one experiment
