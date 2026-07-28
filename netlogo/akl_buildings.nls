@@ -106,6 +106,10 @@ to create-suburban-destinations
       set shape "square"
       set size 1
       set color orange
+      ;; 1,400 of these are scattered across the whole map. They exist to spread
+      ;; non-home trip ends out of the CBD (see calibration), not to be looked
+      ;; at, and drawn they hide the traffic. Hidden unless asked for.
+      set hidden? not show-suburban-dest?
     ]
     set made made + 1
   ]

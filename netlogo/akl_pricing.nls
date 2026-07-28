@@ -78,11 +78,14 @@ to pricing-init
   set hr-los-records (list)
   set hr-los-f n-values 6 [0]
   set hr-los-ticks 0
-  ;; pricing-init runs before reset-ticks, so `current-hour` (which reads ticks)
-  ;; would error here; tick 0 is sim-start-hour:00 by definition, same value.
+  ;; tick 0 is sim-start-hour:00 by definition, which is what current-hour would
+  ;; report here (setup starts the tick counter before this runs)
   set hr-cur-hour sim-start-hour
   ask roads [ set r-vc-peak 0  set r-vcf-peak 0  set r-flow 0  set r-entries 0  set r-entries-cum 0
-    set r-hr-entries 0  set r-peak-hr-entries 0  set r-vcf-am-sum 0  set r-vcf-am-n 0 ]
+    set r-hr-entries 0  set r-peak-hr-entries 0  set r-vcf-am-sum 0  set r-vcf-am-n 0
+    ;; empty-network travel time, so the first routes are free-flow routes even
+    ;; when rerouting is on (update-vc refreshes this every tick thereafter)
+    set r-cong-time current_period ]
 end
 
 ;; Close out the clock hour being accumulated: append its mean per-grade flows
@@ -214,12 +217,15 @@ to init-population
     ;; El Farol predictor weights / scores (n-pred = 5)
     set el-weights n-values 5 [ random-float 1 ]
     set el-scores  n-values 5 [ 0 ]
-    ;; Q-table: 24 states x 2 actions, small random init
-    set q-table n-values 24 [ (list (random-float 0.2 - 0.1) (random-float 0.2 - 0.1)) ]
+    ;; Q-table: 24 states x 4 actions (out / as planned / earlier / later),
+    ;; small random init. Actions 2 and 3 are only reachable when retiming is on.
+    set q-table n-values 24 [ n-values 4 [ random-float 0.2 - 0.1 ] ]
     set q-epsilon ql-epsilon-init
     set enters-cbd? false
     set has-cbd-trip? false
     set trip-hour 8
+    set hour-shift 0
+    set q-action 0
   ]
 end
 
@@ -260,6 +266,13 @@ end
 ;; with a uniform within-hour jitter so departures spread across the hour.
 to-report hour-to-tick [h]
   report ((h - sim-start-hour) mod 24) * ticks-per-hour + random (floor ticks-per-hour)
+end
+
+;; Inverse of hour-to-tick: the clock hour a within-day tick offset falls in.
+;; Used to read an agent's charged hour off the departure it actually makes,
+;; so the fee it pays and the traffic it creates refer to the same hour.
+to-report tick-to-hour [t]
+  report (sim-start-hour + floor ((t - day-start-tick) / ticks-per-hour)) mod 24
 end
 
 to assign-departures
@@ -340,18 +353,67 @@ to draw-sector-bars
   foreach (list "North" "East-South" "West" "Arterial" "local") [ s -> plot sector-on-road s ]
 end
 
-;; Cached shortest path between two nodes. The route is computed once per OD pair
-;; (free-flow weights) and reused, which makes large agent counts tractable.
-;; NOTE: routes are therefore fixed and do not re-route around congestion.
+;; Cached shortest path between two nodes.
+;;
+;; With `allow-rerouting?` off the route is computed once per OD pair on
+;; free-flow weights and reused for the whole run, which makes large agent
+;; counts tractable but fixes routes: agents cannot avoid a congested or
+;; charged link, so the only adjustment available to them is temporal.
+;;
+;; With it on the cache is keyed by OD *and* time band, and the weights are
+;; congested travel times (free-flow time divided by the BPR speed factor at
+;; the link's current V/C). An agent departing in the AM peak therefore gets a
+;; route that avoids what is congested in the AM peak, while the same OD pair
+;; keeps a different route off-peak. Four bands rather than 24 hours keeps the
+;; cache small enough to sit in the shared heap; a measured path costs about
+;; 6.5 ms, so a band-keyed cache adds roughly 8 minutes per 14-day run.
+;; For a leg made during the day, the relevant band is the one on the clock now.
 to-report cached-path [o d]
-  let key (word [who] of o "-" [who] of d)
+  report cached-path-band o d route-band
+end
+
+;; `b` is the time band the leg will be travelled in, so a trip planned at the
+;; start of the day can still be routed for the band it departs in.
+;; The cache is cleared daily, so each (OD, band) route is computed at most once
+;; per simulated day, on the congestion prevailing when the first agent needs
+;; it. Routes therefore respond to congestion at day resolution, not tick by
+;; tick: agents behave as if they consult yesterday's traffic pattern, not a
+;; live navigation feed.
+to-report cached-path-band [o d b]
+  let key (word [who] of o "-" [who] of d
+            (ifelse-value allow-rerouting? [(word "-" b)] [""]))
   ifelse table:has-key? path-cache key
     [ report table:get path-cache key ]
     [ let p 0
-      ask o [ set p nw:weighted-path-to d current_period ]
+      ifelse allow-rerouting?
+        [ ask o [ set p nw:weighted-path-to d r-cong-time ] ]
+        [ ask o [ set p nw:weighted-path-to d current_period ] ]
       if not is-list? p [ set p [] ]
       table:put path-cache key p
       report p ]
+end
+
+;; Band a given clock hour falls in (see route-band).
+to-report band-of-hour [h]
+  if h >= 7 and h < 10 [ report 0 ]
+  if h >= 10 and h < 16 [ report 1 ]
+  if h >= 16 and h < 19 [ report 2 ]
+  report 3
+end
+
+;; Time band used to key the route cache: 0 AM peak, 1 inter-peak, 2 PM peak,
+;; 3 off-peak. Bands mirror the ToU fee schedule so a rerouting agent and a
+;; retiming agent are reacting to the same division of the day.
+to-report route-band
+  report band-of-hour current-hour
+end
+
+;; Drop route caches for the bands whose congestion has moved on, so tomorrow's
+;; routes reflect what the network actually looked like today rather than the
+;; first day it was ever sampled. Called once per simulated day.
+to refresh-route-cache
+  if not allow-rerouting? [ stop ]
+  set path-cache table:make
 end
 
 ;; A boundary home in a sector other than from-sec, for pass-through trips.
@@ -425,8 +487,17 @@ end
 
 ;; --- Model 1: Baseline (exponential decay) ---------------------------
 ;; p_enter = base_trip_rate * exp(-beta * fee / vot)   (Python L196)
+;; With retiming on, the agent first asks whether a cheaper hour is worth the
+;; schedule delay, then applies the same entry probability at the fee it would
+;; actually pay. The rule stays memoryless: this is a within-day price choice,
+;; not learning.
 to-report decide-baseline [fee]
-  let p-raw base-trip-rate * exp (- beta * fee / vot)
+  let eff-fee fee
+  if allow-retiming? [
+    set hour-shift best-fee-shift trip-hour
+    set eff-fee current-fee ((trip-hour + hour-shift) mod 24)
+  ]
+  let p-raw base-trip-rate * exp (- beta * eff-fee / vot)
   let p-enter clip p-raw 0.05 0.95
   if essential-today? [ set p-enter max (list p-enter 0.8) ]
   report random-float 1 < p-enter
@@ -435,7 +506,26 @@ end
 ;; --- Model 2: El Farol (minority game) -------------------------------
 to-report decide-el-farol [fee]
   let predicted el-predict attendance-history
-  let fee-ratio fee / median-vot
+  let eff-fee fee
+  ;; With retiming on, the agent looks for a nearby hour it expects to be
+  ;; quieter, using the hour-of-day congestion profile it has observed so far.
+  ;; This keeps the rule expectation-based: it retimes away from congestion it
+  ;; predicts, not away from the fee, although the fee still shifts the
+  ;; threshold it compares against.
+  if allow-retiming? [
+    let h trip-hour
+    let best 0
+    let best-score (hourly-vc-mean h) + (schedule-delay-cost 0) / (10 * median-vot)
+    foreach RETIME-WINDOW [ d ->
+      let hh (h + d) mod 24
+      let score (hourly-vc-mean hh) + (schedule-delay-cost d) / (10 * median-vot)
+      if score < best-score [ set best-score score  set best d ]
+    ]
+    set hour-shift best
+    set eff-fee current-fee ((h + best) mod 24)
+    set predicted min (list predicted (hourly-vc-mean ((h + best) mod 24)))
+  ]
+  let fee-ratio eff-fee / median-vot
   let adj-threshold el-farol-threshold - fee-ratio * beta * 0.3
   let will-enter predicted < adj-threshold
   if random-float 1 < 0.08 [ set will-enter not will-enter ]   ;; bounded rationality
@@ -476,26 +566,43 @@ to-report q-state [h vc]
   report tb * 4 + cb
 end
 
+;; Actions: 0 = stay out, 1 = travel at the planned hour, 2 = travel an hour
+;; earlier, 3 = travel an hour later. With retiming off only actions 0 and 1 are
+;; available, which reproduces the original binary rule exactly.
 to-report decide-qlearning [fee h]
   let vc last attendance-history
   let s q-state h vc
+  let n-actions ifelse-value allow-retiming? [4] [2]
+  let a 0
   ifelse random-float 1 < q-epsilon
-  [ report random 2 = 1 ]                                   ;; explore
-  [ let qs item s q-table
-    report (item 1 qs) > (item 0 qs) ]                      ;; exploit (action 1 = enter)
+  [ set a random n-actions ]                                ;; explore
+  [ let qs sublist (item s q-table) 0 n-actions             ;; exploit
+    set a position (max qs) qs ]
+  set q-action a
+  set hour-shift (ifelse-value (a = 2) [-1] [ifelse-value (a = 3) [1] [0]])
+  report a > 0
 end
 
 ;; reward = vot/10 - fee - congestion_cost ; updated at end of day
 to q-update [h vc-before vc-after entered fee essential]
   let s q-state h vc-before
   let s2 q-state h vc-after
-  let a ifelse-value entered [1] [0]
+  ;; credit the action actually taken (which encodes the retiming choice), not
+  ;; just whether the agent travelled
+  let a ifelse-value allow-retiming? [q-action] [ifelse-value entered [1] [0]]
   let reward 0
   ifelse entered [
     let congestion-cost vc-after * 3.0
     set reward (vot / 10.0) - fee - congestion-cost
     if fee > vot [ set reward reward - (fee - vot) * 1.5 ]
     if essential [ set reward reward + 2.0 ]
+    ;; travelling off the preferred hour saves fee but costs schedule delay, so
+    ;; the agent can learn that retiming is worth it only when the saving covers
+    ;; the inconvenience. The penalty is in dollars, the same units as `fee`, so
+    ;; the learner faces the same trade-off the price-responsive rule computes
+    ;; directly (see best-fee-shift). Do not rescale one and not the other:
+    ;; any difference in retiming between the rules must come from the rule.
+    if hour-shift != 0 [ set reward reward - schedule-delay-cost hour-shift ]
   ] [ set reward 0.3 - 0.15 * (vot / 10.0) ]
   let qs item s q-table
   let best-next max (item s2 q-table)
@@ -645,6 +752,10 @@ to update-vc
       set r-vcf-am-sum r-vcf-am-sum + r-vcf
       set r-vcf-am-n r-vcf-am-n + 1
     ]
+    ;; congested travel time for route choice: free-flow time inflated by the
+    ;; BPR penalty at the current V/C. Kept current here so a rerouting agent
+    ;; picks its path on what the network looks like, not on free-flow times.
+    set r-cong-time current_period / (bpr-speed-factor r-vc)
     ;; colour each link by its Level of Service (A green ... F dark red),
     ;; using class-specific bands so arterials grade stricter than motorways
     set r-los los-grade r-vcf motorway-road?
@@ -785,6 +896,7 @@ to run-one-day
   ;; ticks pause overnight (movement loop ends with the last trip), so the
   ;; flow EMA never decays between days: zero it so LoS starts each day fresh
   ask roads [ set r-flow 0  set r-entries 0 ]
+  refresh-route-cache        ;; today's routes reflect yesterday's congestion
   new-day-reset              ;; return agents home and re-anchor today's departures
   new-day-decisions          ;; each agent decides whether to enter the CBD today
   run-day-movement           ;; advance until all active trips finish
@@ -804,7 +916,11 @@ to new-day-reset
     set i-destination 0
     if not empty? b-destinations [
       set b-destination item 0 b-destinations
-      set trip cached-path ([nearest-node] of v-home) ([nearest-node] of b-destination)
+      ;; route the outbound leg for the band it will actually be travelled in,
+      ;; not the band the day happens to start in
+      set trip cached-path-band ([nearest-node] of v-home)
+                                ([nearest-node] of b-destination)
+                                (band-of-hour tick-to-hour depart-tick)
     ]
     set times (list)
     set delays (list)
@@ -816,6 +932,16 @@ to new-day-reset
   ]
 end
 
+;; Suffix distinguishing the behavioural-extension scenarios in export filenames,
+;; so a retiming run does not overwrite the fixed-schedule run it is compared
+;; with. Empty for the base model, which keeps existing filenames unchanged.
+to-report scenario-tag
+  let t ""
+  if allow-retiming? [ set t (word t "_rt") ]
+  if allow-rerouting? [ set t (word t "_rr") ]
+  report t
+end
+
 ;; Export the accumulated per-day records to output/tables, named by scenario.
 ;; Run this in the Command Center after each go-days run.
 to save-records
@@ -823,7 +949,7 @@ to save-records
   if rname = "El Farol" [ set rname "ElFarol" ]
   let header (list "day" "rule" "regime" "attendance" "cbd_vc"
     "vc_inner" "vc_boundary" "vc_peripheral" "x_SH1N" "x_SH1S" "x_SH16" "mean_fee")
-  let fname (word "../output/tables/days_" rname "_" fee-regime ".csv")
+  let fname (word "../output/tables/days_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header day-records)
   print (word "Saved " (length day-records) " rows to " fname)
 end
@@ -834,7 +960,7 @@ to save-hourly
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
   let header (list "day" "rule" "regime" "hour" "vc_inner")
-  let fname (word "../output/tables/hourly_" rname "_" fee-regime ".csv")
+  let fname (word "../output/tables/hourly_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header hourly-records)
   print (word "Saved " (length hourly-records) " hourly rows to " fname)
 end
@@ -851,7 +977,7 @@ to save-links
                r-vcf-peak
                (los-letter (los-grade r-vcf-peak motorway-road?))
                [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2) ] of roads
-  let fname (word "../output/tables/links_" rname "_" fee-regime ".csv")
+  let fname (word "../output/tables/links_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header body)
   print (word "Saved " (length body) " links to " fname)
 end
@@ -865,7 +991,7 @@ to save-los-hours
   let header (list "day" "rule" "regime" "hour" "fA" "fB" "fC" "fD" "fE" "fF")
   let body map [row -> (sentence (list (item 0 row) decision-rule fee-regime (item 1 row))
                                  (sublist row 2 8)) ] hr-los-records
-  let fname (word "../output/tables/los_hours_" rname "_" fee-regime ".csv")
+  let fname (word "../output/tables/los_hours_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header body)
   print (word "Saved " (length body) " LoS-hour rows to " fname)
 end
@@ -917,14 +1043,63 @@ to new-day-decisions
   ask vehicles [
     set has-cbd-trip? any? (turtle-set b-destinations) with [is-cbd? = true]
     ifelse has-cbd-trip? [
-      set trip-hour draw-trip-hour
+      ;; The charged hour is the hour the agent actually departs in, so the fee
+      ;; it faces and the traffic it puts on the network refer to the same hour.
+      ;; (Before retiming was added these were drawn independently, which let an
+      ;; agent be charged the 08:00 peak fee for a trip it made at 14:00.)
+      set trip-hour tick-to-hour depart-tick
+      set hour-shift 0
       let fee current-fee trip-hour
       set enters-cbd? decide-enter? fee trip-hour
       ;; ENFORCE the decision: a CBD-bound agent that does not enter stays off the
       ;; road today, so the charge actually reduces demand and congestion.
-      if not enters-cbd? [ set active? false ]
-    ] [ set enters-cbd? false ]
+      ifelse not enters-cbd? [ set active? false ] [ apply-hour-shift ]
+    ] [ set enters-cbd? false  set hour-shift 0 ]
   ]
+end
+
+;; Move today's departure by `hour-shift` clock hours (set by the decision rule)
+;; and keep trip-hour, depart-tick and return-tick consistent with each other.
+;; Without this the rules could "retime" the fee they pay without retiming the
+;; traffic they generate, which would show a policy effect that is not real.
+to apply-hour-shift
+  if hour-shift = 0 [ stop ]
+  let lo day-start-tick
+  let hi day-start-tick + 24 * ticks-per-hour - 1
+  set depart-tick clip (depart-tick + hour-shift * ticks-per-hour) lo hi
+  set trip-hour tick-to-hour depart-tick
+  if return-tick <= depart-tick [ set return-tick depart-tick + ticks-per-hour ]
+end
+
+;; Departure shifts an agent may consider, in clock hours. One hour either way:
+;; all three rules use the same window so the comparison stays like for like.
+to-report RETIME-WINDOW
+  report [-1 1]
+end
+
+;; Cost in dollars of departing `d` hours away from the preferred hour. Standard
+;; schedule-delay formulation: the penalty scales with the agent's own value of
+;; time, so a low-VoT agent retimes where a high-VoT agent simply pays. Arriving
+;; late is penalised more heavily than arriving early (Small 1982).
+to-report schedule-delay-cost [d]
+  let asym ifelse-value (d > 0) [1.6] [1.0]
+  report sched-delay-cost * asym * abs d * vot
+end
+
+;; Best departure shift for a price-responsive agent: minimise fee plus schedule
+;; delay over a window of +/- 1 hour. Reports the shift, 0 if staying put.
+;; The window is deliberately narrow: an agent rescheduling a commute by more
+;; than an hour is a different behavioural claim (activity rescheduling) than
+;; the marginal peak-shoulder shift a ToU schedule is designed to induce.
+to-report best-fee-shift [h]
+  let base current-fee h
+  let best 0
+  let best-cost base
+  foreach RETIME-WINDOW [ d ->
+    let cost (current-fee ((h + d) mod 24)) + schedule-delay-cost d
+    if cost < best-cost [ set best-cost cost  set best d ]
+  ]
+  report best
 end
 
 ;; Peak-weighted intended arrival hour so a temporal pattern can emerge.
@@ -961,7 +1136,10 @@ to end-of-day-update
   ;; Q-Learning agents update Q against realised congestion
   let prev-cong last attendance-history
   ask vehicles with [decision-rule = "Q-Learning" and has-cbd-trip? = true] [
-    q-update trip-hour prev-cong realised-cong enters-cbd? (current-fee trip-hour) essential-today?
+    ;; credit the action to the state it was CHOSEN in, i.e. the planned hour
+    ;; before any retiming, while charging the fee of the hour actually travelled
+    q-update ((trip-hour - hour-shift) mod 24) prev-cong realised-cong enters-cbd?
+             (current-fee trip-hour) essential-today?
   ]
   ;; record this day's hourly inner-CBD V/C profile (for per-hour variability bands)
   let hh 0

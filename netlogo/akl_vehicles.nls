@@ -36,10 +36,13 @@ vehicles-own [
   essential-today?    ; whether today's CBD trip is essential
   enters-cbd?         ; decision outcome: enters the CBD today
   has-cbd-trip?       ; whether the agent has any CBD destination
-  trip-hour           ; intended CBD arrival hour (for the fee)
+  trip-hour           ; charged hour = the clock hour the agent departs in
+  hour-shift          ; today's retiming, in clock hours (-1, 0 or +1)
   el-weights          ; El Farol predictor weights
   el-scores           ; El Farol predictor scores
-  q-table             ; Q-Learning table (24 states x 2 actions)
+  q-table             ; Q-Learning table (24 states x 4 actions; only the first
+                      ; two are used when allow-retiming? is off)
+  q-action            ; action taken today (0 out, 1 as planned, 2 earlier, 3 later)
   q-epsilon           ; Q-Learning exploration rate
   depart-tick         ; clock-anchored tick for the outbound (first) leg
   return-tick         ; clock-anchored tick for the return-home (final) leg

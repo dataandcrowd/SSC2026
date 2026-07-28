@@ -57,6 +57,104 @@ save-links</final>
     <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
+  <!-- Departure-time choice (retiming) on/off, 3 rules x 2 fee regimes.
+       Agents may move their departure by one clock hour either way, trading the
+       fee saved against a schedule-delay cost of sched-delay-cost x VoT per hour
+       (1.6x for arriving late). Both arms must be re-run together because the
+       charged hour is now read off the departure the agent actually makes: in
+       the earlier runs the fee hour and the travel hour were drawn
+       independently, so those numbers are not a valid retiming-off control.
+       A 2-day probe gives, at ToU: Pay shifts 2 % of entrants at
+       sched-delay-cost 0.6 and 48 % at 0.2, so the 0.2 arm is run separately as
+       a sensitivity (experiment retiming-cheap). -->
+  <experiment name="retiming" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-records
+save-hourly
+save-links</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>count vehicles with [enters-cbd? = true]</metric>
+    <metric>count vehicles with [hour-shift != 0]</metric>
+    <metric>count vehicles with [hour-shift &lt; 0]</metric>
+    <metric>count vehicles with [hour-shift &gt; 0]</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-retiming?"><value value="false"/><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="sched-delay-cost"><value value="0.6"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- Endogenous routing. Routes are recomputed on congested travel times
+       (free-flow time / BPR speed factor at the link's current V/C) and cached
+       per OD pair AND time band, with the cache cleared daily, so a route
+       reflects the congestion of the band it is travelled in as observed that
+       day. This is the arm that makes displacement measurable: with fixed
+       routes a deterred trip simply disappears, so the cordon boundary cannot
+       absorb anything.
+
+       Only the rerouting-ON cells are run: the OFF control is the
+       allow-retiming?=false cells of the `retiming` experiment, which have the
+       same settings and the same seed and write the same untagged filenames. -->
+  <experiment name="rerouting" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-records
+save-hourly
+save-links</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>count vehicles with [enters-cbd? = true]</metric>
+    <metric>table:length path-cache</metric>
+    <metric>peak-ef-cbd</metric>
+    <metric>peak-ef-mwy</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-rerouting?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-retiming?"><value value="false"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
+  <!-- Both extensions at once: the agent may retime by an hour AND reroute.
+       This is the "full repertoire" cell, the closest the model gets to the
+       three real-world responses (retime, reroute, forgo). Files are tagged
+       _rt_rr. -->
+  <experiment name="retiming-rerouting" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-records
+save-hourly
+save-links</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>count vehicles with [enters-cbd? = true]</metric>
+    <metric>count vehicles with [hour-shift != 0]</metric>
+    <metric>table:length path-cache</metric>
+    <metric>pct-los-ef-am-g "CBD"</metric>
+    <metric>pct-los-ef-am-g "MWY"</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-rerouting?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-retiming?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="sched-delay-cost"><value value="0.6"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Pay (exponential decay): vary price sensitivity base-beta -->
   <experiment name="sensitivity-pay" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>

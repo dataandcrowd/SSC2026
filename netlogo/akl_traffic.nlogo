@@ -20,12 +20,15 @@ to setup
   set all-delays (list)
   set n-trips-list (list)
   ask patches[ set pcolor white ]
+  ; Start the tick counter FIRST. clear-all stops it, and setup routines below
+  ; (route choice, hour-of-day bookkeeping) read `ticks` through current-hour,
+  ; which errors while the counter is stopped.
+  reset-ticks
   load-network
   load-buildings
   vehicles-init number_of_vehicles ; Initialize vehicles
   ask vehicles [if b-destinations != 0 [set n-trips-list lput (length b-destinations) (n-trips-list)] ]
   pricing-init ; SSC2026: tag CBD roads and assign heterogeneous VOT / decision-rule state
-  reset-ticks ; Reset the tick counter
   reset-timer
 ;  go
 end
@@ -311,6 +314,54 @@ control-seed?
 0
 1
 -1000
+
+SWITCH
+220
+570
+390
+603
+allow-retiming?
+allow-retiming?
+1
+1
+-1000
+
+SWITCH
+220
+640
+390
+673
+allow-rerouting?
+allow-rerouting?
+1
+1
+-1000
+
+SWITCH
+220
+675
+390
+708
+show-suburban-dest?
+show-suburban-dest?
+1
+1
+-1000
+
+SLIDER
+220
+605
+390
+638
+sched-delay-cost
+sched-delay-cost
+0
+2
+0.6
+0.1
+1
+NIL
+HORIZONTAL
 
 SLIDER
 24

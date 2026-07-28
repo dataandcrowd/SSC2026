@@ -47,6 +47,33 @@ the only adjustment available to an agent is whether and when to travel, and a
 model with endogenous rerouting could still find diversion that this one cannot
 express.
 
+Two further sets of runs show that the assumption about *what an agent may do*
+matters as much as the assumption about how it decides. Allowing a departure to
+move by one hour, or allowing routes to respond to congestion, changes the
+predicted reduction in peak inner-cordon V/C from 12 to 26 per cent for the
+price rule and from 39 to 14 per cent for the learner, with the network, the
+demand and the fee schedule unchanged. The two options act on different
+quantities: departure-time choice changes how many trips are made, and is the
+reason the learner's headline collapses, because an agent given somewhere to
+move stops forgoing the trip; route choice leaves the number of trips
+untouched and changes only where they go, moving a third of the load off the
+cordon boundary before any charge is applied. The single largest effect
+observed across all of these runs is therefore a modelling assumption rather
+than a policy.
+
+The distributional result deserves its own sentence, because the aggregate
+figures conceal it. Under the price rule the deterrent scales with the fee
+divided by the square of an agent's value of time, so the NZ$6 peak charge
+removes 59 per cent of the trips made by the lowest value-of-time quintile and
+6 per cent of those made by the highest, and costs the former 1.3 hours of its
+own valuation against 0.28 hours for the latter. Most of the congestion relief
+is bought by low-income agents giving up travel. Departure-time choice offers
+them the only partial remedy in the model, since retiming pays only for agents
+below about NZ$3.30 an hour, some 3 per cent of the population, and the runs
+bear that out: 2.7 per cent of price-rule entrants retimed and every one of
+them moved earlier. Route choice offers no distributional remedy at all,
+because routes here respond to congestion rather than to the charge.
+
 We acknowledge that the simulation is a stylised abstraction that cannot stand
 in for the full complexity of Auckland travel behaviour. It uses 2,500 agents
 on a static origin-destination matrix with no mode shift, rather than the
@@ -68,8 +95,11 @@ and one pricing environment and show what each of them implies, including when
 the implication is that the policy does nothing. For a city about to choose a
 cordon design, the honest output of such an exercise is a range rather than a
 point estimate, in this case a peak reduction of anywhere between zero and
-about a quarter, bracketed by an assumption that no aggregate elasticity makes
-visible. That framing also disciplines the modeller. The oscillatory behaviour
+about a quarter, bracketed by assumptions that no aggregate elasticity makes
+visible: which rule the drivers follow, and which responses they are permitted.
+The same framing turns the distributional finding from a caveat into a result,
+since the model can say not only how much congestion falls but which quintile
+paid for it. That framing also disciplines the modeller. The oscillatory behaviour
 that an earlier, uncalibrated version of this model produced under the
 expectation-based rule, and the apparent ability of pricing to damp it,
 disappeared once demand was matched to observed counts, which shows how much a

@@ -10,6 +10,9 @@ roads-own [
   speed_limmit ; Speed limit of the road
   current_speeds ; Current speeds on the road (Any element cannot be higher than the speed_limmit)
   current_period ; last period taken to make the trip
+  r-cong-time    ; SSC2026: congested travel time = current_period / BPR speed
+                 ; factor at the link's current V/C. Routing weight when
+                 ; allow-rerouting? is on; refreshed every tick in update-vc.
   r-cbd?         ; SSC2026 pricing: TRUE if road is inside the cordon
   r-position     ; SSC2026 pricing: "inner" | "boundary" | "peripheral"
   r-sh           ; SSC2026: state highway tag "SH1N" | "SH1S" | "SH16" | ""
@@ -142,6 +145,10 @@ to load-network
           ]
           ;; calculate the current_period
           set current_period distance_to_destination / speed_limmit
+          ;; SSC2026: routing weight when allow-rerouting? is on. Seeded with the
+          ;; free-flow time here because vehicles-init routes trips before the
+          ;; first update-vc; an all-zero weight would make every path look free.
+          set r-cong-time current_period
           ;; SSC2026: capacity derived from observed ADT (AT counts), normalised
           ;; so a typical ~15k-ADT arterial maps to capacity-base x 1.0. Links with
           ;; no ADT match fall back to the road-class multiplier.

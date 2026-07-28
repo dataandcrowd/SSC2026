@@ -11,6 +11,8 @@ from the pre-calibration model and is superseded here.
 | `methods_revised.md` | Replacement text for *Simulation → Study area and model* and a new *Calibration* subsection |
 | `results_revised.md` | Replacement text for *Results* (both subsections) |
 | `conclusion_revised.md` | Replacement text for *Conclusion* |
+| `conclusions_bullets.md` | Every conclusion as bullets, including what the paper must not claim |
+| `behavioural_extensions.md` | Departure-time and route-choice arms, and who bears the charge |
 | `numbers.md` | Every quoted figure with its source table, for checking |
 | `../output/논문_개정안_한글.md` | Korean summary of the whole pack |
 
@@ -25,6 +27,10 @@ Figures referenced by the revised text (all in `output/figures/`):
 | Figure | File | Source |
 |---|---|---|
 | Entry rate by day (mechanism) | `entry_trajectory.png` | `paper-figs` experiment |
+| Action space vs the answer | `arms_comparison.png` | `retiming`, `rerouting` |
+| Who the charge removes | `equity_by_income.png`, `equity_by_income_gg.png` | derived |
+| Departure-time choice | `optin_retiming.png`, `optin_retiming_gg.png` | `retiming` |
+| Route choice | `optin_rerouting.png`, `optin_rerouting_gg.png` | `rerouting` |
 | Hour-of-day V/C profile | `sensitivity_hourly_profile.png` | `hourly-profile` experiment |
 | Spatial redistribution map | `map_redistribution.png` | `paper-figs` experiment |
 | LoS mix by time band | `sensitivity_los_bands.png` | `los-bands` experiment |
@@ -44,4 +50,11 @@ python netlogo/sensitivity_experiment/plot_hourly_profile.py
 python netlogo/sensitivity_experiment/plot_los_bands.py
 python netlogo/sensitivity_experiment/plot_map_redistribution.py
 python netlogo/sensitivity_experiment/plot_entry_trajectory.py
+python netlogo/sensitivity_experiment/plot_retiming.py
+python netlogo/sensitivity_experiment/plot_arms.py
+python netlogo/sensitivity_experiment/plot_equity_optin.py      # matplotlib
+python netlogo/sensitivity_experiment/plot_equity_optin_gg.py   # plotnine (_gg)
 ```
+
+Figures ending `_gg` are the plotnine versions of the same data; both scripts
+read the same tables, so either set can be used in the paper.
