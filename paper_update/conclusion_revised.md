@@ -76,14 +76,23 @@ because routes here respond to congestion rather than to the charge.
 
 We acknowledge that the simulation is a stylised abstraction that cannot stand
 in for the full complexity of Auckland travel behaviour. It uses 2,500 agents
-on a static origin-destination matrix with no mode shift, rather than the
-roughly 70,000 agents and dynamic activity-based modelling of a full regional
-demand model. Demand is calibrated to observed daily counts, with a
-flow-weighted modelled to observed ratio of 1.013 across all 1,634 links, but
-the departure profile still concentrates the morning peak more sharply than the
-real network does, which is why absolute peak-hour Level of Service reads
-pessimistically and why we report differences between charged and uncharged
-cases rather than levels. All runs use a single random seed, so the day-to-day
+with no mode shift, rather than the roughly 70,000 agents and dynamic
+activity-based modelling of a full regional demand model. The
+origin-destination matrix is synthetic rather than estimated: origins follow
+the 2023 Census sector populations, destinations are drawn uniformly from the
+building stock with no gravity term or observed trip ends, and departure hours
+come from a fixed weight profile rather than a measured time-of-day
+distribution. Two axes of that demand are calibrated to observed Auckland
+Transport daily counts, total volume and spatial distribution, giving a
+flow-weighted modelled to observed ratio of 1.013 across all 1,634 links; the
+temporal axis is not, which is why the assumed profile concentrates the morning
+peak more sharply than the real network does, why absolute peak-hour Level of
+Service reads pessimistically, and why we report differences between charged
+and uncharged cases rather than levels. The model therefore reproduces observed
+traffic volume and its spatial spread, not observed travel patterns. Because
+every rule and fee regime faces the same demand realisation, this bounds the
+external reading of the levels without weakening the comparison between rules,
+which is what the study is for. All runs use a single random seed, so the day-to-day
 spreads describe variation within one seed. The learning rule's action space is
 binary, to enter or not to enter, so the model cannot produce departure-time
 substitution and the reductions reported here are deterrence rather than peak

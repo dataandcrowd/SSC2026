@@ -70,6 +70,27 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   level is irrelevant.
 - **Route choice has no distributional channel at all.**
 
+## Demand provenance: what is fitted and what is assumed
+
+- **Fitted to observed Auckland Transport ADT on all 1,634 links**: total
+  volume (via the scale factor, ratio 1.013) and spatial distribution (via the
+  suburban trip ends).
+- **Not fitted, and not estimated from any data**: the origin-destination
+  matrix and the time-of-day profile. Origins follow 2023 Census sector shares
+  (North 0.30 / East-South 0.48 / West 0.22 of motorway inflow, 70 % of agents
+  external); destinations are drawn **uniformly at random** from the non-home
+  building stock, with no gravity term and no observed trip ends; departure
+  hours are drawn per agent per day from two hardcoded hourly weight lists,
+  uniform within the hour at a one-minute step.
+- **The earlier claim that TomTom Move data set the profile and that NZTA TMS
+  screenlines set corridor inflow is not implemented in the code.** No TomTom
+  file exists in the repository; `motorway-aadt` and `tms-screenlines` are
+  reporters that no procedure calls. Corrected in `methods_revised.md`.
+- **So**: the model reproduces observed traffic *volume and spatial spread*,
+  not observed travel patterns. The temporal residual (implied k = 0.157
+  against 0.10) is not a shortfall against a fitted profile — it is what
+  happens when there is no fitted profile.
+
 ## Things the paper must not claim
 
 - **Not** "all three rules reduce congestion" — Oscillate does not.
@@ -87,6 +108,10 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   price.
 
 ## The largest technical limitation: a declined CBD trip cancels the whole day
+
+> **Status 2026-07-29: fixed in the model** (`skip-cbd-stops-today` — decliners
+> now keep their non-CBD stops). Every number below describes the runs as
+> published, which predate the fix; the 14-day re-run is pending.
 
 - **Every CBD-bound agent is a multi-stop agent.** Measured at setup: of 2,500
   agents, 1,500 have a CBD destination, and **all 1,500 of them carry more than

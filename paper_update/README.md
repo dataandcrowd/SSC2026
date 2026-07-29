@@ -18,12 +18,31 @@ from the pre-calibration model and is superseded here.
 | `../output/논문_개정안_한글.md` | Korean summary of the whole pack |
 
 The presentation `presentation/SSC2026_presentation.pptx` has been updated in
-place to the same numbers (backups `SSC2026_presentation.pptx.bak` … `.bak7`,
-script `presentation/update_presentation.py`). It grew from 6 slides to 15: the
+place to the same numbers (backups `SSC2026_presentation.pptx.bak` … `.bak8`,
+script `presentation/update_presentation.py`). It grew from 6 slides to 16: the
 original numbers came from a pre-calibration 500-agent run, and slides were
 added for calibration, equity, the two behavioural extensions, the action-space
 comparison and the limitations. Chart images are the plotnine (`_gg`) versions;
 the map stays in matplotlib.
+
+2026-07-29 revision: a new slide 7, *How Much to Trust Each Number*, states the
+evidence status of every result (measured / derived / superseded / known bias);
+the equity slide is retitled *Who Would Pay? Derived, Not Yet Measured* and
+carries a provenance strip, since no run records entries by income band; the
+displacement slide is captioned with the trip-suppression caveat. The
+trip-suppression artefact itself — a declined CBD entry cancelled the agent's
+whole day — is now **fixed in the model** (`skip-cbd-stops-today` in
+`akl_pricing.nls`); all published numbers predate the fix and the 14-day
+`paper-figs` re-run is pending.
+
+Also 2026-07-29: the demand section of `methods_revised.md` was rewritten to
+describe the generator the code actually runs. The submitted draft credited
+TomTom Move data with the time-of-day profile and NZTA TMS screenlines with
+corridor inflow; neither is implemented (see decisions log §9). The
+origin-destination matrix is synthetic — origins from Census sector shares,
+destinations drawn uniformly from the building stock, departure hours from a
+fixed weight list — so only volume and spatial distribution are fitted to
+observed counts. The calibration and limitations slides now say so.
 
 Figures referenced by the revised text (all in `output/figures/`):
 

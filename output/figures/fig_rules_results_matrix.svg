@@ -1,0 +1,56 @@
+<svg width="680" height="420" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>The three decision rules as competing behavioural assumptions, with measured ToU effects</title>
+<style>
+  text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  .th { font-size: 14px; font-weight: 500; }
+  .t  { font-size: 14px; font-weight: 400; fill: #2C2C2A; }
+  .ts { font-size: 12px; font-weight: 400; }
+  .sec { fill: #5F5E5A; }
+  .pri { fill: #2C2C2A; }
+  .pu-t { fill: #3C3489; }
+  .te-t { fill: #085041; }
+  .co-t { fill: #712B13; }
+  .gr-s { fill: #5F5E5A; }
+</style>
+<rect x="0" y="0" width="680" height="420" fill="#ffffff"/>
+
+<text class="ts sec" x="52" y="66">Rule</text>
+<text class="ts sec" x="162" y="66">Assumes drivers&#8230;</text>
+<text class="ts sec" x="362" y="66">ToU effect</text>
+<text class="ts sec" x="482" y="66">What it tells us</text>
+<line x1="40" y1="76" x2="640" y2="76" stroke="#B4B2A9" stroke-width="0.5"/>
+
+<rect x="40" y="86" width="110" height="72" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th pu-t" x="95" y="128" text-anchor="middle">Exp-Decay</text>
+<text class="t" x="162" y="118">Weigh price against</text>
+<text class="t" x="162" y="137">their own value of time</text>
+<text class="th pri" x="362" y="118">&#8722;21%</text>
+<text class="ts sec" x="362" y="137">inner peak V/C</text>
+<text class="ts sec" x="482" y="118">Effect scales with price</text>
+<text class="ts sec" x="482" y="137">sensitivity, as theory expects</text>
+<line x1="40" y1="168" x2="640" y2="168" stroke="#D3D1C7" stroke-width="0.5"/>
+
+<rect x="40" y="178" width="110" height="72" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th te-t" x="95" y="220" text-anchor="middle">El Farol</text>
+<text class="t" x="162" y="210">Predict from shared</text>
+<text class="t" x="162" y="229">recent experience</text>
+<text class="th pri" x="362" y="210">&#8722;1%</text>
+<text class="ts sec" x="362" y="229">not distinguishable</text>
+<text class="ts sec" x="482" y="210">Its switch sits beyond any</text>
+<text class="ts sec" x="482" y="229">fee the model can charge</text>
+<line x1="40" y1="260" x2="640" y2="260" stroke="#D3D1C7" stroke-width="0.5"/>
+
+<rect x="40" y="270" width="110" height="72" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text class="th co-t" x="95" y="312" text-anchor="middle">Q-Learning</text>
+<text class="t" x="162" y="302">Learn by trial and error</text>
+<text class="t" x="162" y="321">from past outcomes</text>
+<text class="th pri" x="362" y="302">&#8722;32%</text>
+<text class="ts sec" x="362" y="321">inner peak V/C</text>
+<text class="ts sec" x="482" y="302">Largest effect, but agents</text>
+<text class="ts sec" x="482" y="321">are still exploring by day 20</text>
+<line x1="40" y1="352" x2="640" y2="352" stroke="#B4B2A9" stroke-width="0.5"/>
+
+<rect x="40" y="362" width="600" height="38" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="ts gr-s" x="340" y="378" text-anchor="middle">Calibrated model, 20-day means at each rule's baseline parameter. Inner cordon only:</text>
+<text class="ts gr-s" x="340" y="393" text-anchor="middle">boundary and peripheral positions were not recorded in these runs.</text>
+</svg>

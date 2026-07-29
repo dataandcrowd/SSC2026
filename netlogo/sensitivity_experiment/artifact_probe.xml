@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+  <!-- Probe for the multi-destination fix: a declining CBD agent now skips only
+       its CBD stops instead of cancelling the whole day. Checks that
+       (a) the model still runs, (b) decliners register arrivals (times non-empty),
+       (c) their working itinerary is shorter than the full one. 2 days only. -->
+  <experiment name="artifact-probe" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>(count vehicles with [enters-cbd? = true]) / (max (list 1 count vehicles with [has-cbd-trip? = true]))</metric>
+    <metric>count vehicles with [has-cbd-trip? = true and enters-cbd? = false]</metric>
+    <metric>count vehicles with [has-cbd-trip? = true and enters-cbd? = false and length times > 0]</metric>
+    <metric>ifelse-value (any? vehicles with [has-cbd-trip? = true and enters-cbd? = false]) [mean [length b-destinations] of vehicles with [has-cbd-trip? = true and enters-cbd? = false]] [0]</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="control-seed?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="current-seed"><value value="11"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="2"/></enumeratedValueSet>
+  </experiment>
+</experiments>

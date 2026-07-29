@@ -908,6 +908,20 @@ end
 ;; re-anchored to THIS day's clock so the AM/PM peaks recur every day.
 to new-day-reset
   ask vehicles [
+    ;; snapshot the full itinerary once (lists are immutable, sharing is safe),
+    ;; then restore it: yesterday's decline may have filtered the CBD stops out
+    if full-b-destinations = 0 [
+      set full-b-destinations b-destinations
+      set full-activity activity
+      set full-activity-weight activity-weight
+      set full-target-times target-times
+      set full-expected-periods expected-periods
+    ]
+    set b-destinations full-b-destinations
+    set activity full-activity
+    set activity-weight full-activity-weight
+    set target-times full-target-times
+    set expected-periods full-expected-periods
     move-to v-home
     set location v-home
     set at-activity? true
@@ -1051,11 +1065,42 @@ to new-day-decisions
       set hour-shift 0
       let fee current-fee trip-hour
       set enters-cbd? decide-enter? fee trip-hour
-      ;; ENFORCE the decision: a CBD-bound agent that does not enter stays off the
-      ;; road today, so the charge actually reduces demand and congestion.
-      ifelse not enters-cbd? [ set active? false ] [ apply-hour-shift ]
+      ;; ENFORCE the decision: a declining agent skips its CBD stops but still
+      ;; makes its non-CBD trips. Deactivating the whole day here removed ~2
+      ;; suburban stops per declining agent from the network, inflating the
+      ;; peripheral reductions and the no-displacement result.
+      ifelse not enters-cbd? [ skip-cbd-stops-today ] [ apply-hour-shift ]
     ] [ set enters-cbd? false  set hour-shift 0 ]
   ]
+end
+
+;; Remove the CBD stops from TODAY's itinerary, keeping every non-CBD stop and
+;; the return home (home is kept even for cordon residents, who must end the
+;; day there). The full itinerary is restored from full-* in new-day-reset.
+;; If nothing but CBD stops remains, the agent stays home for the day.
+to skip-cbd-stops-today
+  let keep-idx filter [ i ->
+      (item i b-destinations = v-home) or
+      ([is-cbd?] of item i b-destinations != true)
+    ] (range length b-destinations)
+  ;; drop a home-only day (agent already starts at home)
+  if length keep-idx = 1 and item (first keep-idx) b-destinations = v-home
+    [ set keep-idx [] ]
+  ifelse empty? keep-idx
+    [ set active? false ]
+    [
+      set b-destinations map [ i -> item i b-destinations ] keep-idx
+      set activity map [ i -> item i activity ] keep-idx
+      set activity-weight map [ i -> item i activity-weight ] keep-idx
+      set target-times map [ i -> item i target-times ] keep-idx
+      set expected-periods map [ i -> item i expected-periods ] keep-idx
+      set i-destination 0
+      set b-destination item 0 b-destinations
+      let p cached-path-band ([nearest-node] of v-home)
+                             ([nearest-node] of b-destination)
+                             (band-of-hour tick-to-hour depart-tick)
+      ifelse is-list? p [ set trip p ] [ set trip [] ]
+    ]
 end
 
 ;; Move today's departure by `hour-shift` clock hours (set by the decision rule)

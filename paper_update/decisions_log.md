@@ -158,10 +158,50 @@ point at. `k-factor` appears once, in `r-cap-hr = ADT × k-factor`, the
 denominator of the flow V/C used for grading. At a fixed seed the traffic is
 identical across k; only the grade changes. It tests measurement, not demand.
 
-**Not fixed**, per the instruction to stop modifying the model. Recorded as a
-limitation in four documents and on the limitations slide.
+**Not fixed** at the time, per the instruction to stop modifying the model.
+Recorded as a limitation in four documents and on the limitations slide.
 
-## 9. Presentation
+**Update 2026-07-29: fixed on user instruction.** `new-day-decisions` now calls
+`skip-cbd-stops-today` instead of deactivating the agent: a declining agent
+keeps every non-CBD stop (and the return home) and drops only the CBD stops for
+the day; the full itinerary is restored each morning from `full-*` copies
+snapshotted on first reset. A 2-day probe (Pay rule, seed 11) confirms the
+mechanism: 477–603 of the 727–918 declining agents now record arrivals (zero
+before), their working itinerary shrinks from 3.76 to about 2.6 stops, and the
+uncharged peripheral and boundary baselines rise as the restored trips return
+to the network. All published numbers predate the fix; the 14-day `paper-figs`
+re-run is in progress and supersedes them when it lands.
+
+## 9. Demand provenance audited against the code (2026-07-29)
+
+A collaborator asked what the model was calibrated against, which prompted a
+line-by-line check of the demand generator rather than a restatement of the
+draft. Two claims in the submitted methods text turned out not to be
+implemented:
+
+| Claim in the draft | What the code does |
+|---|---|
+| "TomTom Move data for August 2024 determines the time-of-day profile" | No TomTom file exists in the repository and no procedure reads one. The profile is two hardcoded 24-element weight lists, `outbound-demand` and `return-demand` in `akl_pricing.nls`, with ~20 % of outbound departures at 08:00 |
+| "NZTA TMS screenline counts determine the inflow volume on each corridor" | `motorway-aadt` and `tms-screenlines` are reporters **no procedure ever calls**. The corridor split in `pick-home` is the fixed triple 0.30 / 0.48 / 0.22, which tracks the 2023 Census sector populations, not the counts (which would give 0.40 / 0.30 / 0.30) |
+
+Also recorded: destinations are drawn uniformly from the non-home building
+stock (`akl_vehicles.nls`), so there is no estimated OD matrix at all, and the
+departure minute is uniform within the drawn hour at 60 ticks per hour.
+
+**Why this matters beyond bookkeeping.** The temporal residual — implied
+design-hour factor 0.157 against the 0.10 assumed — had been written up as a
+shortfall against a fitted profile. It is not: it is the direct consequence of
+the profile never having been fitted. Stating it that way makes the residual
+explicable rather than mysterious, and names the next calibration step.
+
+**Nothing was changed in the model.** Only the write-up was corrected, in
+`methods_revised.md` (rewritten demand section plus change note 7),
+`conclusion_revised.md`, `conclusions_bullets.md` and the deck (calibration
+slide retitled *Calibrated on Volume and Space — Not on Time or OD*, a new
+*OD matrix: synthetic, not estimated* card, and the limitations card
+*Demand is synthetic, not observed*).
+
+## 10. Presentation
 
 **Figures redrawn in plotnine (`_gg`) on request**, except the map, which draws
 network geometry rather than a statistical mapping.
@@ -179,7 +219,7 @@ by hand also requires `[Content_Types].xml` to be the first archive entry.
 
 **Backups are kept at each step** (`SSC2026_presentation.pptx.bak` … `.bak7`).
 
-## 10. Deferred, with cost
+## 11. Deferred, with cost
 
 | Item | Cost | Why it matters |
 |---|---|---|
@@ -189,3 +229,5 @@ by hand also requires `[Content_Types].xml` to be the first archive entry.
 | Q-learning reward scale (benefit is VoT/10 against fees of NZ$2–6) | code change plus a re-run | Under a benefit of half an hour of VoT the regressive pattern returns; the current Learn result rests on this choice |
 | Multi-destination cancellation | code change plus a re-run | Would reduce the peripheral and no-displacement effects |
 | Multi-seed replication beyond El Farol | 3–5× any experiment | Every spread quoted is within-seed |
+| Fit the departure profile to an observed time-of-day distribution | data acquisition plus a re-run | The only fix for the temporal residual (implied k 0.157 against 0.10); the profile is currently assumed, so absolute peak LoS cannot be read |
+| Estimate an OD matrix instead of drawing destinations uniformly | observed trip-end data plus a model change | Would let the paper speak to observed travel patterns, not only to volume and spatial spread |

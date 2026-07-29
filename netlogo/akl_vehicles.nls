@@ -48,6 +48,14 @@ vehicles-own [
   return-tick         ; clock-anchored tick for the return-home (final) leg
   corridors-today     ; SSC2026: list of motorway corridors used today (cordon count)
   through?            ; SSC2026: pass-through trip (boundary->boundary, skips CBD)
+  ;; SSC2026: permanent copies of the itinerary lists. A declined CBD entry now
+  ;; drops only the CBD stops from TODAY's working lists (skip-cbd-stops-today);
+  ;; each new day restores the full itinerary from these.
+  full-b-destinations
+  full-activity
+  full-activity-weight
+  full-target-times
+  full-expected-periods
 ]
 
 globals [
