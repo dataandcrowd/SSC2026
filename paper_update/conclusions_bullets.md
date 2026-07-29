@@ -89,6 +89,20 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   level is irrelevant.
 - **Route choice has no distributional channel at all.**
 
+## Who the 2,500 agents are (measured at setup, seed 11)
+
+- **Nobody lives inside the cordon.** 0 agents have a CBD home, so every charged
+  trip is an inbound trip crossing a boundary.
+- **1,765 (70.6 %) enter from outside**: arterial edges 767, southern corridor
+  484, northern 309, western 205. **735 (29.4 %) are isthmus residents** — also
+  outside the cordon, just inside the modelled network.
+- **1,500 have a CBD destination** and are exposed to the charge; the other
+  1,000 never enter, forming an unpriced comparison group in the same run.
+- **544 (21.8 %) are pass-through** and are never charged, so they load the ring
+  roads whatever the fee.
+- **2.98 destinations per agent** on average (1–4 stops plus home).
+- One agent = 160 real vehicles → roughly 400,000 vehicle-trips a day.
+
 ## Demand provenance: what is fitted and what is assumed
 
 - **Fitted to observed Auckland Transport ADT on all 1,634 links**: total

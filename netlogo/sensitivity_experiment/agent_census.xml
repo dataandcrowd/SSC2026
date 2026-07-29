@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+  <!-- Setup-only census: counts agents by home sector, CBD-bound status and
+       pass-through status, so the paper can quote measured counts rather than
+       the expected values implied by boundary-inflow-share. No days are run. -->
+  <experiment name="agent-census" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>true</exitCondition>
+    <metric>count vehicles</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "local"]</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "Arterial"]</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "North"]</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "East-South"]</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "West"]</metric>
+    <metric>count vehicles with [[b-sector] of v-home = "cbd"]</metric>
+    <metric>count vehicles with [through? = true]</metric>
+    <metric>count vehicles with [any? (turtle-set b-destinations) with [is-cbd? = true]]</metric>
+    <metric>count vehicles with [[is-cbd?] of v-home = true]</metric>
+    <metric>mean [length b-destinations] of vehicles</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="control-seed?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="current-seed"><value value="11"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="1"/></enumeratedValueSet>
+  </experiment>
+</experiments>
