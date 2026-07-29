@@ -42,7 +42,17 @@ corridor inflow; neither is implemented (see decisions log §9). The
 origin-destination matrix is synthetic — origins from Census sector shares,
 destinations drawn uniformly from the building stock, departure hours from a
 fixed weight list — so only volume and spatial distribution are fitted to
-observed counts. The calibration and limitations slides now say so.
+observed counts. The calibration and limitations slides now say so, and three
+new slides were added after the calibration slide (deck positions 7–9):
+
+| Slide | What it does |
+|---|---|
+| *Who Are the 2,500 Agents?* | Agent composition measured at setup, seed 11 — 1,765 external / 735 local / **0 resident inside the cordon**, 1,500 CBD-bound, 544 pass-through, 2.98 destinations each |
+| *How Departure Hours Are Drawn — Not an OD Matrix* | The two weight profiles as a figure (`output/figures/demand_profile.png`), separating the spatial axis (OD) from the temporal one |
+| *What Was Fitted, and What Was Assumed* | The two calibrated knobs against the two assumed inputs, and why the temporal residual is not a shortfall |
+
+The counts come from `netlogo/sensitivity_experiment/agent_census.xml`, a
+setup-only BehaviorSpace run, and the figure from `plot_demand_profile.py`.
 
 Figures referenced by the revised text (all in `output/figures/`):
 
