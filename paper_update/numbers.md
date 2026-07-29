@@ -38,6 +38,44 @@ F, days 8 to 14.
 | Oscillate | 71.8 → 71.5 (−0.4 pp) | 76.3 → 76.5 (+0.2 pp) | 59.2 → 71.8 (flat from day 2) |
 | Learn | 58.0 → 40.0 (−18.0 pp) | 64.5 → 48.8 (−15.7 pp) | 56.2 → 37.8 (still falling) |
 
+## Level of service by road class — `links_<Rule>_<fee>.csv`, `paper-figs.csv`
+
+Two measures, because they weight differently and the difference matters.
+
+**(a) Share of links at each peak grade** (from `los_peak` in the link tables;
+counts links, so a side street weighs as much as a motorway carriageway):
+
+| Rule | Class | n | LoS E/F, no charge | ToU | change |
+|---|---|---|---|---|---|
+| Pay | motorway | 174 | 58.6 % | 56.9 % | −1.7 pp |
+| | arterial | 1,460 | 74.2 % | 67.9 % | **−6.2 pp** |
+| Oscillate | motorway | 174 | 60.9 % | 60.3 % | −0.6 pp |
+| | arterial | 1,460 | 80.2 % | 80.9 % | +0.7 pp |
+| Learn | motorway | 174 | 58.0 % | 56.3 % | −1.7 pp |
+| | arterial | 1,460 | 75.8 % | 69.7 % | **−6.2 pp** |
+
+**(b) Flow-weighted share of traffic at LoS E or worse, by reporting group**
+(recorded by the model each day; MWY is the motorway corridors, CBD/East/West
+are arterial groups; 14-day mean of the daily peak, with the AM-peak clock-hour
+measure alongside for MWY):
+
+| Rule | MWY daily peak | MWY AM peak | CBD | East | West |
+|---|---|---|---|---|---|
+| Pay | 92.0 → 90.7 (−1.3 pp) | 74.0 → 62.6 (**−11.5 pp**) | 87.0 → 81.8 (−5.2 pp) | 87.2 → 84.7 (−2.5 pp) | 83.2 → 81.9 (−1.3 pp) |
+| Oscillate | 94.6 → 94.6 (0.0 pp) | 90.3 → 88.6 (−1.7 pp) | 93.6 → 94.1 (+0.5 pp) | 91.8 → 92.0 (+0.1 pp) | 86.4 → 86.0 (−0.4 pp) |
+| Learn | 92.5 → 87.7 (−4.8 pp) | 74.8 → 61.2 (**−13.6 pp**) | 87.4 → 79.2 (−8.2 pp) | 87.9 → 82.0 (−6.0 pp) | 83.6 → 81.2 (−2.4 pp) |
+
+Reading: **the charge acts on arterials, not on motorways** — on the link count
+the arterial E/F share falls 6.2 pp against 1.7 pp on motorways, which follows
+from a cordon charge that prices entry to a city centre reached by arterials.
+The daily-peak MWY figures look inert (−1.3 pp) only because the daily peak of
+a rolling-hour EMA saturates; the AM clock-hour measure on the same runs shows
+the largest single movement in the whole set, −11.5 and −13.6 pp. Absolute
+levels are inflated by the temporal residual, so read the differences.
+
+Figures: `los_by_class_gg.png` (grade mix by class),
+`los_ef_by_group_gg.png` (flow-weighted E/F by group).
+
 ## Link-level map — `output/tables/links_<Rule>_<fee>.csv`
 
 Written by `save-links`. Mean change in per-link peak flow V/C under ToU

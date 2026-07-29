@@ -42,6 +42,25 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   retiming assumption; a result about where congestion appears is sensitive to
   the routing assumption.
 
+## Level of service: motorways against arterials
+
+- **The charge acts on arterials, and barely on motorways.** On the link count
+  the arterial share at LoS E or worse falls 6.2 pp under both responsive rules,
+  against 1.7 pp on motorways. That is what a cordon charge should do: it prices
+  entry to a centre reached by arterial streets, while motorway corridors carry
+  through traffic that is never charged.
+- **Arterials start worse and stay worse**, 74–80 % at E/F against 58–61 % on
+  motorways. Part of that is definitional — an arterial grades E from V/C 0.82
+  and a motorway from 0.90 — and part is signalised capacity.
+- **The motorway result flips depending on which measure you use.** The
+  daily-peak flow-weighted figure looks inert (−1.3 pp for Pay) because the
+  daily peak of a rolling-hour average saturates near 92 %. The AM clock-hour
+  measure on the very same runs gives −11.5 pp for Pay and −13.6 pp for Learn,
+  the largest movements anywhere in these results. **Quote the clock-hour
+  measure, which is also the one a traffic engineer would report.**
+- **Oscillate does nothing on either class**, +0.7 pp on arterials and −0.6 pp
+  on motorways, both inside the noise.
+
 ## Displacement
 
 - **The charge does not push traffic outward**, and this now means something.

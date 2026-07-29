@@ -155,6 +155,29 @@ save-links</final>
     <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
+  <!-- Hour-of-day profiles for all three rules, no charge against ToU, with the
+       widened save-hourly export: inner / boundary / peripheral V/C plus flow
+       V/C and % traffic at LoS E/F for each of the four reporting groups. One
+       row per hour per simulated day, so the figures can show a mean and a
+       spread across the 14 days for any of those series rather than for the
+       cordon interior alone. -->
+  <experiment name="hourly-full" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <final>save-hourly
+save-los-hours</final>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/><value value="&quot;El Farol&quot;"/><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-retiming?"><value value="false"/></enumeratedValueSet>
+    <enumeratedValueSet variable="allow-rerouting?"><value value="false"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
   <!-- Pay (exponential decay): vary price sensitivity base-beta -->
   <experiment name="sensitivity-pay" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>

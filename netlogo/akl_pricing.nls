@@ -45,6 +45,15 @@ globals [
   hourly-vc-count        ;; per-hour sample count (24 elements, cumulative)
   day-h-sum              ;; per-hour inner V/C accumulated within the current day
   day-h-count            ;; per-hour sample count within the current day
+  ;; latest tick's values, published by update-vc so the hourly recorder can
+  ;; bank them without re-sweeping the roads
+  now-vc-inner now-vc-boundary now-vc-peripheral
+  now-gvcf-mwy now-gvcf-cbd now-gvcf-east now-gvcf-west
+  now-gef-mwy now-gef-cbd now-gef-east now-gef-west
+  ;; per-hour accumulators for the same eleven series (24 elements each)
+  dh-bound dh-peri
+  dh-vcf-mwy dh-vcf-cbd dh-vcf-east dh-vcf-west
+  dh-ef-mwy dh-ef-cbd dh-ef-east dh-ef-west
   hourly-records         ;; rows [day rule regime hour vc] for per-hour variability
   hr-los-records         ;; rows [day hour fA..fF]: mean flow (veh/h) at each LoS grade that hour
   hr-los-f               ;; per-grade flow accumulator for the current clock hour (6 elements)
@@ -74,6 +83,7 @@ to pricing-init
   set hourly-vc-count n-values 24 [0]
   set day-h-sum n-values 24 [0]
   set day-h-count n-values 24 [0]
+  reset-hour-accumulators
   set hourly-records (list)
   set hr-los-records (list)
   set hr-los-f n-values 6 [0]
@@ -100,14 +110,49 @@ to flush-hr-los
   set hr-los-ticks 0
 end
 
-;; Accumulate inner-CBD V/C by hour of day, for the hourly histogram.
+;; Accumulate the hour-of-day series: inner V/C for the interface histogram,
+;; plus the cordon boundary, the periphery and the four reporting groups (flow
+;; V/C and % of traffic at LoS E/F), so the hour-of-day figure is not limited
+;; to the cordon interior. Values come from globals published by update-vc, so
+;; this costs no extra pass over the roads.
 to record-hourly-vc
   let h current-hour
-  let vi mean-vc-at "inner"
+  let vi now-vc-inner
   set hourly-vc-sum replace-item h hourly-vc-sum ((item h hourly-vc-sum) + vi)
   set hourly-vc-count replace-item h hourly-vc-count ((item h hourly-vc-count) + 1)
   set day-h-sum replace-item h day-h-sum ((item h day-h-sum) + vi)
   set day-h-count replace-item h day-h-count ((item h day-h-count) + 1)
+  set dh-bound     bank-hour dh-bound     h now-vc-boundary
+  set dh-peri      bank-hour dh-peri      h now-vc-peripheral
+  set dh-vcf-mwy   bank-hour dh-vcf-mwy   h now-gvcf-mwy
+  set dh-vcf-cbd   bank-hour dh-vcf-cbd   h now-gvcf-cbd
+  set dh-vcf-east  bank-hour dh-vcf-east  h now-gvcf-east
+  set dh-vcf-west  bank-hour dh-vcf-west  h now-gvcf-west
+  set dh-ef-mwy    bank-hour dh-ef-mwy    h now-gef-mwy
+  set dh-ef-cbd    bank-hour dh-ef-cbd    h now-gef-cbd
+  set dh-ef-east   bank-hour dh-ef-east   h now-gef-east
+  set dh-ef-west   bank-hour dh-ef-west   h now-gef-west
+end
+
+;; Zero the per-hour accumulators for the extra series (called with the inner
+;; ones, at setup and at the start of each simulated day).
+to reset-hour-accumulators
+  set dh-bound n-values 24 [0]      set dh-peri n-values 24 [0]
+  set dh-vcf-mwy n-values 24 [0]    set dh-vcf-cbd n-values 24 [0]
+  set dh-vcf-east n-values 24 [0]   set dh-vcf-west n-values 24 [0]
+  set dh-ef-mwy n-values 24 [0]     set dh-ef-cbd n-values 24 [0]
+  set dh-ef-east n-values 24 [0]    set dh-ef-west n-values 24 [0]
+end
+
+;; Add v to hour h of a 24-element accumulator.
+to-report bank-hour [lst h v]
+  report replace-item h lst ((item h lst) + v)
+end
+
+;; Mean of a 24-element accumulator at hour h, using the shared sample count.
+to-report hour-mean [lst h]
+  let c item h day-h-count
+  report ifelse-value (c > 0) [(item h lst) / c] [0]
 end
 
 to-report hourly-vc-mean [h]
@@ -133,6 +178,9 @@ to setup-signals
     set r-capacity r-capacity * signal-green-ratio
   ]
   ask nodes with [signal?] [ set size 1.2  set color lime ]  ;; visible before go
+  ;; only signalised junctions carry information in the view; the other ~1,400
+  ;; nodes just speckle the network and hide the link colouring
+  ask nodes with [not signal?] [ set hidden? true ]
 end
 
 ;; Cycle the signal display: green/red dots at signalised nodes, desynchronised.
@@ -722,10 +770,10 @@ to update-vc
   let si 0  let ni 0
   let sb 0  let nb 0
   let sp 0  let np 0
-  let f-mwy 0  let ef-mwy 0
-  let f-cbd 0  let ef-cbd 0
-  let f-east 0 let ef-east 0
-  let f-west 0 let ef-west 0
+  let f-mwy 0  let ef-mwy 0  let fv-mwy 0
+  let f-cbd 0  let ef-cbd 0  let fv-cbd 0
+  let f-east 0 let ef-east 0 let fv-east 0
+  let f-west 0 let ef-west 0 let fv-west 0
   let lf1 0  let lf2 0  let lf3 0  let lf4 0  let lf5 0  let lf6 0
   ask roads [
     set r-vc (r-load * scale-factor) / (max (list 1 r-capacity))
@@ -768,10 +816,17 @@ to update-vc
     if r-los = 5 [ set lf5 lf5 + r-flow ]
     if r-los = 6 [ set lf6 lf6 + r-flow ]
     ;; accumulate per-group flow and LoS E/F flow for the daily peak trackers
-    if r-group = "MWY"  [ set f-mwy f-mwy + r-flow    if r-los >= 5 [ set ef-mwy ef-mwy + r-flow ] ]
-    if r-group = "CBD"  [ set f-cbd f-cbd + r-flow    if r-los >= 5 [ set ef-cbd ef-cbd + r-flow ] ]
-    if r-group = "East" [ set f-east f-east + r-flow  if r-los >= 5 [ set ef-east ef-east + r-flow ] ]
-    if r-group = "West" [ set f-west f-west + r-flow  if r-los >= 5 [ set ef-west ef-west + r-flow ] ]
+    ;; flow (for the weight), flow at LoS E/F (for the share) and flow x V/C
+    ;; (for the flow-weighted mean V/C) in the same pass, so the hourly series
+    ;; below cost nothing extra per tick
+    if r-group = "MWY"  [ set f-mwy f-mwy + r-flow    set fv-mwy fv-mwy + r-flow * r-vcf
+                          if r-los >= 5 [ set ef-mwy ef-mwy + r-flow ] ]
+    if r-group = "CBD"  [ set f-cbd f-cbd + r-flow    set fv-cbd fv-cbd + r-flow * r-vcf
+                          if r-los >= 5 [ set ef-cbd ef-cbd + r-flow ] ]
+    if r-group = "East" [ set f-east f-east + r-flow  set fv-east fv-east + r-flow * r-vcf
+                          if r-los >= 5 [ set ef-east ef-east + r-flow ] ]
+    if r-group = "West" [ set f-west f-west + r-flow  set fv-west fv-west + r-flow * r-vcf
+                          if r-los >= 5 [ set ef-west ef-west + r-flow ] ]
     if r-position = "inner"      [ set si si + r-vc  set ni ni + 1 ]
     if r-position = "boundary"   [ set sb sb + r-vc  set nb nb + 1 ]
     if r-position = "peripheral" [ set sp sp + r-vc  set np np + 1 ]
@@ -783,6 +838,17 @@ to update-vc
   if cur-inner > peak-vc-inner      [ set peak-vc-inner cur-inner ]
   if cur-bound > peak-vc-boundary   [ set peak-vc-boundary cur-bound ]
   if cur-peri  > peak-vc-peripheral [ set peak-vc-peripheral cur-peri ]
+  ;; publish this tick's values so record-hourly-vc can bank them without
+  ;; sweeping the road set again (11 extra sweeps a tick would be ruinous)
+  set now-vc-inner cur-inner  set now-vc-boundary cur-bound  set now-vc-peripheral cur-peri
+  set now-gvcf-mwy  (ifelse-value (f-mwy > 0)  [fv-mwy / f-mwy]   [0])
+  set now-gvcf-cbd  (ifelse-value (f-cbd > 0)  [fv-cbd / f-cbd]   [0])
+  set now-gvcf-east (ifelse-value (f-east > 0) [fv-east / f-east] [0])
+  set now-gvcf-west (ifelse-value (f-west > 0) [fv-west / f-west] [0])
+  set now-gef-mwy  (ifelse-value (f-mwy > 0)  [100 * ef-mwy / f-mwy]   [0])
+  set now-gef-cbd  (ifelse-value (f-cbd > 0)  [100 * ef-cbd / f-cbd]   [0])
+  set now-gef-east (ifelse-value (f-east > 0) [100 * ef-east / f-east] [0])
+  set now-gef-west (ifelse-value (f-west > 0) [100 * ef-west / f-west] [0])
   ;; track the daily peak share of traffic at LoS E/F per reporting group
   if f-mwy > 0  [ let c 100 * ef-mwy / f-mwy    if c > peak-ef-mwy  [ set peak-ef-mwy c ] ]
   if f-cbd > 0  [ let c 100 * ef-cbd / f-cbd    if c > peak-ef-cbd  [ set peak-ef-cbd c ] ]
@@ -893,6 +959,7 @@ to run-one-day
   set peak-vc-inner 0  set peak-vc-boundary 0  set peak-vc-peripheral 0
   set peak-ef-mwy 0  set peak-ef-cbd 0  set peak-ef-east 0  set peak-ef-west 0
   set day-h-sum n-values 24 [0]  set day-h-count n-values 24 [0]
+  reset-hour-accumulators
   ;; ticks pause overnight (movement loop ends with the last trip), so the
   ;; flow EMA never decays between days: zero it so LoS starts each day fresh
   ask roads [ set r-flow 0  set r-entries 0 ]
@@ -973,7 +1040,10 @@ end
 to save-hourly
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
-  let header (list "day" "rule" "regime" "hour" "vc_inner")
+  let header (list "day" "rule" "regime" "hour" "vc_inner"
+    "vc_boundary" "vc_peripheral"
+    "vcf_mwy" "vcf_cbd" "vcf_east" "vcf_west"
+    "ef_mwy" "ef_cbd" "ef_east" "ef_west")
   let fname (word "../output/tables/hourly_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header hourly-records)
   print (word "Saved " (length hourly-records) " hourly rows to " fname)
@@ -1186,12 +1256,20 @@ to end-of-day-update
     q-update ((trip-hour - hour-shift) mod 24) prev-cong realised-cong enters-cbd?
              (current-fee trip-hour) essential-today?
   ]
-  ;; record this day's hourly inner-CBD V/C profile (for per-hour variability bands)
+  ;; record this day's hour-of-day profile: inner / boundary / peripheral V/C
+  ;; and, per reporting group, the flow V/C and the % of traffic at LoS E/F.
+  ;; One row per hour per day, so a figure can show a mean and a spread across
+  ;; days for any of these series, not just the cordon interior.
   let hh 0
   while [hh < 24] [
     let cc item hh day-h-count
     let vv ifelse-value (cc > 0) [(item hh day-h-sum) / cc] [0]
-    set hourly-records lput (list current-sim-day decision-rule fee-regime hh vv) hourly-records
+    set hourly-records lput (list current-sim-day decision-rule fee-regime hh vv
+      (hour-mean dh-bound hh) (hour-mean dh-peri hh)
+      (hour-mean dh-vcf-mwy hh) (hour-mean dh-vcf-cbd hh)
+      (hour-mean dh-vcf-east hh) (hour-mean dh-vcf-west hh)
+      (hour-mean dh-ef-mwy hh) (hour-mean dh-ef-cbd hh)
+      (hour-mean dh-ef-east hh) (hour-mean dh-ef-west hh)) hourly-records
     set hh hh + 1
   ]
   ;; push realised congestion to the shared history

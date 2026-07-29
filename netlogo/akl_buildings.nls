@@ -200,6 +200,11 @@ to create-boundary-homes
           set shape "house"
           set size 2
           set color green
+          ;; boundary homes are trip origins, not something to look at: a green
+          ;; house at every boundary node hides the traffic. Kept in the model,
+          ;; hidden in the view. `ask buildings with [b-type = "home" and
+          ;; not is-cbd?] [ set hidden? false ]` brings them back.
+          set hidden? true
         ]
       ]
     ]
