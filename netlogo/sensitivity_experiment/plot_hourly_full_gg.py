@@ -98,28 +98,68 @@ def draw(g, labels, title, subtitle, ylab, fname, clip_zero=False):
     print("wrote", out)
 
 
+GROUP_COLOUR = {"MWY": "#222222", "CBD": "#c0504d",
+                "East": "#2f6fa8", "West": "#4a8f5a"}
+
+
+def draw_groups(g, labels, colours, title, subtitle, ylab, fname):
+    """Groups as coloured lines inside one panel, fee regimes as rows.
+
+    Series belong on the same axes when the question is which one is worse and
+    by how much, which separate rows with free scales cannot answer.
+    """
+    g = g.copy()
+    g["series"] = pd.Categorical(g["series"].map(labels), list(labels.values()))
+    g["lo"] = g["lo"].clip(lower=0)
+    p = (ggplot(g, aes("hour", "mean", colour="series", fill="series"))
+         + geom_rect(PEAKS, aes(xmin="xmin", xmax="xmax", ymin=-float("inf"),
+                                ymax=float("inf")), inherit_aes=False,
+                     fill="#c04040", alpha=0.07)
+         + geom_ribbon(aes(ymin="lo", ymax="hi"), alpha=0.13, colour=None)
+         + geom_line(size=1.0)
+         + facet_grid("fee ~ rule")
+         + scale_colour_manual(values=colours)
+         + scale_fill_manual(values=colours)
+         + scale_x_continuous(breaks=[0, 6, 12, 18, 24])
+         + labs(title=title, subtitle=subtitle, x="hour of day", y=ylab,
+                caption="Line = mean of 14 simulated days, band = ±1 SD across "
+                        "those days (one seed).\nShaded columns are the peak fee "
+                        "windows. Rows share a scale, so read top against bottom.")
+         + theme(figure_size=(11, 5.4)) + BASE_THEME)
+    out = os.path.join(FIGS, fname)
+    p.save(out, dpi=200, verbose=False)
+    print("wrote", out)
+
+
 df = load()
 
-draw(summarise(df, ["vc_inner", "vc_boundary", "vc_peripheral"]),
-     {"vc_inner": "inner", "vc_boundary": "cordon boundary",
-      "vc_peripheral": "peripheral"},
-     "Where and when the charge bites, by cordon position",
-     "Mean V/C by hour of day. The boundary carries an order of magnitude more\n"
-     "load than the interior, so the three rows use their own scales.",
-     "mean V/C", "hourly_positions_gg.png", clip_zero=True)
+POSITION_COLOUR = {"cordon boundary": "#c0504d", "inner": "#2f6fa8",
+                   "peripheral": "#4a8f5a"}
 
-draw(summarise(df, ["vcf_mwy", "vcf_cbd", "vcf_east", "vcf_west"]),
-     {"vcf_mwy": "MWY", "vcf_cbd": "CBD",
-      "vcf_east": "East", "vcf_west": "West"},
-     "Flow V/C by road group through the day",
-     "Hour-long moving average of flow over hourly capacity, so each curve lags\n"
-     "the departure peak it responds to.",
-     "flow V/C", "hourly_group_vcf_gg.png", clip_zero=True)
+draw_groups(summarise(df, ["vc_boundary", "vc_inner", "vc_peripheral"]),
+            {"vc_boundary": "cordon boundary", "vc_inner": "inner",
+             "vc_peripheral": "peripheral"}, POSITION_COLOUR,
+            "Where and when the charge bites, by cordon position",
+            "All three positions on one axis. The cordon boundary carries five "
+            "to six times the\nload of the interior it protects, which is the "
+            "point — on a shared scale the inner\nand peripheral curves are "
+            "necessarily flat.",
+            "mean V/C", "hourly_positions_gg.png")
 
-draw(summarise(df, ["ef_mwy", "ef_cbd", "ef_east", "ef_west"]),
-     {"ef_mwy": "MWY", "ef_cbd": "CBD",
-      "ef_east": "East", "ef_west": "West"},
-     "Share of traffic at LoS E or worse, by road group",
-     "Flow-weighted, by hour of day. Absolute levels are inflated by the\n"
-     "temporal residual — read the charged curve against the uncharged one.",
-     "% of traffic at LoS E/F", "hourly_group_ef_gg.png", clip_zero=True)
+draw_groups(summarise(df, ["vcf_mwy", "vcf_cbd", "vcf_east", "vcf_west"]),
+            {"vcf_mwy": "MWY", "vcf_cbd": "CBD", "vcf_east": "East",
+             "vcf_west": "West"}, GROUP_COLOUR,
+            "Flow V/C by road group through the day",
+            "All four groups on one axis so they can be compared. MWY is the "
+            "motorway corridors,\nthe rest are arterial. The measure is an "
+            "hour-long moving average, so each curve\nlags the departure peak.",
+            "flow V/C", "hourly_group_vcf_gg.png")
+
+draw_groups(summarise(df, ["ef_mwy", "ef_cbd", "ef_east", "ef_west"]),
+            {"ef_mwy": "MWY", "ef_cbd": "CBD", "ef_east": "East",
+             "ef_west": "West"}, GROUP_COLOUR,
+            "Share of traffic at LoS E or worse, by road group",
+            "Flow-weighted, all four groups on one axis. Arterials sit worse "
+            "than the motorway\ncorridors all day. Absolute levels are inflated "
+            "by the temporal residual — read\nthe top row against the bottom.",
+            "% of traffic at LoS E/F", "hourly_group_ef_gg.png")
