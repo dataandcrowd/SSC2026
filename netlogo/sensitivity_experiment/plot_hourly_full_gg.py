@@ -155,6 +155,15 @@ draw_groups(summarise(df, ["vcf_mwy", "vcf_cbd", "vcf_east", "vcf_west"]),
             "hour-long moving average, so each curve\nlags the departure peak.",
             "flow V/C", "hourly_group_vcf_gg.png")
 
+draw(summarise(df, ["vcf_cbd", "vcf_mwy", "vcf_east", "vcf_west"]),
+     {"vcf_cbd": "CBD", "vcf_mwy": "MWY", "vcf_east": "East", "vcf_west": "West"},
+     "Flow V/C by road group: no charge against ToU",
+     "One row per road group, own scale, so the ToU effect is read within each "
+     "group\nrather than across them. MWY is the motorway corridors, the rest "
+     "are arterial.\nThe measure is an hour-long moving average, so each curve "
+     "lags the departure peak.",
+     "flow V/C", "hourly_group_vcf_byregion_gg.png", clip_zero=True)
+
 draw_groups(summarise(df, ["ef_mwy", "ef_cbd", "ef_east", "ef_west"]),
             {"ef_mwy": "MWY", "ef_cbd": "CBD", "ef_east": "East",
              "ef_west": "West"}, GROUP_COLOUR,

@@ -1,0 +1,41 @@
+=== Pay (exponential decay) ===
+  peak V/C inner         0.122 ± 0.015  ->  0.094 ± 0.013   (+23.0 %)
+  peak V/C boundary      0.359 ± 0.050  ->  0.274 ± 0.033   (+23.5 %)
+  peak V/C peripheral    0.075 ± 0.006  ->  0.064 ± 0.007   (+14.7 %)
+  CBD entry rate         0.522 ± 0.011  ->  0.397 ± 0.011   (+23.9 %)
+  (mean ± day-to-day SD over 14 simulated days)
+  mean inner V/C AM peak 07-09  0.0524 -> 0.0403   (+23.1 %)
+  mean inner V/C PM peak 16-18  0.0312 -> 0.0257   (+17.7 %)
+  mean inner V/C all day        0.0202 -> 0.0159   (+21.3 %)
+  % traffic at LoS E/F all day  56.3 -> 49.4   (+7.0 pp)
+  % traffic at LoS E/F 07-09    64.2 -> 59.6   (+4.6 pp)
+
+=== Oscillate (El Farol) ===
+  peak V/C inner         0.173 ± 0.021  ->  0.173 ± 0.020   ( +0.2 %)
+  peak V/C boundary      0.763 ± 0.093  ->  0.723 ± 0.097   ( +5.3 %)
+  peak V/C peripheral    0.120 ± 0.013  ->  0.118 ± 0.017   ( +2.2 %)
+  CBD entry rate         0.914 ± 0.055  ->  0.899 ± 0.095   ( +1.6 %)
+  (mean ± day-to-day SD over 14 simulated days)
+  mean inner V/C AM peak 07-09  0.0805 -> 0.0819   ( -1.8 %)
+  mean inner V/C PM peak 16-18  0.0581 -> 0.0599   ( -3.2 %)
+  mean inner V/C all day        0.0372 -> 0.0368   ( +1.1 %)
+  % traffic at LoS E/F all day  71.8 -> 71.5   (+0.4 pp)
+  % traffic at LoS E/F 07-09    76.3 -> 76.5   (-0.2 pp)
+
+=== Learn (Q-learning) ===
+  peak V/C inner         0.122 ± 0.013  ->  0.093 ± 0.025   (+23.8 %)
+  peak V/C boundary      0.394 ± 0.038  ->  0.248 ± 0.068   (+37.0 %)
+  peak V/C peripheral    0.074 ± 0.005  ->  0.058 ± 0.010   (+22.3 %)
+  CBD entry rate         0.539 ± 0.024  ->  0.343 ± 0.094   (+36.3 %)
+  (mean ± day-to-day SD over 14 simulated days)
+  mean inner V/C AM peak 07-09  0.0501 -> 0.0254   (+49.3 %)
+  mean inner V/C PM peak 16-18  0.0356 -> 0.0172   (+51.8 %)
+  mean inner V/C all day        0.0216 -> 0.0110   (+49.1 %)
+  % traffic at LoS E/F all day  58.0 -> 40.0   (+18.0 pp)
+  % traffic at LoS E/F 07-09    64.5 -> 48.8   (+15.7 pp)
+
+=== cross-rule summary (14-day mean of daily peak V/C) ===
+  rule                      inner NC  inner ToU   red %   SD NC  SD ToU  entry NC  entry ToU
+  Pay (exponential decay)      0.122      0.094    23.0   0.015   0.013     0.522      0.397
+  Oscillate (El Farol)         0.173      0.173     0.2   0.021   0.020     0.914      0.899
+  Learn (Q-learning)           0.122      0.093    23.8   0.013   0.025     0.539      0.343

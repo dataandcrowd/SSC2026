@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+  <!-- Setup-only: dump the attributes of three real agents (lowest, median and
+       highest value of time) so the slide can show measured personas rather
+       than invented ones. Sorted by vot, indices 0 / 1250 / 2499 of 2,500. -->
+  <experiment name="agent-examples" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>true</exitCondition>
+
+    <metric>[vot] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[beta] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[essential-trip-prob] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[base-trip-rate] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[length b-destinations] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[[b-sector] of v-home] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value (any? (turtle-set b-destinations) with [is-cbd? = true]) [1] [0]] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value through? [1] [0]] of item 0 (sort-on [vot] vehicles)</metric>
+    <metric>[tick-to-hour depart-tick] of item 0 (sort-on [vot] vehicles)</metric>
+
+    <metric>[vot] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[beta] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[essential-trip-prob] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[base-trip-rate] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[length b-destinations] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[[b-sector] of v-home] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value (any? (turtle-set b-destinations) with [is-cbd? = true]) [1] [0]] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value through? [1] [0]] of item 1250 (sort-on [vot] vehicles)</metric>
+    <metric>[tick-to-hour depart-tick] of item 1250 (sort-on [vot] vehicles)</metric>
+
+    <metric>[vot] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[beta] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[essential-trip-prob] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[base-trip-rate] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[length b-destinations] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[[b-sector] of v-home] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value (any? (turtle-set b-destinations) with [is-cbd? = true]) [1] [0]] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[ifelse-value through? [1] [0]] of item 2499 (sort-on [vot] vehicles)</metric>
+    <metric>[tick-to-hour depart-tick] of item 2499 (sort-on [vot] vehicles)</metric>
+
+    <!-- population-level checks for the slide -->
+    <metric>median [vot] of vehicles</metric>
+    <metric>mean [vot] of vehicles</metric>
+    <metric>min [vot] of vehicles</metric>
+    <metric>max [vot] of vehicles</metric>
+    <metric>vot-q20</metric>
+    <metric>vot-q80</metric>
+    <metric>mean [beta] of vehicles</metric>
+    <metric>mean [base-trip-rate] of vehicles</metric>
+    <metric>mean [essential-trip-prob] of vehicles</metric>
+
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Exp-Decay&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="control-seed?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="current-seed"><value value="11"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="1"/></enumeratedValueSet>
+  </experiment>
+</experiments>

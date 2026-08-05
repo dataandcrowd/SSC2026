@@ -24,7 +24,7 @@
 <text class="th pu-t" x="95" y="128" text-anchor="middle">Exp-Decay</text>
 <text class="t" x="162" y="118">Weigh price against</text>
 <text class="t" x="162" y="137">their own value of time</text>
-<text class="th pri" x="362" y="118">&#8722;21%</text>
+<text class="th pri" x="362" y="118">&#8722;12%</text>
 <text class="ts sec" x="362" y="137">inner peak V/C</text>
 <text class="ts sec" x="482" y="118">Effect scales with price</text>
 <text class="ts sec" x="482" y="137">sensitivity, as theory expects</text>
@@ -34,7 +34,7 @@
 <text class="th te-t" x="95" y="220" text-anchor="middle">El Farol</text>
 <text class="t" x="162" y="210">Predict from shared</text>
 <text class="t" x="162" y="229">recent experience</text>
-<text class="th pri" x="362" y="210">&#8722;1%</text>
+<text class="th pri" x="362" y="210">0%</text>
 <text class="ts sec" x="362" y="229">not distinguishable</text>
 <text class="ts sec" x="482" y="210">Its switch sits beyond any</text>
 <text class="ts sec" x="482" y="229">fee the model can charge</text>
@@ -44,13 +44,13 @@
 <text class="th co-t" x="95" y="312" text-anchor="middle">Q-Learning</text>
 <text class="t" x="162" y="302">Learn by trial and error</text>
 <text class="t" x="162" y="321">from past outcomes</text>
-<text class="th pri" x="362" y="302">&#8722;32%</text>
+<text class="th pri" x="362" y="302">&#8722;39%</text>
 <text class="ts sec" x="362" y="321">inner peak V/C</text>
-<text class="ts sec" x="482" y="302">Largest effect, but agents</text>
-<text class="ts sec" x="482" y="321">are still exploring by day 20</text>
+<text class="ts sec" x="482" y="302">Largest effect, but only by</text>
+<text class="ts sec" x="482" y="321">forgoing trips (see Q3)</text>
 <line x1="40" y1="352" x2="640" y2="352" stroke="#B4B2A9" stroke-width="0.5"/>
 
 <rect x="40" y="362" width="600" height="38" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-<text class="ts gr-s" x="340" y="378" text-anchor="middle">Calibrated model, 20-day means at each rule's baseline parameter. Inner cordon only:</text>
-<text class="ts gr-s" x="340" y="393" text-anchor="middle">boundary and peripheral positions were not recorded in these runs.</text>
+<text class="ts gr-s" x="340" y="378" text-anchor="middle">Calibrated model, 14-day means, fixed departure hour and route (base arm),</text>
+<text class="ts gr-s" x="340" y="393" text-anchor="middle">after the charged-hour fix. Consistent with the behavioural-extension runs.</text>
 </svg>

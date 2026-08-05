@@ -1,0 +1,33 @@
+
+=== sensitivity-pay  (varying base-beta) ===
+       base-beta     none      tou    red%  SD(tou)
+            0.25    0.121    0.109    9.5%    0.013
+             0.5    0.121    0.095   21.3%    0.014
+               1    0.121    0.090   25.9%    0.015
+
+=== sensitivity-elfarol  (varying el-farol-threshold) ===
+el-farol-threshold     none      tou    red%  SD(tou)
+             0.5    0.172    0.165    3.7%    0.023
+             0.6    0.171    0.173   -1.1%    0.017
+             0.7    0.171    0.170    0.7%    0.017
+
+=== sensitivity-ql-alpha  (varying ql-alpha) ===
+        ql-alpha     none      tou    red%  SD(tou)
+            0.05    0.120    0.087   27.4%    0.022
+             0.1    0.124    0.084   32.2%    0.025
+             0.2    0.121    0.084   30.5%    0.018
+
+=== sensitivity-ql-epsilon  (varying ql-epsilon-init) ===
+ ql-epsilon-init     none      tou    red%  SD(tou)
+             0.2    0.119    0.068   42.7%    0.029
+             0.4    0.124    0.084   32.2%    0.025
+             0.6    0.129    0.093   27.9%    0.016
+
+=== sensitivity-kfactor  (daily-peak % traffic at LoS E/F, mean ± SD over days) ===
+  k-factor        fee          MWY          CBD         East         West
+      0.08  No-Charge   94.5±0.6     91.5±1.5     90.6±0.9     85.9±0.9  
+      0.08        tou   93.8±0.7     88.3±2.3     88.7±1.0     84.9±1.2  
+       0.1  No-Charge   91.9±0.6     86.9±1.9     87.1±1.1     83.0±1.1  
+       0.1        tou   90.8±1.2     82.1±2.7     84.9±1.5     81.8±1.2  
+      0.12  No-Charge   87.1±2.3     82.0±1.7     84.1±1.0     80.5±1.6  
+      0.12        tou   83.6±2.3     77.5±2.5     81.0±2.2     78.6±1.9  

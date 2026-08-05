@@ -1,0 +1,8 @@
+"BehaviorSpace results (NetLogo 6.4.0)","Table version 2.0"
+"akl_traffic.nlogo"
+"calibration-demand"
+"07/22/2026 19:03:19:111 +1200"
+"min-pxcor","max-pxcor","min-pycor","max-pycor"
+"0","135","0","100"
+"[run number]","decision-rule","fee-regime","n-sim-days","[step]","current-sim-day"
+"1","Exp-Decay","No-Charge","5","5","5"
