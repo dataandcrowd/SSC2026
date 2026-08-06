@@ -132,12 +132,14 @@ re-run 2026-08-06, 14 simulated days, seed 11. Every number traces to
 
 ## Demand provenance: what is fitted and what is assumed
 
-- **Fitted to observed Auckland Transport ADT on all 1,634 links**: total
-  volume (via the scale factor, ratio 1.013) and spatial distribution (via the
-  suburban trip ends). **Post-fix caveat**: the fit was made on pre-fix
-  No-Charge runs; with decliners' suburban trips restored the same scale factor
-  carries more traffic, so the 1.013 ratio needs a post-fix re-check before it
-  is quoted.
+- **Fitted to observed Auckland Transport ADT on all 1,634 links** — but the
+  fit predates the trip-suppression fix. The post-fix re-check (2026-08-06)
+  gives a flow-weighted modelled/observed ratio of **1.308** at scale-factor
+  160 (was 1.013 pre-fix): restoring decliners' suburban trips overshoots
+  observed volume by 31 %, concentrated on suburban arterials (East 1.57,
+  West 1.40) with motorways near 1 (1.04). **Do not quote 1.013.** Suggested
+  re-fit: scale-factor ≈ 122; re-fitting means re-running all four arms.
+  Decision pending.
 - **Not fitted, and not estimated from any data**: the origin-destination
   matrix and the time-of-day profile. Origins follow 2023 Census sector shares
   (North 0.30 / East-South 0.48 / West 0.22 of motorway inflow, 70 % of agents
@@ -200,8 +202,11 @@ re-run 2026-08-06, 14 simulated days, seed 11. Every number traces to
 
 ## Open items
 
-- **Calibration re-check post-fix**: re-run `calibration-demand` to verify (or
-  re-fit) scale-factor 160 now that decliners' suburban trips are restored.
+- **Calibration re-fit decision**: the post-fix re-check measured
+  modelled/observed at 1.308 (sf 160); re-fitting to sf ≈ 122 restores the
+  volume match but requires re-running all four arms (~13 h) and the sweeps.
+  Alternative: keep sf 160, report differences only, and state the 1.31 ratio
+  as a limitation. Undecided.
 - **Sensitivity sweeps are pre-fix** (β, α, ε, k, El Farol threshold): quote
   directions only until re-run.
 - Fee-level sweep on the calibrated model (≈ 9 cells, 5 h) — the one experiment

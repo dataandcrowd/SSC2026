@@ -159,21 +159,33 @@ is exploration noise, not preference. Do not read the day-14 level as an
 equilibrium demand response — the converged *policy* is near-total deterrence,
 and the observed entry rate is policy + dice.
 
-## Calibration — `output/tables/calibration_summary.txt` (**pre-fix, re-check pending**)
+## Calibration — `output/tables/calibration_summary.txt` (**re-checked post-fix 2026-08-06**)
 
-- Matched links: 1,634 of 1,634; flow-weighted modelled/observed ratio 1.013,
-  median per-link ratio 1.010, at scale-factor 160.
-- Group ratios after calibration: CBD 1.12, East 1.20, MWY 0.82, West 1.04
-  (before: 1.80, 1.30, 0.75, 0.76).
-- Implied design-hour factor k = 0.157 flow-weighted, 0.174 median, against
-  the 0.10 used in the capacity conversion.
+The scale factor was fitted on pre-fix No-Charge runs, which were missing the
+suburban trips of agents that declined CBD entry. The post-fix re-check
+(`calibration-demand`, 5 days, seed 11, sf 160) shows those restored trips
+put the model **31 % above observed counts**:
 
-**Caveat:** the calibration was fitted on pre-fix No-Charge runs, which were
-missing the suburban trips of agents that declined CBD entry. With those trips
-restored the same scale-factor puts more traffic on the network, so the
-modelled/observed ratio is now likely above 1.013. The `calibration-demand`
-experiment should be re-run post-fix to re-check (and possibly re-fit)
-scale-factor 160 before the ratio is quoted.
+| | pre-fix fit (07-27) | post-fix re-check (08-06) |
+|---|---|---|
+| Flow-weighted modelled/observed | **1.013** | **1.308** |
+| Median per-link ratio | 1.010 | 1.215 |
+| Group ratios CBD / East / MWY / West | 1.12 / 1.20 / 0.82 / 1.04 | 1.34 / 1.57 / 1.04 / 1.40 |
+| Implied design-hour k (flow-wtd / median) | 0.157 / 0.174 | 0.143 / 0.158 |
+| Suggested scale-factor | — | 160 / 1.308 = **122.4** |
+
+The overshoot is concentrated on arterials (1.45 flow-weighted) and the
+suburban East/West groups — exactly where the restored trips run — while
+motorways moved little (1.04). The restored trips also soften the implied
+peak share (k 0.157 → 0.143).
+
+**Status: unresolved.** Every published post-fix number in this pack was run
+at scale-factor 160, so absolute V/C and LoS levels are ~30 % high against
+observed counts; the charged-vs-uncharged *differences* the pack reports are
+much less exposed, but "flow-weighted ratio 1.013" must no longer be quoted
+(the deck's calibration slide still says it — flagged). Re-fitting to sf ≈ 122
+would restore the volume match at the cost of re-running all four arms and
+the sweeps. Decision pending; see `decisions_log.md` §13.
 
 ## Sensitivity checks — `output/tables/sensitivity-*.csv` (**pre-fix, direction only**)
 

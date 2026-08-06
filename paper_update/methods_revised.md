@@ -116,28 +116,40 @@ measured residual.
 
 Volume was matched by the number of vehicles each agent represents. Because
 routes are cached and every scheduled trip completes, modelled link volumes
-scale linearly in that factor, so the fit is a single division. At a factor of
-160 the flow-weighted ratio of modelled to observed daily volume across all
-1,634 links is 1.013, with a median per-link ratio of 1.010.
+scale linearly in that factor, so the fit is a single division. The factor of
+160 was fitted on runs made before the trip-suppression correction, when a
+declined city-centre entry cancelled the agent's suburban trips as well; on
+those runs the flow-weighted ratio of modelled to observed daily volume
+across all 1,634 links was 1.013. With the suppressed trips restored, the
+same factor carries more traffic than the fit assumed: the post-correction
+ratio is 1.308, with the overshoot concentrated on the suburban arterial
+groups (East 1.57, West 1.40) where the restored trips run, and motorways
+near parity (1.04). We keep the factor at 160 and treat the overshoot as a
+stated limitation rather than re-fitting, because a re-fit rescales every
+volume in the design while leaving the comparisons that the study reports —
+charged against uncharged, rule against rule, arm against arm — essentially
+untouched: the deterrence decisions depend on fee and value of time, not on
+the vehicle weight. Absolute volumes and congestion levels therefore read
+about 30 per cent high against observed counts, and we report differences
+rather than levels throughout.
 
 Spatial distribution was corrected by adding suburban trip ends. All 1,484
 non-home destinations in the original building dataset lie inside the cordon,
 so uniform sampling sent every non-home trip into the city centre. Adding
 1,400 non-CBD commercial destinations across the suburbs and drawing
-destinations from the combined pool brings the group-level ratios of modelled
-to observed volume from a range of 0.75 to 1.80 down to 0.82 to 1.20, and the
-CBD from 1.80 to 1.12. Closing the remaining gap would require observed
-trip-end data, since link counts alone do not determine the
-origin-destination matrix.
+destinations from the combined pool removed the city-centre concentration
+(the CBD group ratio fell from 1.80 to near the network mean). Closing the
+remaining spatial gap would require observed trip-end data, since link counts
+alone do not determine the origin-destination matrix.
 
 Temporal peaking remains the one unresolved residual, and it is uncalibrated
 by construction: the departure profile is assumed rather than fitted, so
 nothing in the procedure above constrains it. With volume and distribution
 matched, the model's implied design-hour factor, that is the flow-weighted
-peak clock-hour volume divided by the daily volume, is 0.157 against the 0.10
+peak clock-hour volume divided by the daily volume, is 0.143 against the 0.10
 assumed in the capacity conversion. The assumed profile places about a fifth of
 outbound departures in the 08:00 hour, which concentrates the morning peak more
-sharply than a real network does, so peak-hour flow runs about 1.5 times the
+sharply than a real network does, so peak-hour flow runs about 1.4 times the
 design-hour capacity even when daily volumes match. Absolute LoS levels at the
 peak are therefore pessimistic, and we report the difference between the
 charged and uncharged cases rather than the absolute level. Fitting the profile

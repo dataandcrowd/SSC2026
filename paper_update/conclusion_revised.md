@@ -93,13 +93,19 @@ origin-destination matrix is synthetic rather than estimated: origins follow
 the 2023 Census sector populations, destinations are drawn uniformly from the
 building stock with no gravity term or observed trip ends, and departure hours
 come from a fixed weight profile rather than a measured time-of-day
-distribution. Two axes of that demand are calibrated to observed Auckland
-Transport daily counts, total volume and spatial distribution, giving a
-flow-weighted modelled to observed ratio of 1.013 across all 1,634 links; the
-temporal axis is not, which is why the assumed profile concentrates the morning
-peak more sharply than the real network does, why absolute peak-hour Level of
-Service reads pessimistically, and why we report differences between charged
-and uncharged cases rather than levels. The model therefore reproduces observed
+distribution. Two axes of that demand were calibrated to observed Auckland
+Transport daily counts, total volume and spatial distribution; the volume fit,
+however, predates the trip-suppression correction, and with the suppressed
+suburban trips restored the model carries about 31 per cent more traffic than
+the observed counts (flow-weighted modelled to observed ratio 1.308 across all
+1,634 links, concentrated on suburban arterials). We keep the fitted scale
+factor and state this overshoot as a limitation rather than re-fitting,
+because the deterrence decisions do not depend on the vehicle weight, so the
+comparisons the study reports are essentially unaffected. The temporal axis
+is not calibrated at all, which is why the assumed profile concentrates the
+morning peak more sharply than the real network does. Absolute congestion
+levels therefore read high on two counts, and we report differences between
+charged and uncharged cases rather than levels throughout. The model therefore reproduces observed
 traffic volume and its spatial spread, not observed travel patterns. Because
 every rule and fee regime faces the same demand realisation, this bounds the
 external reading of the levels without weakening the comparison between rules,

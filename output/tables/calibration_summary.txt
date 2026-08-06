@@ -1,18 +1,18 @@
-Demand calibration â€” calibration_Exp-Decay_No-Charge_n2500_sf160.csv
+Demand calibration — calibration_Exp-Decay_No-Charge_n2500_sf160.csv
 number_of_vehicles = 2500, scale-factor = 160
 Matched links (with observed ADT): 1634 of 1634
 
-Flow-weighted ratio sum(model)/sum(obs): 1.013
-Median per-link ratio:                   1.010
+Flow-weighted ratio sum(model)/sum(obs): 1.308
+Median per-link ratio:                   1.215
 
-Suggested scale-factor = 160 / 1.013 = 158.0  (keep number_of_vehicles = 2500)
+Suggested scale-factor = 160 / 1.308 = 122.4  (keep number_of_vehicles = 2500)
 
-Implied design-hour k (peak-hour/daily): flow-wtd 0.157, median 0.174  (model uses k=0.10)
+Implied design-hour k (peak-hour/daily): flow-wtd 0.143, median 0.158  (model uses k=0.10)
 
 Breakdown (flow-weighted ratio / median / n links):
-  class    arterial    1.112 /  0.974 / 1460
-  class    motorway    0.819 /  1.027 / 174
-  group    CBD         1.121 /  1.116 / 314
-  group    East        1.201 /  1.136 / 572
-  group    MWY         0.819 /  1.027 / 174
-  group    West        1.039 /  0.856 / 574
+  class    arterial    1.446 /  1.200 / 1460
+  class    motorway    1.036 /  1.264 / 174
+  group    CBD         1.344 /  1.186 / 314
+  group    East        1.568 /  1.383 / 572
+  group    MWY         1.036 /  1.264 / 174
+  group    West        1.398 /  1.092 / 574

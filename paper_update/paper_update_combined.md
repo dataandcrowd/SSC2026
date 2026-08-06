@@ -291,28 +291,40 @@ measured residual.
 
 Volume was matched by the number of vehicles each agent represents. Because
 routes are cached and every scheduled trip completes, modelled link volumes
-scale linearly in that factor, so the fit is a single division. At a factor of
-160 the flow-weighted ratio of modelled to observed daily volume across all
-1,634 links is 1.013, with a median per-link ratio of 1.010.
+scale linearly in that factor, so the fit is a single division. The factor of
+160 was fitted on runs made before the trip-suppression correction, when a
+declined city-centre entry cancelled the agent's suburban trips as well; on
+those runs the flow-weighted ratio of modelled to observed daily volume
+across all 1,634 links was 1.013. With the suppressed trips restored, the
+same factor carries more traffic than the fit assumed: the post-correction
+ratio is 1.308, with the overshoot concentrated on the suburban arterial
+groups (East 1.57, West 1.40) where the restored trips run, and motorways
+near parity (1.04). We keep the factor at 160 and treat the overshoot as a
+stated limitation rather than re-fitting, because a re-fit rescales every
+volume in the design while leaving the comparisons that the study reports —
+charged against uncharged, rule against rule, arm against arm — essentially
+untouched: the deterrence decisions depend on fee and value of time, not on
+the vehicle weight. Absolute volumes and congestion levels therefore read
+about 30 per cent high against observed counts, and we report differences
+rather than levels throughout.
 
 Spatial distribution was corrected by adding suburban trip ends. All 1,484
 non-home destinations in the original building dataset lie inside the cordon,
 so uniform sampling sent every non-home trip into the city centre. Adding
 1,400 non-CBD commercial destinations across the suburbs and drawing
-destinations from the combined pool brings the group-level ratios of modelled
-to observed volume from a range of 0.75 to 1.80 down to 0.82 to 1.20, and the
-CBD from 1.80 to 1.12. Closing the remaining gap would require observed
-trip-end data, since link counts alone do not determine the
-origin-destination matrix.
+destinations from the combined pool removed the city-centre concentration
+(the CBD group ratio fell from 1.80 to near the network mean). Closing the
+remaining spatial gap would require observed trip-end data, since link counts
+alone do not determine the origin-destination matrix.
 
 Temporal peaking remains the one unresolved residual, and it is uncalibrated
 by construction: the departure profile is assumed rather than fitted, so
 nothing in the procedure above constrains it. With volume and distribution
 matched, the model's implied design-hour factor, that is the flow-weighted
-peak clock-hour volume divided by the daily volume, is 0.157 against the 0.10
+peak clock-hour volume divided by the daily volume, is 0.143 against the 0.10
 assumed in the capacity conversion. The assumed profile places about a fifth of
 outbound departures in the 08:00 hour, which concentrates the morning peak more
-sharply than a real network does, so peak-hour flow runs about 1.5 times the
+sharply than a real network does, so peak-hour flow runs about 1.4 times the
 design-hour capacity even when daily volumes match. Absolute LoS levels at the
 peak are therefore pessimistic, and we report the difference between the
 charged and uncharged cases rather than the absolute level. Fitting the profile
@@ -1096,13 +1108,19 @@ origin-destination matrix is synthetic rather than estimated: origins follow
 the 2023 Census sector populations, destinations are drawn uniformly from the
 building stock with no gravity term or observed trip ends, and departure hours
 come from a fixed weight profile rather than a measured time-of-day
-distribution. Two axes of that demand are calibrated to observed Auckland
-Transport daily counts, total volume and spatial distribution, giving a
-flow-weighted modelled to observed ratio of 1.013 across all 1,634 links; the
-temporal axis is not, which is why the assumed profile concentrates the morning
-peak more sharply than the real network does, why absolute peak-hour Level of
-Service reads pessimistically, and why we report differences between charged
-and uncharged cases rather than levels. The model therefore reproduces observed
+distribution. Two axes of that demand were calibrated to observed Auckland
+Transport daily counts, total volume and spatial distribution; the volume fit,
+however, predates the trip-suppression correction, and with the suppressed
+suburban trips restored the model carries about 31 per cent more traffic than
+the observed counts (flow-weighted modelled to observed ratio 1.308 across all
+1,634 links, concentrated on suburban arterials). We keep the fitted scale
+factor and state this overshoot as a limitation rather than re-fitting,
+because the deterrence decisions do not depend on the vehicle weight, so the
+comparisons the study reports are essentially unaffected. The temporal axis
+is not calibrated at all, which is why the assumed profile concentrates the
+morning peak more sharply than the real network does. Absolute congestion
+levels therefore read high on two counts, and we report differences between
+charged and uncharged cases rather than levels throughout. The model therefore reproduces observed
 traffic volume and its spatial spread, not observed travel patterns. Because
 every rule and fee regime faces the same demand realisation, this bounds the
 external reading of the levels without weakening the comparison between rules,
@@ -1311,12 +1329,14 @@ re-run 2026-08-06, 14 simulated days, seed 11. Every number traces to
 
 ### Demand provenance: what is fitted and what is assumed
 
-- **Fitted to observed Auckland Transport ADT on all 1,634 links**: total
-  volume (via the scale factor, ratio 1.013) and spatial distribution (via the
-  suburban trip ends). **Post-fix caveat**: the fit was made on pre-fix
-  No-Charge runs; with decliners' suburban trips restored the same scale factor
-  carries more traffic, so the 1.013 ratio needs a post-fix re-check before it
-  is quoted.
+- **Fitted to observed Auckland Transport ADT on all 1,634 links** — but the
+  fit predates the trip-suppression fix. The post-fix re-check (2026-08-06)
+  gives a flow-weighted modelled/observed ratio of **1.308** at scale-factor
+  160 (was 1.013 pre-fix): restoring decliners' suburban trips overshoots
+  observed volume by 31 %, concentrated on suburban arterials (East 1.57,
+  West 1.40) with motorways near 1 (1.04). **Do not quote 1.013.** Suggested
+  re-fit: scale-factor ≈ 122; re-fitting means re-running all four arms.
+  Decision pending.
 - **Not fitted, and not estimated from any data**: the origin-destination
   matrix and the time-of-day profile. Origins follow 2023 Census sector shares
   (North 0.30 / East-South 0.48 / West 0.22 of motorway inflow, 70 % of agents
@@ -1379,8 +1399,11 @@ re-run 2026-08-06, 14 simulated days, seed 11. Every number traces to
 
 ### Open items
 
-- **Calibration re-check post-fix**: re-run `calibration-demand` to verify (or
-  re-fit) scale-factor 160 now that decliners' suburban trips are restored.
+- **Calibration re-fit decision**: the post-fix re-check measured
+  modelled/observed at 1.308 (sf 160); re-fitting to sf ≈ 122 restores the
+  volume match but requires re-running all four arms (~13 h) and the sweeps.
+  Alternative: keep sf 160, report differences only, and state the 1.31 ratio
+  as a limitation. Undecided.
 - **Sensitivity sweeps are pre-fix** (β, α, ε, k, El Farol threshold): quote
   directions only until re-run.
 - Fee-level sweep on the calibrated model (≈ 9 cells, 5 h) — the one experiment
@@ -1564,21 +1587,33 @@ is exploration noise, not preference. Do not read the day-14 level as an
 equilibrium demand response — the converged *policy* is near-total deterrence,
 and the observed entry rate is policy + dice.
 
-### Calibration — `output/tables/calibration_summary.txt` (**pre-fix, re-check pending**)
+### Calibration — `output/tables/calibration_summary.txt` (**re-checked post-fix 2026-08-06**)
 
-- Matched links: 1,634 of 1,634; flow-weighted modelled/observed ratio 1.013,
-  median per-link ratio 1.010, at scale-factor 160.
-- Group ratios after calibration: CBD 1.12, East 1.20, MWY 0.82, West 1.04
-  (before: 1.80, 1.30, 0.75, 0.76).
-- Implied design-hour factor k = 0.157 flow-weighted, 0.174 median, against
-  the 0.10 used in the capacity conversion.
+The scale factor was fitted on pre-fix No-Charge runs, which were missing the
+suburban trips of agents that declined CBD entry. The post-fix re-check
+(`calibration-demand`, 5 days, seed 11, sf 160) shows those restored trips
+put the model **31 % above observed counts**:
 
-**Caveat:** the calibration was fitted on pre-fix No-Charge runs, which were
-missing the suburban trips of agents that declined CBD entry. With those trips
-restored the same scale-factor puts more traffic on the network, so the
-modelled/observed ratio is now likely above 1.013. The `calibration-demand`
-experiment should be re-run post-fix to re-check (and possibly re-fit)
-scale-factor 160 before the ratio is quoted.
+| | pre-fix fit (07-27) | post-fix re-check (08-06) |
+|---|---|---|
+| Flow-weighted modelled/observed | **1.013** | **1.308** |
+| Median per-link ratio | 1.010 | 1.215 |
+| Group ratios CBD / East / MWY / West | 1.12 / 1.20 / 0.82 / 1.04 | 1.34 / 1.57 / 1.04 / 1.40 |
+| Implied design-hour k (flow-wtd / median) | 0.157 / 0.174 | 0.143 / 0.158 |
+| Suggested scale-factor | — | 160 / 1.308 = **122.4** |
+
+The overshoot is concentrated on arterials (1.45 flow-weighted) and the
+suburban East/West groups — exactly where the restored trips run — while
+motorways moved little (1.04). The restored trips also soften the implied
+peak share (k 0.157 → 0.143).
+
+**Status: unresolved.** Every published post-fix number in this pack was run
+at scale-factor 160, so absolute V/C and LoS levels are ~30 % high against
+observed counts; the charged-vs-uncharged *differences* the pack reports are
+much less exposed, but "flow-weighted ratio 1.013" must no longer be quoted
+(the deck's calibration slide still says it — flagged). Re-fitting to sf ≈ 122
+would restore the volume match at the cost of re-running all four arms and
+the sweeps. Decision pending; see `decisions_log.md` §13.
 
 ### Sensitivity checks — `output/tables/sensitivity-*.csv` (**pre-fix, direction only**)
 
@@ -1912,3 +1947,31 @@ than "had not converged".
 was fitted on pre-fix No-Charge runs, which were missing the suppressed
 suburban trips; the fitted ratio of 1.013 therefore needs a post-fix
 `calibration-demand` re-run before it is quoted again.
+
+### 13. Post-fix calibration re-check (2026-08-06)
+
+**Why it was run.** Scale-factor 160 was fitted on pre-fix No-Charge runs, in
+which an agent that declined CBD entry lost its whole day. The fix restored
+those suburban trips, so the same scale factor now carries more traffic than
+the fit assumed. The `calibration-demand` experiment was re-run on the fixed
+model (5 days, seed 11) and `calibrate_demand.py` recomputed the ratios.
+
+**What it found.** Flow-weighted modelled/observed rose from 1.013 to
+**1.308**; the overshoot sits on suburban arterials (East 1.57, West 1.40,
+CBD 1.34) with motorways near parity (1.04) - the spatial signature of the
+restored trips. Implied design-hour k eased from 0.157 to 0.143. The
+suggested re-fit is scale-factor 160 / 1.308 = 122.4, and because routes are
+fixed and every trip completes, that re-fit is arithmetic - link volumes are
+exactly proportional to the scale factor.
+
+**What was NOT done, deliberately.** The scale factor was not changed and
+nothing was re-run at 122, because a re-fit invalidates every V/C level in
+the pack and, under the all-four-arms rule of section 12, commits to ~13
+hours of re-runs plus the sweeps. That trade-off (re-fit and re-run
+everything, vs keep sf 160 and report the 1.31 ratio as a limitation while
+quoting only charged-vs-uncharged differences) is a paper-level decision,
+recorded here as pending. Until it is made: absolute V/C and LoS levels in
+the post-fix tables read ~30 % high against observed counts, the deck's
+calibration slide still quotes 1.013 and must not be presented as-is, and
+`calibration_summary.txt` / `calibration_scatter.png` now describe the
+post-fix state.

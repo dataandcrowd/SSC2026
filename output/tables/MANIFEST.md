@@ -25,7 +25,8 @@ predate the tagging change**; this manifest records what they are.
 | `days/hourly/links_*_flat.csv` | pre-v1 | 06-30 | flat-fee cells, never re-run on the calibrated model |
 | `sensitivity-*.csv`, `elfarol-seeds.csv` | v1/v2 | 07-27/28 | direction-only until re-run |
 | `sensitivity-transit.csv` | v3 + transit-penalty sweep | 2026-08-06 | transit-penalty = 0 arm reproduces v3 exactly |
-| `calibration_*.csv`, `calibration-demand*.csv`, `calibration_summary.txt` | v1 | 07-27 | fitted pre-fix; scale-factor 160 needs a post-fix re-check |
+| `calibration_Exp-Decay_No-Charge_n2500_sf160.csv`, `calibration-demand.csv`, `calibration_summary.txt` | **v3** | 2026-08-06 | post-fix re-check: modelled/observed **1.308** at sf 160 (was 1.013 pre-fix); suggested re-fit sf ≈ 122, decision pending. Pre-fix originals in the backup dir |
+| `calibration_*_sf195.csv`, `_sf300.csv` | v1 | 07-27 | earlier fit steps, superseded |
 | `paper_numbers.txt` | **v3** | 2026-08-06 | regenerated from the v3 base tables |
 | `plot_*.csv`, `%los.csv`, `cbd vc over time.csv`, `mean flow vc.csv` | v1/v2 | 07-27/28 | interface-plot exports, superseded |
 

@@ -273,3 +273,31 @@ than "had not converged".
 was fitted on pre-fix No-Charge runs, which were missing the suppressed
 suburban trips; the fitted ratio of 1.013 therefore needs a post-fix
 `calibration-demand` re-run before it is quoted again.
+
+## 13. Post-fix calibration re-check (2026-08-06)
+
+**Why it was run.** Scale-factor 160 was fitted on pre-fix No-Charge runs, in
+which an agent that declined CBD entry lost its whole day. The fix restored
+those suburban trips, so the same scale factor now carries more traffic than
+the fit assumed. The `calibration-demand` experiment was re-run on the fixed
+model (5 days, seed 11) and `calibrate_demand.py` recomputed the ratios.
+
+**What it found.** Flow-weighted modelled/observed rose from 1.013 to
+**1.308**; the overshoot sits on suburban arterials (East 1.57, West 1.40,
+CBD 1.34) with motorways near parity (1.04) - the spatial signature of the
+restored trips. Implied design-hour k eased from 0.157 to 0.143. The
+suggested re-fit is scale-factor 160 / 1.308 = 122.4, and because routes are
+fixed and every trip completes, that re-fit is arithmetic - link volumes are
+exactly proportional to the scale factor.
+
+**What was NOT done, deliberately.** The scale factor was not changed and
+nothing was re-run at 122, because a re-fit invalidates every V/C level in
+the pack and, under the all-four-arms rule of section 12, commits to ~13
+hours of re-runs plus the sweeps. That trade-off (re-fit and re-run
+everything, vs keep sf 160 and report the 1.31 ratio as a limitation while
+quoting only charged-vs-uncharged differences) is a paper-level decision,
+recorded here as pending. Until it is made: absolute V/C and LoS levels in
+the post-fix tables read ~30 % high against observed counts, the deck's
+calibration slide still quotes 1.013 and must not be presented as-is, and
+`calibration_summary.txt` / `calibration_scatter.png` now describe the
+post-fix state.
