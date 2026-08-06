@@ -17,10 +17,21 @@ day. This is a sensitivity check on the main parameters, not an exhaustive grid 
 | sensitivity-ql-alpha | Q-Learning | ql-alpha | 0.05, **0.1**, 0.2 |
 | sensitivity-ql-epsilon | Q-Learning | ql-epsilon-init | 0.2, **0.4**, 0.6 |
 | sensitivity-kfactor | Exp-Decay | k-factor | 0.08, **0.1**, 0.12 |
+| sensitivity-transit | Q-Learning | transit-penalty | **0**, 1.5, 3 |
 
 Because `peak-vc-inner` is recorded for each of the 20 days, the aggregator reports both
 the mean reduction (No-Charge to ToU) and the day-to-day standard deviation (volatility).
 To widen the analysis later, add more values to each `enumeratedValueSet`.
+
+`sensitivity-transit` varies the Q-Learning OUTSIDE OPTION rather than a
+learning parameter: `transit-penalty` is the dollar cost of not driving for
+boundary-sector homes (local urban homes pay half), so 0 reproduces the
+original spatially-flat outside option and larger values price in worse
+peripheral transit access. It records the CBD entry rate by VOT quintile
+(`optin-q 1..5`) and by home tier (`optin-tier 1..2`) so the equity claim
+(who is priced off the road) is measured in-run rather than derived from the
+reward function. `plot_transit_sensitivity.py` draws the figures and prints
+the settled-window summary.
 
 `sensitivity-kfactor` differs from the others: `k-factor` is the design-hour
 capacity assumption behind the Level-of-Service grading (hourly capacity =

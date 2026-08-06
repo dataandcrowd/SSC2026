@@ -164,13 +164,13 @@ def optin(tag, off_label, on_label, title, subtitle, fname):
 
 optin("_rt", "fixed hour", "may retime",
       "Departure-time choice changes how many trips are made",
-      "Pay's entry rate is unchanged because only 2.7 % of its entrants shift.\n"
+      "Pay's entry rate is unchanged because only 2.5 % of its entrants shift.\n"
       "Learn's jumps from 0.34 to 0.62: given somewhere to move, it stops "
       "forgoing the trip, and the measured congestion benefit falls with it.",
       "optin_retiming_gg.png")
 optin("_rr", "fixed route", "may reroute",
       "Route choice changes where the trips go, not how many there are",
-      "Entry rates are identical to three decimals in both arms.\n"
+      "Entry rates are nearly identical in both arms.\n"
       "What moves is the no-charge baseline: inner V/C rises while the cordon "
-      "boundary sheds about a third of its load.",
+      "boundary sheds two fifths of its load.",
       "optin_rerouting_gg.png")

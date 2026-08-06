@@ -391,4 +391,31 @@ save-los-hours</final>
     <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
   </experiment>
 
+  <!-- Q-learning: vary the outside option (transit access). transit-penalty is
+       the dollar cost of NOT driving for boundary-sector homes (local homes pay
+       half). 0 reproduces the original spatially-flat outside option. Records
+       the entry rate by VOT quintile and by home tier so the equity claim
+       (who is priced off the road) is measured in-run, not derived. -->
+  <experiment name="sensitivity-transit" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>peak-vc-inner</metric>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-boundary</metric>
+    <metric>peak-vc-peripheral</metric>
+    <metric>optin-q 1</metric>
+    <metric>optin-q 2</metric>
+    <metric>optin-q 3</metric>
+    <metric>optin-q 4</metric>
+    <metric>optin-q 5</metric>
+    <metric>optin-tier 1</metric>
+    <metric>optin-tier 2</metric>
+    <metric>mean [fee-paid-today] of vehicles</metric>
+    <enumeratedValueSet variable="decision-rule"><value value="&quot;Q-Learning&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="transit-penalty"><value value="0"/><value value="1.5"/><value value="3"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+  </experiment>
+
 </experiments>

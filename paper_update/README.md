@@ -1,4 +1,17 @@
-# Manuscript update pack — calibrated model (2026-07-27)
+# Manuscript update pack — calibrated model (2026-07-27; post-fix update 2026-08-06)
+
+> **2026-08-06 status.** The trip-suppression fix of 2026-07-30 is in the
+> model and **all four arms have been re-run on it** (base 03:36, retiming
+> 09:16, rerouting 12:44, both 16:28). Every file in this pack, the combined
+> md/html (rebuild with `build_combined.py`), the deck and its figures now
+> carry the unified post-fix numbers: base Pay −18.8 %, Learn −24.1 %,
+> Oscillate −1.7 %; across arms Pay 0–24 % (the routing arms move the benefit
+> to the boundary, −19.5 %), Learn 9–24 %, Oscillate 0 (version history in
+> `numbers.md`, four-arm table in `behavioural_extensions.md`, pre/post
+> comparison via `netlogo/sensitivity_experiment/compare_arms_postfix.py`).
+> Exports now stamp a `model_version` column — see
+> `output/tables/MANIFEST.md`. Still pre-fix: the sensitivity sweeps
+> (direction-only) and the calibration ratio (re-check pending).
 
 Revised text and figures for `SSC2026_congestion.docm`, rebuilt on the
 **calibrated** NetLogo model (scale-factor 160 + suburban destinations,

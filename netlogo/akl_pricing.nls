@@ -19,7 +19,7 @@
 ;;   fee-regime     ("No-Charge" | "flat" | "tou")
 ;;   flat-fee-level base-beta el-farol-threshold
 ;;   ql-alpha ql-gamma ql-epsilon-init ql-epsilon-decay
-;;   n-sim-days ticks-per-hour
+;;   n-sim-days ticks-per-hour transit-penalty
 ;; =====================================================================
 
 globals [
@@ -35,6 +35,7 @@ globals [
   peak-ef-west           ;; peak % of West traffic at LoS E/F during the current day
   median-vot             ;; population median value of time
   vot-q20 vot-q80        ;; 20th / 80th percentile VOT thresholds (income proxy)
+  vot-q40 vot-q60        ;; 40th / 60th percentile VOT thresholds (full quintiles)
   cbd-roads              ;; agentset of roads inside / on the cordon
   day-records            ;; list of per-day summary rows for export
   path-cache             ;; table: "oWho-dWho" -> cached shortest path (speed)
@@ -254,6 +255,8 @@ to init-population
   let sorted-vot sort [vot] of vehicles
   set vot-q20 percentile-of sorted-vot 20
   set vot-q80 percentile-of sorted-vot 80
+  set vot-q40 percentile-of sorted-vot 40
+  set vot-q60 percentile-of sorted-vot 60
 
   ask vehicles [
     ;; price sensitivity inversely proportional to VOT, clipped to [0.1, 2.0]
@@ -651,7 +654,15 @@ to q-update [h vc-before vc-after entered fee essential]
     ;; directly (see best-fee-shift). Do not rescale one and not the other:
     ;; any difference in retiming between the rules must come from the rule.
     if hour-shift != 0 [ set reward reward - schedule-delay-cost hour-shift ]
-  ] [ set reward 0.3 - 0.15 * (vot / 10.0) ]
+  ] [
+    ;; Outside option (not driving). The base term is the original spec. The
+    ;; transit-penalty term prices the alternative mode by home location:
+    ;; boundary-sector homes (motorway/arterial entries, worst transit access)
+    ;; pay the full penalty, local urban homes half, in dollars like `fee`.
+    ;; transit-penalty = 0 reproduces the original reward exactly.
+    set reward (0.3 - 0.15 * (vot / 10.0))
+                 - transit-penalty * (home-transit-access / 2.0)
+  ]
   let qs item s q-table
   let best-next max (item s2 q-table)
   let td reward + ql-gamma * best-next - (item a qs)
@@ -1023,15 +1034,25 @@ to-report scenario-tag
   report t
 end
 
+;; Model version tag written into every exported table (last column), so a
+;; directory of outputs can never silently mix model versions: a partial re-run
+;; is visible by comparing the column across files. Bump the string whenever a
+;; change alters simulation behaviour (see paper_update/numbers.md, "Model
+;; version history"). Files without the column predate 2026-08-06.
+to-report model-version
+  report "v3-2026-07-30-trip-suppression-fix"
+end
+
 ;; Export the accumulated per-day records to output/tables, named by scenario.
 ;; Run this in the Command Center after each go-days run.
 to save-records
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
   let header (list "day" "rule" "regime" "attendance" "cbd_vc"
-    "vc_inner" "vc_boundary" "vc_peripheral" "x_SH1N" "x_SH1S" "x_SH16" "mean_fee")
+    "vc_inner" "vc_boundary" "vc_peripheral" "x_SH1N" "x_SH1S" "x_SH16" "mean_fee"
+    "model_version")
   let fname (word "../output/tables/days_" rname "_" fee-regime scenario-tag ".csv")
-  csv:to-file fname (fput header day-records)
+  csv:to-file fname (fput header (map [row -> lput model-version row] day-records))
   print (word "Saved " (length day-records) " rows to " fname)
 end
 
@@ -1043,9 +1064,10 @@ to save-hourly
   let header (list "day" "rule" "regime" "hour" "vc_inner"
     "vc_boundary" "vc_peripheral"
     "vcf_mwy" "vcf_cbd" "vcf_east" "vcf_west"
-    "ef_mwy" "ef_cbd" "ef_east" "ef_west")
+    "ef_mwy" "ef_cbd" "ef_east" "ef_west"
+    "model_version")
   let fname (word "../output/tables/hourly_" rname "_" fee-regime scenario-tag ".csv")
-  csv:to-file fname (fput header hourly-records)
+  csv:to-file fname (fput header (map [row -> lput model-version row] hourly-records))
   print (word "Saved " (length hourly-records) " hourly rows to " fname)
 end
 
@@ -1053,14 +1075,15 @@ end
 to save-links
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
-  let header (list "link_id" "sh" "position" "class" "group" "vc_peak" "vcf_peak" "los_peak" "x1" "y1" "x2" "y2")
+  let header (list "link_id" "sh" "position" "class" "group" "vc_peak" "vcf_peak" "los_peak" "x1" "y1" "x2" "y2" "model_version")
   let body [ (list r-id r-sh r-position
                (ifelse-value motorway-road? ["motorway"] ["arterial"])
                r-group
                r-vc-peak
                r-vcf-peak
                (los-letter (los-grade r-vcf-peak motorway-road?))
-               [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2) ] of roads
+               [xcor] of end1 [ycor] of end1 [xcor] of end2 [ycor] of end2
+               model-version) ] of roads
   let fname (word "../output/tables/links_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header body)
   print (word "Saved " (length body) " links to " fname)
@@ -1072,9 +1095,10 @@ end
 to save-los-hours
   let rname decision-rule
   if rname = "El Farol" [ set rname "ElFarol" ]
-  let header (list "day" "rule" "regime" "hour" "fA" "fB" "fC" "fD" "fE" "fF")
+  let header (list "day" "rule" "regime" "hour" "fA" "fB" "fC" "fD" "fE" "fF" "model_version")
   let body map [row -> (sentence (list (item 0 row) decision-rule fee-regime (item 1 row))
-                                 (sublist row 2 8)) ] hr-los-records
+                                 (sublist row 2 8)
+                                 (list model-version)) ] hr-los-records
   let fname (word "../output/tables/los_hours_" rname "_" fee-regime scenario-tag ".csv")
   csv:to-file fname (fput header body)
   print (word "Saved " (length body) " LoS-hour rows to " fname)
@@ -1285,6 +1309,34 @@ end
 
 to-report fee-paid-today   ;; vehicle reporter
   ifelse enters-cbd? [ report current-fee trip-hour ] [ report 0 ]
+end
+
+;; Transit access badness of a vehicle's home: 1 = "local" urban home (transit
+;; exists but imperfect), 2 = boundary-sector home at a motorway/arterial entry
+;; (outer suburbs, worst transit). Used to scale the outside-option penalty.
+to-report home-transit-access   ;; vehicle reporter
+  report ifelse-value ([b-sector] of v-home = "local") [1] [2]
+end
+
+;; Entry rate among agents WITH a CBD trip today, by VOT quintile
+;; (1 = poorest fifth .. 5 = richest fifth). Valid at end of day.
+to-report optin-q [q]
+  let lo 0  let hi 1e9
+  if q = 1 [ set hi vot-q20 ]
+  if q = 2 [ set lo vot-q20  set hi vot-q40 ]
+  if q = 3 [ set lo vot-q40  set hi vot-q60 ]
+  if q = 4 [ set lo vot-q60  set hi vot-q80 ]
+  if q = 5 [ set lo vot-q80 ]
+  let grp vehicles with [has-cbd-trip? = true and vot > lo and vot <= hi]
+  if not any? grp [ report 0 ]
+  report (count grp with [enters-cbd? = true]) / (count grp)
+end
+
+;; Entry rate by home transit tier (1 = local urban, 2 = outer boundary).
+to-report optin-tier [t]
+  let grp vehicles with [has-cbd-trip? = true and home-transit-access = t]
+  if not any? grp [ report 0 ]
+  report (count grp with [enters-cbd? = true]) / (count grp)
 end
 
 ;; Equity: financial burden (fee / VOT) by income proxy, current regime.

@@ -1,6 +1,6 @@
 # Manuscript update pack — calibrated model
 
-*SSC2026 cordon-pricing paper. Combined from `paper_update/` on 2026-07-29. Calibrated NetLogo model (scale-factor 160, suburban destinations), 14 simulated days, seed 11.*
+*SSC2026 cordon-pricing paper. Combined from `paper_update/` on 2026-08-06. Calibrated NetLogo model (scale-factor 160, suburban destinations) after the trip-suppression fix; all four arms re-run 2026-08-06, 14 simulated days, seed 11.*
 
 ## Contents
 
@@ -22,6 +22,19 @@
 
 *Source file: `README.md`*
 
+
+> **2026-08-06 status.** The trip-suppression fix of 2026-07-30 is in the
+> model and **all four arms have been re-run on it** (base 03:36, retiming
+> 09:16, rerouting 12:44, both 16:28). Every file in this pack, the combined
+> md/html (rebuild with `build_combined.py`), the deck and its figures now
+> carry the unified post-fix numbers: base Pay −18.8 %, Learn −24.1 %,
+> Oscillate −1.7 %; across arms Pay 0–24 % (the routing arms move the benefit
+> to the boundary, −19.5 %), Learn 9–24 %, Oscillate 0 (version history in
+> `numbers.md`, four-arm table in `behavioural_extensions.md`, pre/post
+> comparison via `netlogo/sensitivity_experiment/compare_arms_postfix.py`).
+> Exports now stamp a `model_version` column — see
+> `output/tables/MANIFEST.md`. Still pre-fix: the sensitivity sweeps
+> (direction-only) and the calibration ratio (re-check pending).
 
 Revised text and figures for `SSC2026_congestion.docm`, rebuilt on the
 **calibrated** NetLogo model (scale-factor 160 + suburban destinations,
@@ -125,23 +138,23 @@ read the same tables, so either set can be used in the paper.
 
 Only the result sentences change. Replacements in context:
 
-> The results show that price-responsive and learning drivers both cut peak
-> congestion inside the cordon by about a quarter (23.0 % and 23.8 %), and the
-> charge does not push congestion onto the surrounding roads: the cordon
-> boundary and the peripheral network fall together with the interior.
+> The results show that price-responsive and learning drivers cut peak
+> congestion inside the cordon by a fifth to a quarter (18.8 % and 24.1 %),
+> and the charge does not push congestion onto the surrounding roads: the
+> cordon boundary and the peripheral network fall together with the interior.
 > Expectation-based drivers barely respond to the price at all, changing peak
-> congestion by 0.2 %, because they read yesterday's congestion rather than
+> congestion by 1.7 %, because they read yesterday's congestion rather than
 > today's fee.
 
 ### What changed and why
 
-1. "about a fifth" becomes "about a quarter". Both rules now give 23 % to 24 %
-   on the calibrated model.
+1. "about a fifth" becomes "a fifth to a quarter" (18.8 % and 24.1 % on the
+   calibrated, trip-suppression-fixed model of 2026-08-06).
 2. **"behave erratically from day to day" has been removed.** On the
    uncalibrated model the El Farol rule produced a large alternate-day
    oscillation, with a day-to-day standard deviation of peak V/C around 0.24.
    After calibration that oscillation disappears: the standard deviation is
-   0.021, against 0.015 for exponential decay and 0.013 for Q-learning. The
+   0.020, against 0.015 for exponential decay and 0.017 for Q-learning. The
    oscillation was a property of an overloaded network, not of the attendance
    game, and a five-seed replication confirms the null. The rule is now
    *unresponsive*, not *erratic*, and the abstract should say so.
@@ -395,7 +408,8 @@ run-to-run uncertainty.
 
 
 Replaces the whole *Results* section. All numbers come from the calibrated
-model, 14 simulated days, seed 11, and are listed with their source table in
+model **after the trip-suppression fix** (base-arm tables of 2026-08-06),
+14 simulated days, seed 11, and are listed with their source table in
 `numbers.md`.
 
 ---
@@ -405,27 +419,26 @@ model, 14 simulated days, seed 11, and are listed with their source table in
 #### Comparing behavioural decisions
 
 Table 1 summarises the three rules. Under exponential decay (Pay), the daily
-peak volume-to-capacity ratio inside the cordon averages 0.122 with no charge
-and falls to 0.094 under ToU, a reduction of 23.0 %, while the share of agents
+peak volume-to-capacity ratio inside the cordon averages 0.120 with no charge
+and falls to 0.097 under ToU, a reduction of 18.8 %, while the share of agents
 entering the cordon falls from 0.52 to 0.40. The response is smooth and stable,
 with a day-to-day standard deviation of about 0.015 in both cases.
 
-Q-learning (Learn) produces a reduction of the same size by a different route,
-from 0.122 to 0.093, a fall of 23.8 %, but it does so by cutting entries much
-harder, from 0.54 to 0.34. Its day-to-day spread widens under the charge
-(standard deviation 0.013 with no charge against 0.025 under ToU) because the
-policies are still moving: the network-wide share of traffic at LoS E or worse
-falls steadily from 56 % on day 1 to 38 % on day 14 and had not levelled off
-when the run ended. The Q-learning figures below are therefore a lower bound on
-the converged effect.
+Q-learning (Learn) produces a somewhat larger reduction by a different route,
+from 0.116 to 0.088, a fall of 24.1 %, and it does so by cutting entries much
+harder, from 0.53 to 0.33. Its day-to-day spread in the entry rate widens by a
+factor of three under the charge (standard deviation 0.027 with no charge
+against 0.095 under ToU) because the entry level is still moving across the
+fortnight as the learned policies settle; the mechanism, and why the day-14
+state should be read as converged, is set out in the next subsection.
 
 The El Farol rule (Oscillate) is the clear outlier. Its peak inner-cordon V/C
-is unchanged by the charge, 0.173 against 0.173, a difference of 0.2 % that
-sits well inside the day-to-day spread, and its entry rate barely moves, from
-0.91 to 0.90. Two features explain this. First, agents respond to recent
-congestion rather than to the fee, so the price enters their decision only
-weakly. Second, almost all of them enter every day: an entry rate of 0.91
-against 0.52 and 0.54 for the other rules means the cordon carries far more
+is essentially unchanged by the charge, 0.166 against 0.163, a difference of
+1.7 % that sits well inside the day-to-day spread, and its entry rate barely
+moves, from 0.92 to 0.90. Two features explain this. First, agents respond to
+recent congestion rather than to the fee, so the price enters their decision
+only weakly. Second, almost all of them enter every day: an entry rate of 0.92
+against 0.52 and 0.53 for the other rules means the cordon carries far more
 traffic, and its uncharged baseline is correspondingly higher.
 
 **Table 1.** Daily peak V/C by cordon position and cordon entry rate, mean plus
@@ -433,18 +446,18 @@ or minus day-to-day standard deviation over 14 simulated days.
 
 | Rule | Position | No charge | ToU | Change |
 |---|---|---|---|---|
-| Pay (exponential decay) | inner | 0.122 ± 0.015 | 0.094 ± 0.013 | −23.0 % |
-| | boundary | 0.359 ± 0.050 | 0.274 ± 0.033 | −23.5 % |
-| | peripheral | 0.075 ± 0.006 | 0.064 ± 0.007 | −14.7 % |
-| | entry rate | 0.522 ± 0.011 | 0.397 ± 0.011 | −23.9 % |
-| Oscillate (El Farol) | inner | 0.173 ± 0.021 | 0.173 ± 0.020 | −0.2 % |
-| | boundary | 0.763 ± 0.093 | 0.723 ± 0.097 | −5.3 % |
-| | peripheral | 0.120 ± 0.013 | 0.118 ± 0.017 | −2.2 % |
-| | entry rate | 0.914 ± 0.055 | 0.899 ± 0.095 | −1.6 % |
-| Learn (Q-learning) | inner | 0.122 ± 0.013 | 0.093 ± 0.025 | −23.8 % |
-| | boundary | 0.394 ± 0.038 | 0.248 ± 0.068 | −37.0 % |
-| | peripheral | 0.074 ± 0.005 | 0.058 ± 0.010 | −22.3 % |
-| | entry rate | 0.539 ± 0.024 | 0.343 ± 0.094 | −36.3 % |
+| Pay (exponential decay) | inner | 0.120 ± 0.015 | 0.097 ± 0.014 | −18.8 % |
+| | boundary | 0.535 ± 0.038 | 0.470 ± 0.058 | −12.3 % |
+| | peripheral | 0.095 ± 0.007 | 0.083 ± 0.010 | −12.7 % |
+| | entry rate | 0.517 ± 0.018 | 0.395 ± 0.009 | −23.5 % |
+| Oscillate (El Farol) | inner | 0.166 ± 0.020 | 0.163 ± 0.018 | −1.7 % |
+| | boundary | 0.793 ± 0.079 | 0.783 ± 0.099 | −1.2 % |
+| | peripheral | 0.128 ± 0.017 | 0.125 ± 0.016 | −2.3 % |
+| | entry rate | 0.917 ± 0.051 | 0.900 ± 0.093 | −1.8 % |
+| Learn (Q-learning) | inner | 0.116 ± 0.017 | 0.088 ± 0.019 | −24.1 % |
+| | boundary | 0.553 ± 0.055 | 0.428 ± 0.084 | −22.6 % |
+| | peripheral | 0.092 ± 0.010 | 0.078 ± 0.007 | −15.1 % |
+| | entry rate | 0.531 ± 0.027 | 0.333 ± 0.095 | −37.2 % |
 
 #### Why the three rules reach their results differently
 
@@ -453,67 +466,78 @@ in how far congestion falls, but in *when* and *whether* the charge reaches the
 decision at all.
 
 Under exponential decay the fee is an argument of the decision itself, so the
-response is complete on day 1: entry is 0.40 under ToU against 0.52 with no
+response is complete on day 1: entry is 0.40 under ToU against 0.54 with no
 charge from the first day, and both series are flat thereafter. The rule has no
 memory, so there is nothing to accumulate.
 
 Q-learning never sees the fee when it decides. The action is chosen from the
 Q-values of the current state, which is the pair of time band and recent
 congestion band, and the fee enters only afterwards, through the reward the
-agent collects. The consequence is visible in the figure: on day 1 the charged
-and uncharged runs are identical (entry 0.505 in both), and the charged run
-then slides away from the baseline day after day, reaching 0.24 by day 14, a
-fall of 52 % from its own first day. Three features of the reward make that
-slide one-directional. Entering pays vot/10 minus the fee minus three times the
-realised V/C, while not entering pays a flat 0.3 less a small VoT term, about
-0.15 for the median agent. With the calibrated network the realised inner V/C
-is only 0.10 to 0.14, so the congestion term is worth about 0.3 to 0.4, whereas
-the fee is NZ$2 to NZ$6, and agents whose fee exceeds their value of time take
-a further penalty. The fee therefore dominates the reward by roughly an order
-of magnitude, and the one force that could pull agents back in, namely the
-congestion they avoid by staying out, is far too small to offset it. Because
-the update moves each Q-value by only a fraction of that error each day, the
-argmax of successive states flips over several days rather than at once, which
-is why the decline is gradual, monotone and still incomplete on day 14. The
+agent collects. The consequence is visible in the figure: on days 1 and 2 the
+charged and uncharged runs are identical (entry 0.473 and 0.490 in both), and
+the charged run then slides away from the baseline day after day, reaching
+0.208 by day 14, a fall of 56 % from its own first day. Three features of the
+reward make that slide one-directional. Entering pays vot/10 minus the fee
+minus three times the realised V/C, while not entering pays a flat 0.3 less a
+small VoT term, about 0.15 for the median agent. With the calibrated network
+the realised inner V/C is only 0.09 to 0.14, so the congestion term is worth
+about 0.3 to 0.4, whereas the fee is NZ$2 to NZ$6, and agents whose fee exceeds
+their value of time take a further penalty. The fee therefore dominates the
+reward by roughly an order of magnitude, and the one force that could pull
+agents back in, namely the congestion they avoid by staying out, is far too
+small to offset it. Because the update moves each Q-value by only a fraction of
+that error each day, the argmax of successive states flips over several days
+rather than at once, which is why the decline is gradual and monotone. The
 same mechanism explains the opposite drift in the uncharged run, where entry
-*rises* by 15 % over the fortnight: without a fee, entering is simply the
+*rises* by 16 % over the fortnight: without a fee, entering is simply the
 better-rewarded action and the agents learn that too.
+
+By day 14 the charged run has converged — not to an equilibrium demand level,
+but to the floor set by its own exploration. Agents explore with probability
+ε, which decays from 0.4 by 0.3 % per day and stands at about 0.385 on day 14;
+an exploring agent enters with probability one half, so exploration alone
+produces an entry rate of ε/2 ≈ 0.19. The observed day-14 rate of 0.208 sits
+on that floor: the learned (greedy) policy is "do not enter" for essentially
+every agent, and the residual fifth of entries is exploration noise rather
+than willingness to pay. The converged Q-learning prediction is therefore
+near-total deterrence, and the day-14 congestion figures measure that policy
+plus its exploration dice, not a demand curve.
 
 Two consequences of this design should be stated plainly. First, the effect is
 deterrence, not retiming: the mean fee paid per entering agent is 2.83 on day 1
-and 2.75 on day 14, so the agents who still enter are not moving into cheaper
+and 2.74 on day 14, so the agents who still enter are not moving into cheaper
 hours, they are the same mix of hours with fewer agents in it. This matches the
 hour-of-day result below, where the reduction is nearly uniform across the day.
-Second, the reported Q-learning effect is a lower bound, since the series had
-not levelled off when the run ended.
+Second, the size of the effect is set by the reward scaling — the fee dominates
+every other term — so it should be read as a property of the learning design as
+much as of the charge.
 
 El Farol fails for a third reason again. Its agents compare predicted
 congestion with a comfort threshold, and the fee only shifts that threshold, so
 once the calibrated network is uncongested the prediction sits below the
 threshold on almost every day and almost every agent enters. The charge does
-deter on day 1, when entry is 0.57 under ToU against 0.73 with no charge, but
+deter on day 1, when entry is 0.58 under ToU against 0.74 with no charge, but
 that deterrence is undone within a single day: by day 2 both regimes are at
-0.91 to 0.93 and they stay there. What looks like insensitivity in the summary
+0.92 to 0.93 and they stay there. What looks like insensitivity in the summary
 table is in fact an initial response that the rule's own feedback erases.
 
 The hour-of-day profile (Fig. 5) shows where within the day the charge acts.
 Every cell is twin peaked, with a morning peak around 08:00 to 09:00 and an
 evening peak around 17:00 to 18:00. Under exponential decay the morning peak
-mean falls by 23.1 % and the evening peak by 17.7 %, and under Q-learning by
-49.3 % and 51.8 %. Under El Farol both peaks are marginally higher with the
-charge than without it, by 1.8 % and 3.2 %, which is within the day-to-day
-band. Notably, for both responsive rules the whole-day mean falls by almost
-exactly as much as the peaks do, 21.3 % and 49.1 %, so the charge lowers the
-level of cordon traffic across the day rather than moving trips out of the
-charged windows into cheaper ones. The temporal mechanism here is deterrence
-rather than the peak spreading that a ToU schedule is designed to induce, a
-consequence of routes being fixed and of the decision being framed as whether
-to enter rather than exactly when.
+mean falls by 17.0 % and the evening peak by 18.4 %, and under Q-learning by
+39.4 % and 41.7 %. Under El Farol neither peak moves outside the day-to-day
+band (−0.6 % and +3.5 %). Notably, for both responsive rules the whole-day
+mean falls by almost exactly as much as the peaks do, 18.4 % and 44.7 %, so
+the charge lowers the level of cordon traffic across the day rather than
+moving trips out of the charged windows into cheaper ones. The temporal
+mechanism here is deterrence rather than the peak spreading that a ToU
+schedule is designed to induce, a consequence of routes being fixed and of the
+decision being framed as whether to enter rather than exactly when.
 
 Grading the same runs on Level of Service (Fig. 6) gives the network-wide
 picture. Over the whole day, the share of traffic on links at LoS E or worse
-falls from 56.3 % to 49.4 % under exponential decay and from 58.0 % to 40.0 %
-under Q-learning, and is unchanged under El Farol, 71.8 % against 71.5 %. The
+falls from 65.7 % to 63.2 % under exponential decay and from 66.4 % to 60.3 %
+under Q-learning, and is unchanged under El Farol, 72.8 % against 72.2 %. The
 absolute shares are high, and the worst two-hour band is 09:00 to 11:00 rather
 than the morning peak itself, because the flow measure is a one-hour moving
 average that lags the departure peak. As set out in the calibration, the
@@ -528,28 +552,36 @@ gives the same ordering and direction throughout.
 A standing concern with cordon pricing is that traffic deterred from the
 charged zone reappears on the cordon boundary or on peripheral roads. Two
 features of the uncharged baseline frame the test. First, congestion does not
-concentrate inside the cordon but on its boundary: peak boundary V/C is 0.36
-to 0.76 depending on the rule, against 0.12 to 0.17 inside and 0.07 to 0.12 on
+concentrate inside the cordon but on its boundary: peak boundary V/C is 0.54
+to 0.79 depending on the rule, against 0.12 to 0.17 inside and 0.09 to 0.13 on
 the periphery. The ring of approach roads, not the interior, is where the
 network is loaded. Second, the three rules differ in level as well as in
 response, so each is compared against its own baseline.
 
 Under both responsive rules the charge lowers V/C in all three zones at once.
-For exponential decay the boundary falls by 23.5 %, matching the 23.0 % fall
-inside the cordon, and the periphery falls by 14.7 %. For Q-learning the
-boundary falls furthest, by 37.0 %, against 23.8 % inside and 22.3 % on the
-periphery. There is no zone in which V/C rises, so on this evidence the charge
-does not push congestion outward. The link-level map (Fig. 7) shows the same
-result at a finer grain: the arterials inside the cordon and the approach
-roads leading to it turn blue together, and the few red links are scattered
-rather than forming a ring outside the boundary.
+For exponential decay the interior falls by 18.8 %, the boundary by 12.3 % and
+the periphery by 12.7 %. For Q-learning the interior falls by 24.1 %, the
+boundary by 22.6 % and the periphery by 15.1 %. In both cases the reduction is
+largest inside the cordon, where the charge is levied, and smaller — but still
+present — outside it. There is no zone in which V/C rises, so on this evidence
+the charge does not push congestion outward. The link-level map (Fig. 7) shows
+the same result at a finer grain: the arterials inside the cordon and the
+approach roads leading to it turn blue together, and the few red links are
+scattered rather than forming a ring outside the boundary.
+
+The size of the outer-zone reductions deserves a note, because it separates
+two things a cordon charge does. Agents deterred from the CBD still make their
+suburban trips in this model, so the roads outside the cordon keep most of
+their traffic; what they lose is the through-component of journeys that would
+have crossed into the CBD. That is why the boundary and periphery fall by
+around 12 to 23 per cent rather than emptying: the charge removes CBD-bound
+travel, not suburban travel.
 
 El Farol again behaves differently. Its mean change is close to zero in every
-zone, −5.3 % at the boundary and −2.2 % on the periphery, and its map is
-mottled, with reductions on some approaches and increases on others, including
-a small mean increase on peripheral links. This is what an unpriced
-reallocation looks like: agents move relative to one another in response to
-yesterday's congestion, but the total does not fall.
+zone, −1.2 % at the boundary and −2.3 % on the periphery, and its map is
+mottled, with reductions on some approaches and increases on others. This is
+what an unpriced reallocation looks like: agents move relative to one another
+in response to yesterday's congestion, but the total does not fall.
 
 Two limitations bound the displacement result. Routing is held to fixed
 shortest paths, so the only adjustment available to an agent is temporal,
@@ -569,7 +601,13 @@ effect of −1.7 % and a range from −5.8 % to +1.1 % across seeds.
 *Source file: `behavioural_extensions.md`*
 
 
-*Runs of 2026-07-27 and 2026-07-28, calibrated model, 14 simulated days, seed 11.*
+*All four arms re-run 2026-08-06 on the trip-suppression-fixed model
+(v3), calibrated, 14 simulated days, seed 11. The pre-fix (v2) set is
+preserved in `output/tables_prefix_backup_20260805/`; per-cell pre/post
+comparison via `netlogo/sensitivity_experiment/compare_arms_postfix.py`.
+The `retiming` experiment's OFF cells rewrote the base tables byte-identically
+to the 2026-08-06 `paper-figs` run, confirming the runs are deterministic at a
+fixed seed.*
 
 The submitted model gives an agent one way to respond to a cordon charge: do not
 travel. Real drivers also retime and reroute. These runs add those two channels,
@@ -591,17 +629,19 @@ hour it actually travels in. An agent could be charged the 08:00 peak fee for a
 trip it made at 14:00, and a retiming rule would have moved the fee without
 moving the traffic. `trip-hour` is now read off the departure the agent makes.
 
-**This changes the base numbers**, so the base arm here supersedes the
-`paper-figs` numbers in `numbers.md`:
+**This changed the base numbers once, and the trip-suppression fix changed
+them again.** The current base-arm figures (post both fixes, re-run
+2026-08-06) live in `numbers.md`; the sequence for the headline number is:
 
-| Rule | ToU reduction in peak inner V/C, paper-figs | Base arm here |
-|---|---|---|
-| Pay | 23.0 % | **11.7 %** |
-| Oscillate | 0.2 % | **0.0 %** |
-| Learn | 23.8 % | **38.7 %** |
+| Rule | 07-27 calibrated | 07-28 trip-hour fix | **08-06 trip-suppression fix (current)** |
+|---|---|---|---|
+| Pay | 23.0 % | 11.7 % | **18.8 %** |
+| Oscillate | 0.2 % | 0.0 % | **1.7 %** |
+| Learn | 23.8 % | 38.7 % | **24.1 %** |
 
-The direction of the story is unchanged (two rules respond, one does not) but
-the magnitudes move substantially, and the new figures are the defensible ones.
+The direction of the story is unchanged at every step (two rules respond, one
+does not) but the magnitudes move substantially, and only the last column is
+current.
 
 ### Departure-time choice
 
@@ -617,42 +657,44 @@ Schedule delay is priced at `sched-delay-cost` × VoT per hour, 1.6× for arrivi
 late, following the standard formulation. At the default 0.6 a median commuter
 values an hour's shift at about NZ$6, against a maximum ToU saving of NZ$2.
 
-**Result (mean ± day-to-day SD over 14 days, No-Charge → ToU):**
+**Result (mean over 14 days, No-Charge → ToU), post-fix model:**
 
 | Rule | Arm | inner | boundary | peripheral | entries |
 |---|---|---|---|---|---|
-| Pay | fixed | 0.113 → 0.100 (−11.7 %) | 0.344 → 0.258 (−25.2 %) | 0.074 → 0.063 (−15.7 %) | −23.1 % |
-| Pay | **retime** | 0.113 → 0.093 (**−17.8 %**) | 0.344 → 0.240 (−30.4 %) | 0.074 → 0.060 (−20.1 %) | −23.1 % |
-| Oscillate | fixed | 0.170 → 0.170 (−0.0 %) | 0.739 → 0.728 (−1.5 %) | 0.118 → 0.117 (−0.9 %) | −0.9 % |
-| Oscillate | **retime** | 0.162 → 0.162 (0.0 %) | 0.732 → 0.732 (0.0 %) | 0.111 → 0.111 (0.0 %) | 0.0 % |
-| Learn | fixed | 0.129 → 0.079 (−38.7 %) | 0.373 → 0.207 (−44.6 %) | 0.073 → 0.053 (−27.2 %) | −36.1 % |
-| Learn | **retime** | 0.127 → 0.110 (**−13.7 %**) | 0.468 → 0.375 (−19.7 %) | 0.082 → 0.070 (−14.4 %) | −11.5 % |
+| Pay | fixed | 0.120 → 0.097 (−18.8 %) | 0.535 → 0.470 (−12.3 %) | 0.095 → 0.083 (−12.7 %) | −23.5 % |
+| Pay | **retime** | 0.120 → 0.091 (**−23.8 %**) | 0.535 → 0.469 (−12.3 %) | 0.095 → 0.086 (−9.5 %) | −23.1 % |
+| Oscillate | fixed | 0.166 → 0.163 (−1.7 %) | 0.793 → 0.783 (−1.2 %) | 0.128 → 0.125 (−2.3 %) | −1.8 % |
+| Oscillate | **retime** | 0.162 → 0.162 (0.0 %) | 0.749 → 0.749 (0.0 %) | 0.117 → 0.117 (0.0 %) | 0.0 % |
+| Learn | fixed | 0.116 → 0.088 (−24.1 %) | 0.553 → 0.428 (−22.6 %) | 0.092 → 0.078 (−15.1 %) | −37.2 % |
+| Learn | **retime** | 0.132 → 0.119 (**−9.5 %**) | 0.608 → 0.529 (−12.9 %) | 0.099 → 0.086 (−13.3 %) | −11.9 % |
 
-Share of entrants who move their departure: Pay 2.7 % (all earlier), Oscillate
-7.2 %, Learn 66.7 % (evenly split earlier and later).
+Share of entrants who move their departure (day 14, ToU): Pay 2.5 % (13 of 15
+earlier), Oscillate 7.0 % (identically with and without the charge), Learn
+64.3 % (evenly split earlier and later).
 
-**Three findings.**
+**Three findings.** (Same qualitative findings as the pre-fix runs, at the
+post-fix magnitudes — the fix did not change this story.)
 
 1. **For the price rule the charge works better when retiming is possible**, and
-   only 2.7 % of entrants need to move. The reduction rises from 11.7 % to
-   17.8 % because the agents who move are exactly those facing the $6 peak, so a
+   only 2.5 % of entrants need to move. The reduction rises from 18.8 % to
+   23.8 % because the agents who move are exactly those facing the $6 peak, so a
    small share of the population is a large share of the peak. The morning peak
-   falls 21.8 % rather than 15.9 %. This is the peak-spreading mechanism a ToU
+   falls 23.9 % rather than 17.0 %. This is the peak-spreading mechanism a ToU
    schedule is designed around, and the base model could not express it at all.
 2. **For the learner the charge works much worse.** Given somewhere to move, the
-   agent stops forgoing the trip: entries under ToU fall only 11.5 % instead of
-   36.1 %, and the reduction in peak V/C drops from 38.7 % to 13.7 %. **A model
+   agent stops forgoing the trip: entries under ToU fall only 11.9 % instead of
+   37.2 %, and the reduction in peak V/C drops from 24.1 % to 9.5 %. **A model
    whose only response is "do not travel" overstates what the charge achieves.**
    Part of the rise in entries is mechanical, since epsilon-greedy exploration
-   over four actions travels three times in four rather than one in two. Netting
-   that out at the day-14 exploration rate, the greedy policy travels 6.5 % of
-   the time without retiming and 30 % with it, so the effect survives the
-   correction.
+   over four actions travels three times in four rather than one in two — the
+   no-charge entry rate itself rises from 0.53 to 0.70 when the two extra
+   actions are added — but the ToU-minus-No-Charge gap collapses far beyond
+   that mechanical shift, so the effect survives the correction.
 3. **For the expectation rule nothing changes, and the two fee regimes become
    bit-identical.** Its agents compare predicted congestion with a comfort
    threshold of 0.6, but calibrated congestion runs at 0.09 to 0.17, so the
    prediction never approaches the threshold and the small adjustment the fee
-   makes to it never flips a decision. Its 7.2 % of retimers move for congestion
+   makes to it never flips a decision. Its 7.0 % of retimers move for congestion
    reasons alone, identically with and without the charge.
 
 ### Route choice
@@ -671,8 +713,9 @@ reappear. Only when an agent can keep its trip and go around the cordon does
 displacement become a thing the model could show. This arm is therefore the
 proper test of the paper's displacement claim.
 
-**A 2-day probe already shows the arm bites**, comparing fixed against adaptive
-routes under ToU with retiming off:
+**A 2-day probe already showed the arm bites** (pre-fix model; kept for the
+mechanism, not the levels), comparing fixed against adaptive routes under ToU
+with retiming off:
 
 | | inner | boundary | peripheral | wall clock |
 |---|---|---|---|---|
@@ -695,50 +738,66 @@ tests whether congestion-aware routing changes the picture, not whether drivers
 drive around the cordon to dodge the charge. Testing the latter would require
 the fee to enter the route cost, which is a further extension.
 
-**Result, all four arms (14-day mean, No-Charge → ToU):**
+**Result, all four arms (14-day mean, No-Charge → ToU), post-fix model:**
 
 | Rule | Arm | inner | boundary | peripheral | entries |
 |---|---|---|---|---|---|
-| Pay | base | 0.113 → 0.100 (−11.7 %) | 0.344 → 0.258 (−25.2 %) | 0.074 → 0.063 (−15.7 %) | −23.1 % |
-| | retime | 0.113 → 0.093 (−17.8 %) | 0.344 → 0.240 (−30.4 %) | 0.074 → 0.060 (−20.1 %) | −23.1 % |
-| | reroute | 0.164 → 0.121 (**−25.9 %**) | 0.241 → 0.162 (−33.0 %) | 0.069 → 0.061 (−12.3 %) | −23.3 % |
-| | both | 0.164 → 0.127 (−22.7 %) | 0.241 → 0.162 (−33.0 %) | 0.069 → 0.066 (−4.0 %) | −24.8 % |
-| Oscillate | base | 0.170 → 0.170 (−0.0 %) | 0.739 → 0.728 (−1.5 %) | 0.118 → 0.117 (−0.9 %) | −0.9 % |
-| | retime | 0.162 → 0.162 (0.0 %) | 0.732 → 0.732 (0.0 %) | 0.111 → 0.111 (0.0 %) | 0.0 % |
-| | reroute | 0.231 → 0.233 (−1.1 %) | 0.361 → 0.441 (+22.3 %) | 0.128 → 0.115 (−9.9 %) | −1.6 % |
-| | both | 0.238 → 0.238 (0.0 %) | 0.390 → 0.390 (0.0 %) | 0.102 → 0.102 (0.0 %) | 0.0 % |
-| Learn | base | 0.129 → 0.079 (**−38.7 %**) | 0.373 → 0.207 (−44.6 %) | 0.073 → 0.053 (−27.2 %) | −36.1 % |
-| | retime | 0.127 → 0.110 (−13.7 %) | 0.468 → 0.375 (−19.7 %) | 0.082 → 0.070 (−14.4 %) | −11.5 % |
-| | reroute | 0.138 → 0.114 (−17.6 %) | 0.240 → 0.160 (−33.4 %) | 0.068 → 0.054 (−20.2 %) | −35.7 % |
-| | both | 0.167 → 0.142 (−15.1 %) | 0.229 → 0.211 (−7.9 %) | 0.081 → 0.069 (−15.5 %) | −12.0 % |
+| Pay | base | 0.120 → 0.097 (−18.8 %) | 0.535 → 0.470 (−12.3 %) | 0.095 → 0.083 (−12.7 %) | −23.5 % |
+| | retime | 0.120 → 0.091 (**−23.8 %**) | 0.535 → 0.469 (−12.3 %) | 0.095 → 0.086 (−9.5 %) | −23.1 % |
+| | reroute | 0.153 → 0.155 (**+1.8 %, ns**) | 0.325 → 0.261 (−19.5 %) | 0.092 → 0.080 (−13.1 %) | −24.2 % |
+| | both | 0.153 → 0.147 (−3.7 %, ns) | 0.325 → 0.283 (−12.9 %) | 0.092 → 0.083 (−10.2 %) | −23.9 % |
+| Oscillate | base | 0.166 → 0.163 (−1.7 %) | 0.793 → 0.783 (−1.2 %) | 0.128 → 0.125 (−2.3 %) | −1.8 % |
+| | retime | 0.162 → 0.162 (0.0 %) | 0.749 → 0.749 (0.0 %) | 0.117 → 0.117 (0.0 %) | 0.0 % |
+| | reroute | 0.255 → 0.204 (−20.0 %, ns) | 0.381 → 0.472 (+23.9 %, ns) | 0.117 → 0.142 (+21.1 %, ns) | −1.9 % |
+| | both | 0.228 → 0.228 (0.0 %) | 0.357 → 0.357 (0.0 %) | 0.116 → 0.116 (0.0 %) | 0.0 % |
+| Learn | base | 0.116 → 0.088 (−24.1 %) | 0.553 → 0.428 (−22.6 %) | 0.092 → 0.078 (−15.1 %) | −37.2 % |
+| | retime | 0.132 → 0.119 (−9.5 %) | 0.608 → 0.529 (−12.9 %) | 0.099 → 0.086 (−13.3 %) | −11.9 % |
+| | reroute | 0.147 → 0.124 (−15.5 %) | 0.302 → 0.243 (−19.7 %) | 0.117 → 0.087 (−26.0 %) | −36.4 % |
+| | both | 0.186 → 0.168 (−9.4 %) | 0.251 → 0.250 (−0.1 %) | 0.084 → 0.083 (−0.9 %) | −9.1 % |
+
+("ns" = inside the day-to-day spread: Pay reroute inner is 0.153 ± 0.033
+against 0.155 ± 0.034; Oscillate's reroute cells swing by less than one SD,
+e.g. boundary 0.381 ± 0.077 against 0.472 ± 0.184.)
 
 **Four findings.**
 
 1. **Routing changes where congestion sits far more than the charge does.**
    Compare the no-charge baselines: letting agents avoid congested links moves
-   peak boundary V/C from 0.344 to 0.241 for Pay, from 0.739 to 0.361 for
-   Oscillate and from 0.373 to 0.240 for Learn, while inner-cordon V/C *rises*
-   (0.113 → 0.164, 0.170 → 0.231, 0.129 → 0.138). Fixed shortest paths were
+   peak boundary V/C from 0.535 to 0.325 for Pay, from 0.793 to 0.381 for
+   Oscillate and from 0.553 to 0.302 for Learn, while inner-cordon V/C *rises*
+   (0.120 → 0.153, 0.166 → 0.255, 0.116 → 0.147). Fixed shortest paths were
    funnelling traffic along a few approach arterials; adaptive routing spreads
    it, some of it through the CBD grid. The single largest effect in this whole
    set of runs is a modelling assumption, not a policy.
-2. **The price rule's result is robust and strongest with routing.** Pay reduces
-   peak inner V/C by 12, 18, 26 and 23 per cent across the four arms. Every arm
-   agrees on the sign and the rough size, and the charge also lowers boundary
-   V/C in all four.
-3. **The learner's headline is the fragile one.** Learn gives 39 % in the base
-   arm and 14 to 18 % in every arm where the agent has an alternative to
-   staying home. The base figure is the outlier, not the norm, and it is high
-   precisely because forgoing the trip is the only option the base model offers.
-4. **Displacement is still not demonstrated, and this arm is where it could
-   have been.** In the reroute arms the boundary falls together with the
-   interior for both responsive rules (−33.0 % and −33.4 %). The one positive
-   number, Oscillate's +22.3 % at the boundary, does not survive its own
-   variance: no charge 0.361 ± 0.091 against ToU 0.441 ± 0.132 over 14 days,
-   with the daily series overlapping throughout. On a single seed that is
-   noise, not displacement. The claim that pricing does not push traffic
-   outward therefore survives the extension that could most easily have broken
-   it — with the caveat in the paragraph above about what routing responds to.
+2. **With routing, the price rule's inner-cordon effect disappears — the
+   benefit relocates to the boundary.** This is new since the trip-suppression
+   fix, and it is the most consequential change the fix produced. Entries
+   still fall by 24 %, but inner V/C is unchanged (0.153 → 0.155, inside the
+   day-to-day spread): the road space freed inside the cordon is refilled by
+   suburban and pass-through traffic that congestion-aware routing steers
+   through the CBD grid — the classic triple-convergence result. What the
+   charge buys in this arm shows up on the cordon boundary instead (−19.5 %).
+   In the pre-fix runs this backfill traffic had been deleted along with the
+   decliners' days, which is why the same cell then read −25.9 %. **The action
+   space therefore changes not only how much the charge achieves but *where*
+   it achieves it** — and a Pay headline quoted without the routing assumption
+   is under-specified even in sign of location.
+3. **The learner's headline is the fragile one, still.** Learn gives 24.1 % in
+   the base arm and 9 to 16 % in every arm where the agent has an alternative
+   to staying home. The base figure is the outlier, not the norm, and it is
+   high precisely because forgoing the trip is the only option the base model
+   offers.
+4. **Displacement outward is still not demonstrated, and this arm is where it
+   could have been.** In the reroute arm the boundary falls for both
+   responsive rules (−19.5 % and −19.7 %) together with the periphery
+   (−13.1 % and −26.0 %). The positive numbers all sit in Oscillate's reroute
+   cells and inside their own variance (boundary 0.381 ± 0.077 against
+   0.472 ± 0.184, overlapping throughout): on a single seed that is noise, not
+   displacement. The claim that pricing does not push traffic *outward*
+   survives the extension that could most easily have broken it — while
+   finding 2 shows the flow that does move goes *inward*, into road space the
+   charge has freed. The caveat above about what routing responds to still
+   applies.
 
 ### What each option buys, side by side
 
@@ -747,18 +806,19 @@ actually ask: if drivers can do this, does the charge still work?
 
 | | Departure-time choice | Route choice |
 |---|---|---|
-| Who uses it | 2.7 % of Pay entrants, 7.2 % of Oscillate, 66.7 % of Learn | everyone, by construction |
-| Entry rate | unchanged for Pay (0.40 both), **Learn 0.34 → 0.62** | unchanged for all three (Pay 0.40, Learn 0.34) |
-| Peak inner V/C under ToU | Pay 0.100 → 0.093, Learn 0.079 → 0.110 | Pay 0.100 → 0.121, Learn 0.079 → 0.114 |
-| ToU reduction | Pay 12 → 18 %, Learn 39 → 14 % | Pay 12 → 26 %, Learn 39 → 18 % |
+| Who uses it | 2.5 % of Pay entrants, 7.0 % of Oscillate, 64.3 % of Learn | everyone, by construction |
+| Entry rate | unchanged for Pay (0.40 both), **Learn 0.33 → 0.62** | unchanged for all three (Pay 0.40, Learn 0.34) |
+| Peak inner V/C under ToU | Pay 0.097 → 0.091, Learn 0.088 → 0.119 | Pay 0.097 → 0.155, Learn 0.088 → 0.124 |
+| ToU reduction | Pay 19 → 24 %, Learn 24 → 9 % | Pay 19 → ~0 % (inner; boundary −19.5 %), Learn 24 → 16 % |
 | Equity channel | yes, but reaches only the poorest 3 % | none: routes respond to congestion, not to the fee |
 
 The two options work on different quantities. **Retiming changes how many trips
 are made** — it is the only extension that moves the entry rate, and it moves it
 sharply for the learner, which is why its measured effect collapses. **Rerouting
-leaves the number of trips exactly as it was** (entry rates are identical to
-three decimal places) and changes only where those trips go, which is why the
-no-charge baseline shifts so much while the charge's job stays the same.
+leaves the number of trips exactly as it was** (entry rates are nearly
+identical) and changes only where those trips go — which post-fix includes
+moving other traffic *into* the road space the charge frees, so for the price
+rule the interior benefit is routed away while the boundary benefit remains.
 
 That distinction matters for reading any single number out of this model: a
 result that depends on how many people travel is sensitive to the retiming
@@ -866,7 +926,7 @@ settings, the benefit scale and the action space**, and the sensitivity of the
 headline to the second (39 % against 14 %) suggests the first deserves a test
 too.
 
-### A declined CBD trip cancels the agent's whole day
+### A declined CBD trip cancelled the agent's whole day — **fixed 2026-07-30**
 
 Measured at setup, not inferred: of 2,500 agents, 544 are single-stop
 pass-through traffic and the remaining 1,956 carry two or more destinations
@@ -874,20 +934,23 @@ pass-through traffic and the remaining 1,956 carry two or more destinations
 more than one destination**, averaging 3.76. Every CBD-bound agent in this model
 is therefore a multi-stop agent.
 
-When such an agent declines the charge, `new-day-decisions` sets `active?` to
-false for the day, so its non-CBD stops are cancelled along with the CBD one.
-Summed over the CBD-bound population that is 3,171 non-CBD trips. Under the
-price rule ToU moves entry from 0.523 to 0.402, roughly 300 agents, each
-carrying about two non-CBD stops, so of the order of 100,000 vehicle-trips per
-day leave the network outside the cordon for no modelled reason.
+**The defect:** when such an agent declined the charge, `new-day-decisions` set
+`active?` to false for the day, so its non-CBD stops were cancelled along with
+the CBD one — of the order of 100,000 vehicle-trips per day leaving the network
+outside the cordon for no modelled reason.
 
-This inflates precisely the results the paper leans on. The peripheral
-reductions of 15.7 % for Pay and 27.2 % for Learn, and part of the
-no-displacement conclusion, are produced by traffic that a real network would
-still be carrying: a driver who abandons a city-centre appointment still runs
-the suburban errands. The code comment above the line says "suppressed CBD
-destinations are skipped for the day", which is the intended behaviour; the code
-stops the agent instead.
+**The fix** (`skip-cbd-stops-today` in `akl_pricing.nls`, commit of
+2026-07-30): a declining agent now removes only the CBD stops from the day's
+itinerary and still makes its suburban trips.
+
+**Measured effect of the fix** (base arm re-run 2026-08-06): the no-charge
+baseline outside the cordon rose — Pay boundary 0.344 → 0.535, peripheral
+0.074 → 0.095 — because the restored trips load those roads under every
+regime, and the ToU reductions shrank accordingly (Pay peripheral −15.7 % →
+−12.7 %, Learn boundary −44.6 % → −22.6 %). The suppressed trips had indeed
+been inflating exactly the results the paper leans on. **The no-displacement
+conclusion survives the correction** — V/C still falls in every zone under
+every rule — and is now measured on roads that carry the traffic they should.
 
 **The k-factor sensitivity does not address this.** `k-factor` enters the model
 in one place, `r-cap-hr = ADT × k-factor`, which is the denominator of the flow
@@ -900,27 +963,36 @@ the capacity assumption, and says nothing about whether demand is over-suppresse
 The behavioural-assumption claim gets sharper, and moves one level up. It is not
 only that the choice of decision rule changes the predicted effect of the
 charge. It is that **the choice of action space does too, and by a comparable
-amount**: for the learner, allowing an hour of flexibility moves the predicted
-reduction from 38.7 % to 13.7 %, a bigger swing than the gap between the three
-rules in the base arm. An appraisal that reports a single number without stating
-what its agents were allowed to do is under-specified.
+amount — and it can move not just the size of the effect but its location**:
+allowing the learner an hour of flexibility moves the predicted reduction from
+24.1 % to 9.5 %, a swing as large as the gap between the three rules in the
+base arm, and allowing routes to respond to congestion moves the price rule's
+benefit off the cordon interior (unchanged, within noise) onto the boundary
+(−19.5 %). An appraisal that reports a single number without stating what its
+agents were allowed to do is under-specified.
 
 Concretely, three things should change in the paper.
 
-1. **Report the range, not one cell.** Across arms the ToU reduction in peak
-   inner-cordon V/C is 12 to 26 per cent for Pay, 14 to 39 per cent for Learn
-   and zero for Oscillate. The width of the first two ranges comes from the
-   action space alone, with the rule, network, demand and fee schedule held
-   fixed.
-2. **Retire the base-arm Learn number.** 38.7 % is an artefact of a model in
-   which the only response to a charge is to stay home. Quote 14 to 18 per cent,
-   from the arms where the agent has somewhere to go.
-3. **Keep the displacement conclusion, and say why it now means more.** It was
-   previously close to untestable, because a deterred trip ceased to exist. With
-   congestion-aware routing the traffic is still there and can move, and the
-   boundary still falls with the interior. The remaining gap is that routing
-   here responds to congestion rather than to the charge, so cordon-dodging
-   proper is still untested.
+1. **Report the range, not one cell.** Across the post-fix arms the ToU
+   reduction in peak inner-cordon V/C is 0 to 24 per cent for Pay (zero in the
+   routing arms, where the benefit appears at the boundary instead), 9 to 24
+   per cent for Learn and zero for Oscillate. The width of the ranges comes
+   from the action space alone, with the rule, network, demand and fee
+   schedule held fixed.
+2. **Retire the stay-home-only Learn number as the headline.** 24.1 % is the
+   artefact of an action space where staying home is the only alternative;
+   quote 9 to 16 per cent, from the arms where the agent has somewhere to go.
+3. **Keep the outward-displacement conclusion, and say why it now means
+   more — then state the inward result beside it.** Displacement was
+   previously close to untestable, because a deterred trip ceased to exist.
+   With congestion-aware routing the traffic is still there and free to move,
+   and the boundary still falls with the interior for the learner and falls
+   while the interior holds for the price rule. Nothing piles up outside the
+   cordon; what the routing arm adds is that freed space *inside* the cordon
+   is partly refilled (triple convergence), which caps the interior benefit a
+   cordon charge can deliver when drivers reroute freely. The remaining gap is
+   that routing here responds to congestion rather than to the charge, so
+   cordon-dodging proper is still untested.
 
 ---
 
@@ -946,8 +1018,8 @@ of time distribution and the same time-of-use schedule, so that the only thing
 varying between runs was the assumption about how a driver decides. On the
 calibrated model the rules do not merely differ in the size of the response.
 Two of them cut the daily peak volume-to-capacity ratio inside the cordon by
-about a quarter, 23.0 % for the price-responsive rule and 23.8 % for the
-learning rule, while the expectation-based rule changes it by 0.2 %, which is
+a fifth to a quarter, 18.8 % for the price-responsive rule and 24.1 % for the
+learning rule, while the expectation-based rule changes it by 1.7 %, which is
 well inside its own day-to-day variation. The same charge on the same road
 therefore either works or does nothing at all, depending on a behavioural
 assumption that is rarely stated and never observed.
@@ -957,40 +1029,51 @@ the route matters for appraisal. The price-responsive rule reads the fee inside
 the decision, so its full effect is present on the first charged day and
 nothing accumulates thereafter. The learning rule never sees the fee when it
 decides and feels it only through the reward that follows, so its entry rate
-begins at the uncharged level and falls for the whole fortnight, from 0.51 to
-0.24, without having levelled off when the run ended. An evaluation carried out
-a week after launch would read these two behavioural worlds very differently,
-even though their fortnight-average reductions are almost identical. The
+begins at the uncharged level and falls for the whole fortnight, from 0.47 to
+0.21, coming to rest on the floor set by its own exploration: by the last day
+the learned policy is not to enter for essentially every agent, and the
+remaining fifth of entries is the exploration the algorithm still performs
+rather than willingness to pay. An evaluation carried out a week after launch
+would read these two behavioural worlds very differently, even though their
+fortnight-average reductions are of similar size. The
 expectation-based rule is more cautionary still. It does deter on the first
-day, when entry falls to 0.57 against 0.73 without a charge, but its own
+day, when entry falls to 0.58 against 0.74 without a charge, but its own
 feedback erases that deterrence within a single day, and by the second day both
-regimes sit at about 0.91. A policy that appeared to work at first inspection
+regimes sit at about 0.92. A policy that appeared to work at first inspection
 would have unwound before the second week.
 
 On the question of displacement, the calibrated runs support the more
 reassuring answer. The uncharged network is loaded on the cordon boundary
-rather than inside it, with peak boundary V/C of 0.36 to 0.76 against 0.12 to
+rather than inside it, with peak boundary V/C of 0.54 to 0.79 against 0.12 to
 0.17 in the interior, and under both responsive rules the boundary and the
 peripheral network fall together with the interior rather than absorbing the
-deterred traffic. The link-level map shows the same pattern at a finer grain.
+deterred traffic. Agents deterred from the city centre keep their suburban
+trips in this model, so those roads keep the traffic they should carry and
+lose only the through-component of journeys bound for the cordon. The link-level map shows the same pattern at a finer grain.
 This result is conditional on the design: routes are fixed shortest paths, so
 the only adjustment available to an agent is whether and when to travel, and a
 model with endogenous rerouting could still find diversion that this one cannot
 express.
 
 Two further sets of runs show that the assumption about *what an agent may do*
-matters as much as the assumption about how it decides. Allowing a departure to
-move by one hour, or allowing routes to respond to congestion, changes the
-predicted reduction in peak inner-cordon V/C from 12 to 26 per cent for the
-price rule and from 39 to 14 per cent for the learner, with the network, the
-demand and the fee schedule unchanged. The two options act on different
+matters as much as the assumption about how it decides. Allowing a departure
+to move by one hour, or allowing routes to respond to congestion, moves the
+predicted reduction in peak inner-cordon V/C between zero and 24 per cent for
+the price rule and between 9 and 24 per cent for the learner, with the
+network, the demand and the fee schedule unchanged — and for the price rule
+the routing assumption moves not only the size of the benefit but its
+location. With congestion-aware routing the charge still deters a quarter of
+entries, but the road space freed inside the cordon is refilled by rerouting
+traffic, so the interior is unchanged while the cordon boundary falls by a
+fifth: the familiar triple-convergence result, reproduced here by a behavioural
+mechanism rather than assumed. The two options act on different
 quantities: departure-time choice changes how many trips are made, and is the
 reason the learner's headline collapses, because an agent given somewhere to
 move stops forgoing the trip; route choice leaves the number of trips
-untouched and changes only where they go, moving a third of the load off the
-cordon boundary before any charge is applied. The single largest effect
-observed across all of these runs is therefore a modelling assumption rather
-than a policy.
+untouched and changes only where they go, moving two fifths to half of the
+load off the cordon boundary before any charge is applied. The single largest
+effect observed across all of these runs is therefore a modelling assumption
+rather than a policy.
 
 The distributional result deserves its own sentence, because the aggregate
 figures conceal it. Under the price rule the deterrent scales with the fee
@@ -1029,18 +1112,23 @@ binary, to enter or not to enter, so the model cannot produce departure-time
 substitution and the reductions reported here are deterrence rather than peak
 spreading.
 
-One limitation is structural rather than parametric and bounds the results
-outside the cordon in particular. Every agent with a city-centre destination in
-this model also has others, 3.76 on average, and an agent that declines the
-charge is deactivated for the whole day, so its suburban stops are cancelled
-with its city-centre one. In the order of a hundred thousand vehicle-trips a
-day therefore leave roads outside the cordon for no behavioural reason, which
-inflates the peripheral reductions and flatters the no-displacement result. A
-driver who abandons a city-centre appointment would in reality still run the
-other errands. Note that the k-factor sensitivity does not bear on this: that
-parameter sets the denominator of the flow V/C used for grading, and traffic is
-identical across its values at a fixed seed, so it tests how congestion is
-measured rather than how much demand there is.
+One check was structural rather than parametric and materially moved the
+results outside the cordon. Every agent with a city-centre destination in this
+model also has others, 3.76 on average, and in an earlier version an agent
+that declined the charge was deactivated for the whole day, cancelling its
+suburban stops with its city-centre one — in the order of a hundred thousand
+vehicle-trips a day leaving roads outside the cordon for no behavioural
+reason. Correcting this (a declining agent now skips only its city-centre
+stops) raised the uncharged baseline outside the cordon substantially and
+roughly halved the measured outer-zone reductions, from 44.6 to 22.6 per cent
+at the boundary for the learning rule; the no-displacement conclusion
+survived, and now rests on roads that carry the traffic they should. We report
+it because it shows how easily a demand-suppression artefact can flatter
+exactly the spatial results a cordon study leans on. Note that the k-factor
+sensitivity could never have caught it: that parameter sets the denominator of
+the flow V/C used for grading, and traffic is identical across its values at a
+fixed seed, so it tests how congestion is measured rather than how much demand
+there is.
 
 Within those bounds, the contribution is not a forecast. It is that an
 agent-based framework can hold competing behavioural theories in one network
@@ -1091,61 +1179,107 @@ council.
 *Source file: `conclusions_bullets.md`*
 
 
-Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
+Calibrated NetLogo model **after the trip-suppression fix**, all four arms
+re-run 2026-08-06, 14 simulated days, seed 11. Every number traces to
 `numbers.md` or `behavioural_extensions.md`.
 
 ### The headline
 
 - **The same charge on the same road either works or does nothing, depending on
   a behavioural assumption that is never observed.** Two rules cut peak
-  inner-cordon V/C; one changes it by 0.2 %, inside its own day-to-day spread.
-- **The action space moves the answer as much as the decision rule does.** With
-  the rule, network, demand and fee schedule all held fixed, the predicted ToU
-  reduction is 12–26 % for the price rule and 14–39 % for the learner, the range
-  coming purely from what responses agents are allowed.
+  inner-cordon V/C (18.8 % and 24.1 %); one changes it by 1.7 %, inside its own
+  day-to-day spread.
+- **The action space moves the answer as much as the decision rule does — and
+  it moves where the answer lands, not only its size.** With the rule, network,
+  demand and fee schedule all held fixed, the predicted ToU reduction in inner
+  V/C is 0–24 % for the price rule (zero in the routing arms, where the
+  benefit appears at the boundary, −19.5 %, instead) and 9–24 % for the
+  learner, the range coming purely from what responses agents are allowed.
 - **The single largest effect in these runs is a modelling assumption, not a
-  policy.** Letting routes respond to congestion moves a third of the load off
-  the cordon boundary before any charge is applied.
+  policy.** Letting routes respond to congestion moves 39–52 % of the load off
+  the cordon boundary before any charge is applied (Pay 0.535 → 0.325,
+  Oscillate 0.793 → 0.381, Learn 0.553 → 0.302).
 
 ### By decision rule
 
-- **Pay (exponential decay)** — robust. 12, 18, 26 and 23 % across the four
-  arms, same sign and rough size everywhere. Responds in full on day 1 and stays
-  flat, because the fee sits inside the decision.
-- **Learn (Q-learning)** — fragile. 39 % only in the base arm, 14–18 % wherever
-  the agent has an alternative to staying home. Never sees the fee when it
-  decides, only in the reward, so its response accumulates over the fortnight
-  and had not converged by day 14.
-- **Oscillate (El Farol)** — inert. Zero in every arm. It reads yesterday's
-  congestion, not today's price, and calibrated congestion (0.09–0.17) never
-  approaches its comfort threshold (0.6), so the fee never flips a decision. Its
-  day-1 deterrence is erased by day 2. Five-seed replication confirms the null.
+- **Pay (exponential decay)** — robust in entries, not in location. Entries
+  fall 23–24 % in every arm, but the inner-cordon reduction is −18.8 % (base),
+  −23.8 % (retime) and **zero in the routing arms** (+1.8 % / −3.7 %, both
+  inside the day-to-day spread), where the freed interior space is refilled by
+  rerouting traffic and the benefit shows up on the boundary (−19.5 %).
+  Responds in full on day 1 and stays flat, because the fee sits inside the
+  decision.
+- **Learn (Q-learning)** — largest base-arm cut, converged, and fragile to the
+  action space. −24.1 % in the base arm but 9–16 % wherever the agent has an
+  alternative to staying home (retime −9.5 %, reroute −15.5 %, both −9.4 %).
+  Never sees the fee when it decides, only in the reward, so its response
+  accumulates over the fortnight — and by day 14 it has hit the floor set by
+  its own exploration: ε ≈ 0.385 on day 14 and an exploring agent enters half
+  the time, so ε/2 ≈ 0.19 of entries are exploration noise, against an
+  observed 0.208. **The learned policy is near-total deterrence; do not
+  describe the trajectory as "still falling".** The size of the effect remains
+  hostage to the reward scaling and the action space.
+- **Oscillate (El Farol)** — inert. −1.7 % base arm; the retime and both arms
+  are bit-identical across fee regimes, and its reroute-arm swings (−20 %
+  inner, +24 % boundary) sit inside their own day-to-day SDs. It reads
+  yesterday's congestion, not today's price, and calibrated congestion
+  (0.09–0.17) never approaches its comfort threshold (0.6), so the fee never
+  flips a decision. Its day-1 deterrence is erased by day 2. Five-seed
+  replication confirms the null.
 
 ### What each behavioural option does
 
 - **Departure-time choice changes how many trips are made.** It is the only
-  extension that moves the entry rate: Learn 0.34 → 0.62, so its measured
-  benefit collapses. Pay's entry rate is unchanged because only 2.7 % of its
-  entrants shift.
+  extension that moves the entry rate: Learn 0.33 → 0.62, so its measured
+  benefit collapses (−24.1 % → −9.5 %). Pay's entry rate is unchanged because
+  only 2.5 % of its entrants shift (13 of 15 earlier).
 - **Route choice changes where the trips go, not how many.** Entry rates are
-  identical to three decimals; the no-charge baseline moves instead.
+  nearly identical; the no-charge baseline moves instead — and under ToU the
+  freed interior space is partly refilled, so for Pay the interior benefit
+  vanishes while the boundary benefit stays.
 - **So**: a result that depends on how many people travel is sensitive to the
   retiming assumption; a result about where congestion appears is sensitive to
-  the routing assumption.
+  the routing assumption. The displacement question is of the second kind.
+
+### Level of service: where the charge acts
+
+- **Post-fix, the charge acts where it is levied — the CBD arterial group —
+  and only marginally elsewhere.** Flow-weighted traffic at LoS E or worse in
+  the CBD group falls 4.9–6.6 pp under Pay and 4.2–6.0 pp under Learn, against
+  a point or so on the motorway corridors and the outer arterial groups.
+- **The pre-fix motorway headline is gone.** The −11.5 to −13.6 pp AM-peak
+  motorway movements in earlier drafts were produced by the trip-suppression
+  artefact (deleting a decliner's whole day emptied the motorways too). Post-fix
+  the motorway AM effect is −1.3 pp (Pay) to −3.0 pp (Learn). **Do not quote
+  the old motorway numbers.**
+- **The link-count grade shares barely move post-fix** (arterial −0.3 pp Pay,
+  −2.0 pp Learn): arterials sit so deep in E/F that removing the CBD-bound
+  slice rarely changes a link's peak grade. Read the flow-weighted measure and
+  the V/C tables, not the grade counts.
+- **Arterials start worse and stay worse**, ~80 % at E/F against ~60 % on
+  motorways. Part definitional (an arterial grades E from V/C 0.82, a motorway
+  from 0.90), part signalised capacity.
+- **Oscillate does nothing on either class.**
 
 ### Displacement
 
-- **The charge does not push traffic outward**, and this now means something.
-  Under fixed routes a deterred trip simply ceased to exist, so displacement was
-  close to untestable. With congestion-aware routing the traffic is still there
-  and free to move, and the boundary still falls with the interior (−33 % for
-  both responsive rules).
-- **The one positive number is noise.** Oscillate's +22 % at the boundary is
-  0.361 ± 0.091 against 0.441 ± 0.132 over 14 days, overlapping throughout.
-- **Caveat**: routes here respond to congestion, not to the charge. A CBD-bound
-  agent pays whichever road it takes, so cordon-dodging proper is still untested.
+- **The charge does not push traffic outward.** In the post-fix base arm V/C
+  falls in every zone under both responsive rules (boundary −12.3 % Pay,
+  −22.6 % Learn; periphery −12.7 % and −15.1 %), and the margin is honest now:
+  decliners keep their suburban trips, so outer roads carry the traffic they
+  should and lose only the CBD-bound through-component.
+- With congestion-aware routing — the proper test — the deterred traffic is
+  still on the network and free to move, and nothing piles up outside: the
+  boundary falls −19.5 % (Pay) and −19.7 % (Learn) with the periphery falling
+  too. Oscillate's +24 % at the boundary is noise (0.381 ± 0.077 vs
+  0.472 ± 0.184). What the routing arm adds is an *inward* flow: freed space
+  inside the cordon is partly refilled (triple convergence), capping the
+  interior benefit when drivers reroute freely.
+- **Caveat**: routes respond to congestion, not to the charge. A CBD-bound
+  agent pays whichever road it takes, so cordon-dodging proper is still
+  untested.
 
-### Who pays
+### Who pays *(derived from the equations, not measured in runs)*
 
 - **The charge is strongly regressive.** The NZ$6 peak fee removes 59 % of the
   lowest value-of-time quintile's trips and 6 % of the highest's, and costs them
@@ -1154,8 +1288,8 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
   travel.**
 - **Retiming is the only remedy in the model, and it is thin.** A one-hour shift
   saves NZ$2 against a schedule-delay cost of 0.6 × VoT, so it pays only below
-  about NZ$3.30/h — some 3 % of the population. The runs agree: 2.7 % of Pay
-  entrants retimed, every one of them earlier.
+  about NZ$3.30/h — some 3 % of the population. The post-fix runs agree: 2.5 %
+  of Pay entrants retimed, 13 of 15 earlier.
 - **The peak-to-shoulder differential is too small to buy retiming from anyone
   else.** That is a finding about the fee *structure*, not evidence that fee
   level is irrelevant.
@@ -1179,7 +1313,10 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
 
 - **Fitted to observed Auckland Transport ADT on all 1,634 links**: total
   volume (via the scale factor, ratio 1.013) and spatial distribution (via the
-  suburban trip ends).
+  suburban trip ends). **Post-fix caveat**: the fit was made on pre-fix
+  No-Charge runs; with decliners' suburban trips restored the same scale factor
+  carries more traffic, so the 1.013 ratio needs a post-fix re-check before it
+  is quoted.
 - **Not fitted, and not estimated from any data**: the origin-destination
   matrix and the time-of-day profile. Origins follow 2023 Census sector shares
   (North 0.30 / East-South 0.48 / West 0.22 of motorway inflow, 70 % of agents
@@ -1200,49 +1337,52 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
 
 - **Not** "all three rules reduce congestion" — Oscillate does not.
 - **Not** "El Farol behaves erratically" — after calibration its day-to-day SD
-  is 0.021 against 0.015 and 0.013 for the others. The oscillation was an
+  is 0.020 against 0.015 and 0.017 for the others. The oscillation was an
   artefact of an uncalibrated, overloaded network.
-- **Not** Learn's 38.7 % as the headline — it assumes staying home is the only
-  alternative.
+- **Not** Learn's stay-home-only figure (24.1 %) as the headline — the action
+  space moves it to 9–16 % wherever the agent has an alternative; quote the
+  range.
+- **Not** "the price rule's effect is robust across arms" — its entries are
+  (−23 to −24 % everywhere), but its inner-cordon reduction is zero in the
+  routing arms; say *where* the benefit lands per arm.
+- **Not** "still learning / had not converged" for Q-learning — entry has
+  reached the exploration floor (0.208 observed vs ε/2 ≈ 0.19); the policy has
+  converged to near-total deterrence and the residual entries are exploration.
 - **Not** "systematic time-shifting away from priced peaks" for Q-learning in
   the base model — its action space has two actions, and the fee paid per
-  entering agent is flat across the run (2.83 → 2.75), so no retiming occurs.
+  entering agent is flat across the run (2.83 → 2.74), so no retiming occurs.
+- **Not** the pre-fix motorway AM improvements (−11.5 / −13.6 pp) — they were
+  the trip-suppression artefact; post-fix values are −1.3 / −3.0 pp.
 - **Not** any claim about fee level — no fee-level sweep has been run on the
-  calibrated model. The β sensitivity (11.7 / 23.0 / 25.4 % for 0.25 / 0.5 /
-  1.0) suggests a saturating response, but that is price *sensitivity*, not
-  price.
+  calibrated model. The β sensitivity (pre-fix: 11.7 / 23.0 / 25.4 % for
+  0.25 / 0.5 / 1.0) suggests a saturating response, but that is price
+  *sensitivity*, not price.
 
-### The largest technical limitation: a declined CBD trip cancels the whole day
+### The trip-suppression artefact: found, fixed, measured
 
-> **Status 2026-07-29: fixed in the model** (`skip-cbd-stops-today` — decliners
-> now keep their non-CBD stops). Every number below describes the runs as
-> published, which predate the fix; the 14-day re-run is pending.
-
-- **Every CBD-bound agent is a multi-stop agent.** Measured at setup: of 2,500
-  agents, 1,500 have a CBD destination, and **all 1,500 of them carry more than
-  one destination**, 3.76 on average. Only the 544 pass-through agents have a
-  single stop.
-- **Declining the charge removes all of them.** `new-day-decisions` sets
-  `active? false` for the day, so an agent that gives up one CBD stop also gives
-  up its non-CBD stops. Across the CBD-bound population that is **3,171 non-CBD
-  trips** that would vanish if all declined.
-- **Scale of the distortion.** Under Pay, ToU moves entry from 0.523 to 0.402,
-  about 300 agents. At 160 vehicles per agent and roughly two non-CBD stops
-  each, of the order of 100,000 vehicle-trips per day disappear from roads
-  outside the cordon for no modelled reason.
-- **It inflates the results that matter most.** The peripheral reductions
-  (−15.7 % for Pay, −27.2 % for Learn) and part of the no-displacement
-  conclusion are produced by traffic that should still have been on the network.
-- The code comment says "suppressed CBD destinations are skipped for the day",
-  which is what should happen; the code deactivates the agent instead.
-- **The k-factor sweep does not cover this.** `k-factor` appears in one place,
-  `r-cap-hr = ADT × k-factor`, the denominator of the flow V/C used for LoS
-  grading. Traffic trajectories are bit-identical across k at a given seed, so
-  the sweep tests how congestion is *graded*, never how much demand there is.
-  Demand-side over-suppression is untested by it.
+- **Every CBD-bound agent is a multi-stop agent** (all 1,500, 3.76 destinations
+  on average), and in the pre-fix model a declined CBD entry deactivated the
+  agent for the whole day — of the order of 100,000 suburban vehicle-trips a
+  day off the network for no behavioural reason.
+- **Fixed 2026-07-30** (`skip-cbd-stops-today`): decliners keep their non-CBD
+  stops. Base arm re-run 2026-08-06.
+- **Measured effect**: the uncharged baseline outside the cordon rose (Pay
+  boundary 0.344 → 0.535, periphery 0.074 → 0.095) and the outer-zone
+  reductions roughly halved (Learn boundary −44.6 % → −22.6 %; Pay periphery
+  −15.7 % → −12.7 %). The artefact had been inflating exactly the results the
+  paper leans on.
+- **The no-displacement conclusion survived the correction** — smaller margins,
+  firmer ground.
+- **The k-factor sweep could never have caught it**: traffic is bit-identical
+  across k at a fixed seed; the sweep tests how congestion is graded, not how
+  much demand there is.
 
 ### Open items
 
+- **Calibration re-check post-fix**: re-run `calibration-demand` to verify (or
+  re-fit) scale-factor 160 now that decliners' suburban trips are restored.
+- **Sensitivity sweeps are pre-fix** (β, α, ε, k, El Farol threshold): quote
+  directions only until re-run.
 - Fee-level sweep on the calibrated model (≈ 9 cells, 5 h) — the one experiment
   that would let the paper say anything about how much to charge.
 - Q-learning reward scale: the travel benefit is VoT/10, about NZ$1 for a median
@@ -1266,9 +1406,23 @@ Calibrated NetLogo model, 14 simulated days, seed 11. Every number traces to
 
 
 Model: calibrated NetLogo model (scale-factor 160, suburban destinations),
-14 simulated days, seed 11, slider baselines. Generated by
-`netlogo/sensitivity_experiment/paper_numbers.py`; raw output in
+14 simulated days, seed 11, slider baselines, **after the trip-suppression fix
+of 2026-07-30** (a declined CBD entry now skips only the CBD stops; the agent's
+suburban trips stay on the network). Base-arm tables regenerated 2026-08-06.
+Generated by `netlogo/sensitivity_experiment/paper_numbers.py`; raw output in
 `output/tables/paper_numbers.txt`.
+
+### Model version history
+
+The headline numbers changed three times as the model was corrected. Each set
+was right for its model; only the last is current.
+
+| Date | Change | Pay inner reduction |
+|---|---|---|
+| submitted draft | pre-calibration | −23 % (0.47 → 0.36) |
+| 2026-07-27 | calibration (scale-factor 300 → 160, suburban destinations) | −23.0 % (0.122 → 0.094) |
+| 2026-07-28 | trip-hour fix (fee hour = travel hour) | −11.7 % (0.113 → 0.100) |
+| **2026-08-06** | **trip-suppression fix (declined entry keeps suburban trips)** | **−18.8 % (0.120 → 0.097)** |
 
 ### Daily peak V/C and entry rate — `output/tables/days_<Rule>_<fee>.csv`
 
@@ -1277,9 +1431,17 @@ Written by `save-records` in the `paper-figs` experiment. Mean ± SD over the
 
 | Rule | inner NC | inner ToU | red. | boundary NC | boundary ToU | red. | periph. NC | periph. ToU | red. | entry NC | entry ToU | red. |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Pay | 0.122 ± 0.015 | 0.094 ± 0.013 | 23.0 % | 0.359 ± 0.050 | 0.274 ± 0.033 | 23.5 % | 0.075 ± 0.006 | 0.064 ± 0.007 | 14.7 % | 0.522 | 0.397 | 23.9 % |
-| Oscillate | 0.173 ± 0.021 | 0.173 ± 0.020 | 0.2 % | 0.763 ± 0.093 | 0.723 ± 0.097 | 5.3 % | 0.120 ± 0.013 | 0.118 ± 0.017 | 2.2 % | 0.914 | 0.899 | 1.6 % |
-| Learn | 0.122 ± 0.013 | 0.093 ± 0.025 | 23.8 % | 0.394 ± 0.038 | 0.248 ± 0.068 | 37.0 % | 0.074 ± 0.005 | 0.058 ± 0.010 | 22.3 % | 0.539 | 0.343 | 36.3 % |
+| Pay | 0.120 ± 0.015 | 0.097 ± 0.014 | 18.8 % | 0.535 ± 0.038 | 0.470 ± 0.058 | 12.3 % | 0.095 ± 0.007 | 0.083 ± 0.010 | 12.7 % | 0.517 | 0.395 | 23.5 % |
+| Oscillate | 0.166 ± 0.020 | 0.163 ± 0.018 | 1.7 % | 0.793 ± 0.079 | 0.783 ± 0.099 | 1.2 % | 0.128 ± 0.017 | 0.125 ± 0.016 | 2.3 % | 0.917 | 0.900 | 1.8 % |
+| Learn | 0.116 ± 0.017 | 0.088 ± 0.019 | 24.1 % | 0.553 ± 0.055 | 0.428 ± 0.084 | 22.6 % | 0.092 ± 0.010 | 0.078 ± 0.007 | 15.1 % | 0.531 | 0.333 | 37.2 % |
+
+Against the pre-fix run the no-charge baseline itself rose — Pay boundary
+0.344 → 0.535, peripheral 0.074 → 0.095 — because the restored suburban trips
+load the roads outside the cordon under every regime. The reductions are
+smaller than the pre-fix ones (Learn boundary was −44.6 %) but they are now
+measured against roads that carry the traffic they should, so the
+no-displacement result stands on firmer ground: V/C still falls in every zone
+under every rule.
 
 ### Hour-of-day inner V/C — `output/tables/hourly_<Rule>_<fee>.csv`
 
@@ -1288,9 +1450,9 @@ and 08, matching the two-hour bands of the LoS figure.
 
 | Rule | AM 07–09 | PM 16–18 | all day |
 |---|---|---|---|
-| Pay | 0.0524 → 0.0403 (−23.1 %) | 0.0312 → 0.0257 (−17.7 %) | 0.0202 → 0.0159 (−21.3 %) |
-| Oscillate | 0.0805 → 0.0819 (+1.8 %) | 0.0581 → 0.0599 (+3.2 %) | 0.0372 → 0.0368 (−1.1 %) |
-| Learn | 0.0501 → 0.0254 (−49.3 %) | 0.0356 → 0.0172 (−51.8 %) | 0.0216 → 0.0110 (−49.1 %) |
+| Pay | 0.0485 → 0.0402 (−17.0 %) | 0.0358 → 0.0292 (−18.4 %) | 0.0221 → 0.0180 (−18.4 %) |
+| Oscillate | 0.0821 → 0.0815 (−0.6 %) | 0.0594 → 0.0615 (+3.5 %) | 0.0376 → 0.0371 (−1.3 %) |
+| Learn | 0.0486 → 0.0294 (−39.4 %) | 0.0361 → 0.0211 (−41.7 %) | 0.0235 → 0.0130 (−44.7 %) |
 
 ### Network-wide LoS — `output/tables/los_hours_<Rule>_<fee>.csv`
 
@@ -1299,9 +1461,62 @@ F, days 8 to 14.
 
 | Rule | all day | 07–09 | day 1 → day 14 (ToU) |
 |---|---|---|---|
-| Pay | 56.3 → 49.4 (−7.0 pp) | 64.2 → 59.6 (−4.6 pp) | 50.6 → 50.4 (flat) |
-| Oscillate | 71.8 → 71.5 (−0.4 pp) | 76.3 → 76.5 (+0.2 pp) | 59.2 → 71.8 (flat from day 2) |
-| Learn | 58.0 → 40.0 (−18.0 pp) | 64.5 → 48.8 (−15.7 pp) | 56.2 → 37.8 (still falling) |
+| Pay | 65.7 → 63.2 (−2.4 pp) | 71.1 → 70.6 (−0.5 pp) | 62.8 → 63.5 (flat) |
+| Oscillate | 72.8 → 72.2 (−0.6 pp) | 77.5 → 76.6 (−0.9 pp) | 66.0 → 71.4 (up from day 2, then flat) |
+| Learn | 66.4 → 60.3 (−6.1 pp) | 71.6 → 68.6 (−3.0 pp) | 64.4 → 59.7 (levels off ≈ 59–60 from day 11) |
+
+The absolute levels are ~9 pp higher than in the pre-fix tables because the
+restored suburban trips add congested flow everywhere; the ToU-minus-NC
+differences shrank accordingly (Pay all-day was −7.0 pp, now −2.4 pp).
+
+### Level of service by road class — `links_<Rule>_<fee>.csv`, `paper-figs-postfix.csv`
+
+Two measures, because they weight differently and the difference matters.
+
+**(a) Share of links at each peak grade** (from `los_peak` in the link tables;
+counts links, so a side street weighs as much as a motorway carriageway):
+
+| Rule | Class | n | LoS E/F, no charge | ToU | change |
+|---|---|---|---|---|---|
+| Pay | motorway | 174 | 60.3 % | 60.3 % | 0.0 pp |
+| | arterial | 1,460 | 79.7 % | 79.5 % | −0.3 pp |
+| Oscillate | motorway | 174 | 60.9 % | 60.3 % | −0.6 pp |
+| | arterial | 1,460 | 82.9 % | 83.2 % | +0.3 pp |
+| Learn | motorway | 174 | 60.9 % | 59.2 % | −1.7 pp |
+| | arterial | 1,460 | 80.8 % | 78.8 % | −2.0 pp |
+
+**Superseded reading.** The pre-fix tables showed the arterial E/F share
+falling 6.2 pp against 1.7 pp on motorways, and the pack read this as "the
+charge acts on arterials, not on motorways". That contrast was largely the
+artefact: the deleted suburban trips had been emptying arterials in the ToU
+runs. With those trips restored the arterial E/F share barely moves on the
+binary peak-grade measure (−0.3 pp Pay, −2.0 pp Learn) because arterials sit
+so deep in E/F that removing the CBD-bound slice does not change the grade of
+most links. The effect of the charge is visible in the flow-weighted measure
+below and in the V/C tables above, not in the link-count grade shares.
+
+**(b) Flow-weighted share of traffic at LoS E or worse, by reporting group**
+(recorded by the model each day; MWY is the motorway corridors, CBD/East/West
+are arterial groups; 14-day mean of the daily peak, with the AM-peak clock-hour
+measure alongside):
+
+| Rule | MWY daily peak | MWY AM peak | CBD daily peak | CBD AM peak | East | West |
+|---|---|---|---|---|---|---|
+| Pay | 93.3 → 92.5 (−0.8 pp) | 87.8 → 86.5 (−1.3 pp) | 88.4 → 83.5 (−4.9 pp) | 82.2 → 75.6 (**−6.6 pp**) | 90.8 → 90.0 (−0.8 pp) | 85.9 → 85.7 (−0.2 pp) |
+| Oscillate | 94.7 → 94.7 (0.0 pp) | 91.0 → 90.5 (−0.5 pp) | 94.1 → 93.9 (−0.2 pp) | 88.0 → 88.3 (+0.3 pp) | 92.4 → 92.1 (−0.3 pp) | 86.8 → 86.7 (−0.2 pp) |
+| Learn | 93.6 → 92.6 (−1.0 pp) | 89.5 → 86.5 (−3.0 pp) | 87.7 → 81.7 (**−6.0 pp**) | 81.4 → 77.2 (−4.2 pp) | 90.9 → 90.3 (−0.5 pp) | 86.5 → 86.0 (−0.5 pp) |
+
+Reading: **the charge now acts where it is levied — the CBD arterial group —
+and only marginally elsewhere.** The pre-fix headline (MWY AM peak −11.5 to
+−13.6 pp) is gone: those runs deleted the whole day of every deterred
+suburbanite, which had been emptying the motorways too. Post-fix the largest
+movements are CBD (−4.9 to −6.6 pp Pay, −4.2 to −6.0 pp Learn) with motorway
+effects of a point or so. This is the honest spatial story: a cordon charge
+decongests the cordon, does not decongest the motorways, and displaces nothing
+(no group's share rises by more than the 0.3 pp noise floor).
+
+Figures: `los_by_class_gg.png` (grade mix by class),
+`los_ef_by_group_gg.png` (flow-weighted E/F by group).
 
 ### Link-level map — `output/tables/links_<Rule>_<fee>.csv`
 
@@ -1310,9 +1525,14 @@ Written by `save-links`. Mean change in per-link peak flow V/C under ToU
 
 | Rule | inner | boundary | peripheral |
 |---|---|---|---|
-| Pay | −0.386 | −0.361 | −0.169 |
-| Oscillate | −0.005 | −0.000 | +0.031 |
-| Learn | −0.289 | −0.261 | −0.226 |
+| Pay | −0.373 | −0.332 | −0.047 |
+| Oscillate | −0.021 | +0.002 | −0.019 |
+| Learn | −0.240 | −0.202 | −0.083 |
+
+The peripheral reductions are much smaller than pre-fix (Pay was −0.169, now
+−0.047): peripheral roads keep the restored suburban traffic, so the charge
+removes little from them. No zone shows a mean increase — the map still shows
+reduction or nothing, nowhere displacement.
 
 ### Entry-rate trajectory — `output/tables/days_<Rule>_<fee>.csv`
 
@@ -1321,19 +1541,30 @@ fee paid per *entering* agent (mean_fee ÷ attendance).
 
 | Rule | fee | entry day 1 | entry day 14 | change | fee/entrant d1 → d14 |
 |---|---|---|---|---|---|
-| Pay | no charge | 0.517 | 0.523 | +1.2 % | — |
-| Pay | ToU | 0.400 | 0.387 | −3.3 % | 2.84 → 2.78 |
-| Oscillate | no charge | 0.725 | 0.927 | +27.8 % | — |
-| Oscillate | ToU | 0.569 | 0.913 | +60.6 % | 2.83 → 2.82 |
-| Learn | no charge | 0.505 | 0.579 | +14.7 % | — |
-| Learn | ToU | 0.505 | 0.242 | −52.0 % | 2.83 → 2.75 |
+| Pay | no charge | 0.539 | 0.533 | −1.1 % | — |
+| Pay | ToU | 0.403 | 0.401 | −0.5 % | 2.82 → 2.82 |
+| Oscillate | no charge | 0.740 | 0.937 | +26.7 % | — |
+| Oscillate | ToU | 0.578 | 0.929 | +60.8 % | 2.81 → 2.85 |
+| Learn | no charge | 0.473 | 0.551 | +16.3 % | — |
+| Learn | ToU | 0.473 | 0.208 | −56.1 % | 2.83 → 2.74 |
 
-Reading: Pay responds in full on day 1 and stays; Learn starts at the no-charge
-value and slides for the whole fortnight; Oscillate is deterred on day 1 only,
-then returns to near-universal entry under both regimes. The flat fee per
-entrant under Learn shows the effect is deterrence, not retiming.
+Learn ToU by day: 0.473, 0.490, 0.453, 0.433, 0.359, 0.353, 0.303, 0.310,
+0.277, 0.274, 0.252, 0.243, 0.239, 0.208.
 
-### Calibration — `output/tables/calibration_summary.txt`
+Reading: Pay responds in full on day 1 and stays; Oscillate is deterred on day
+1 only, then returns to near-universal entry under both regimes; the flat fee
+per entrant under Learn shows the effect is deterrence, not retiming.
+
+**Learn has converged, not "still falling".** ε-greedy exploration decays at
+0.997/day from 0.4, so on day 14 ε ≈ 0.4 × 0.997¹³ ≈ 0.385; an exploring agent
+enters with probability ½, giving an exploration-driven entry floor of ε/2 ≈
+0.19. Day 14 sits at 0.208, i.e. on the floor: the learned (greedy) policy is
+"do not enter" for essentially every agent, and the residual fifth of entries
+is exploration noise, not preference. Do not read the day-14 level as an
+equilibrium demand response — the converged *policy* is near-total deterrence,
+and the observed entry rate is policy + dice.
+
+### Calibration — `output/tables/calibration_summary.txt` (**pre-fix, re-check pending**)
 
 - Matched links: 1,634 of 1,634; flow-weighted modelled/observed ratio 1.013,
   median per-link ratio 1.010, at scale-factor 160.
@@ -1342,29 +1573,62 @@ entrant under Learn shows the effect is deterrence, not retiming.
 - Implied design-hour factor k = 0.157 flow-weighted, 0.174 median, against
   the 0.10 used in the capacity conversion.
 
-### Sensitivity checks — `output/tables/sensitivity-*.csv`
+**Caveat:** the calibration was fitted on pre-fix No-Charge runs, which were
+missing the suburban trips of agents that declined CBD entry. With those trips
+restored the same scale-factor puts more traffic on the network, so the
+modelled/observed ratio is now likely above 1.013. The `calibration-demand`
+experiment should be re-run post-fix to re-check (and possibly re-fit)
+scale-factor 160 before the ratio is quoted.
+
+### Sensitivity checks — `output/tables/sensitivity-*.csv` (**pre-fix, direction only**)
+
+These tables date from 2026-07-27/28, before the trip-suppression fix. The
+directions should survive (they compare like with like within each table) but
+the magnitudes are pre-fix; quote directions, not numbers, until re-run.
 
 - k-factor at 0.08 / 0.10 / 0.12: ToU lowers the LoS E/F share in every group
   at every k, so the direction does not depend on the capacity assumption.
-- Exp-Decay base-beta 0.25 / 0.5 / 1.0: ToU reduction 11.7 / 23.0 / 25.4 %.
-- Q-learning alpha 0.05 / 0.1 / 0.2: 19.2 / 23.8 / 23.8 %; epsilon 0.2 / 0.4 /
-  0.6: 31.7 / 23.8 / 26.0 %.
-- El Farol threshold 0.5 / 0.6 / 0.7: 6.6 / 0.2 / 3.6 %; five-seed replication
-  at threshold 0.6 gives −1.7 % ± 2.7 pp, range −5.8 % to +1.1 %.
+- Exp-Decay base-beta 0.25 / 0.5 / 1.0: reduction rises with β (pre-fix:
+  11.7 / 23.0 / 25.4 %).
+- Q-learning alpha 0.05 / 0.1 / 0.2 and epsilon 0.2 / 0.4 / 0.6: effect present
+  at every setting (pre-fix magnitudes 19–32 %).
+- El Farol threshold 0.5 / 0.6 / 0.7: no material response at any threshold;
+  five-seed replication at 0.6 gave −1.7 % ± 2.7 pp, range −5.8 % to +1.1 %.
+
+### Behavioural-extension arms — re-run complete (2026-08-06)
+
+All three extension experiments (`retiming`, `rerouting`,
+`retiming-rerouting`) were re-run on the fixed model on 2026-08-06, so all
+four arms are now the same model version. ToU reduction in 14-day mean peak
+inner V/C ("ns" = inside the day-to-day SD):
+
+| Rule | base | retime | reroute | both |
+|---|---|---|---|---|
+| Pay | −18.8 % | −23.8 % | +1.8 % (ns) | −3.7 % (ns) |
+| Oscillate | −1.7 % | 0.0 % | −20.0 % (ns) | 0.0 % |
+| Learn | −24.1 % | −9.5 % | −15.5 % | −9.4 % |
+
+Full four-arm table, SDs and findings — including the new result that routing
+relocates the price rule's benefit from the interior (unchanged) to the
+boundary (−19.5 %) — in `behavioural_extensions.md`. Per-cell pre/post-fix
+comparison: `netlogo/sensitivity_experiment/compare_arms_postfix.py`. The
+`retiming` OFF cells rewrote the base tables byte-identically to the 8/6
+`paper-figs` run (determinism check passed). Pre-fix set:
+`output/tables_prefix_backup_20260805/`.
 
 ### Numbers in the submitted draft that no longer hold
 
 | Draft | Now | Why |
 |---|---|---|
-| Pay: inner peak V/C 0.47 → 0.36, −23 % | 0.122 → 0.094, −23.0 % | Calibration lowered the level; the percentage happens to be nearly identical |
-| Pay: entry 0.53 → 0.40 | 0.522 → 0.397 | Essentially unchanged |
-| Learn: 0.40 → 0.32, −19 %; entry 0.45 → 0.35 | 0.122 → 0.093, −23.8 %; entry 0.539 → 0.343 | Larger effect after calibration |
-| Oscillate: 0.465 → 0.459, −1 % | 0.173 → 0.173, −0.2 % | Same conclusion, new level |
-| Oscillate: day-to-day SD ≈ 0.24, "5 times higher" | SD 0.021 against 0.015 and 0.013 | **The oscillation was an artefact of the uncalibrated network.** El Farol is no longer volatile, only unresponsive |
-| Baseline boundary V/C 0.66 exceeds inner 0.40–0.47 | boundary 0.36–0.76 exceeds inner 0.12–0.17 | Same qualitative ordering |
-| Flat NZ$2: Pay −15.5 %, ToU −23.4 %; Learn flat −18 %, ToU +1 % | not re-run | The flat charge has no calibrated run; drop Fig. 5 or re-run |
+| Pay: inner peak V/C 0.47 → 0.36, −23 % | 0.120 → 0.097, −18.8 % | Calibration lowered the level; trip-hour and trip-suppression fixes moved the percentage |
+| Pay: entry 0.53 → 0.40 | 0.517 → 0.395 | Essentially unchanged |
+| Learn: 0.40 → 0.32, −19 %; entry 0.45 → 0.35 | 0.116 → 0.088, −24.1 %; entry 0.531 → 0.333 | Somewhat larger effect after calibration and fixes |
+| Oscillate: 0.465 → 0.459, −1 % | 0.166 → 0.163, −1.7 % | Same conclusion, new level |
+| Oscillate: day-to-day SD ≈ 0.24, "5 times higher" | SD 0.020 against 0.015 and 0.017 | **The oscillation was an artefact of the uncalibrated network.** El Farol is no longer volatile, only unresponsive |
+| Baseline boundary V/C 0.66 exceeds inner 0.40–0.47 | boundary 0.54–0.79 exceeds inner 0.12–0.17 | Same qualitative ordering |
+| Flat NZ$2: Pay −15.5 %, ToU −23.4 %; Learn flat −18 %, ToU +1 % | not re-run | The flat charge has no calibrated post-fix run; drop Fig. 5 or re-run |
 | "Each scenario runs for 20 simulated days", nine combinations | 14 days, six combinations | New run design |
-| Q-learning "shift the time of entry earlier or later"; "systematic time-shifting away from priced peaks" | binary enter / do not enter | The implemented action space has two actions; fee per entering agent is flat over the run, so no retiming happens |
+| Q-learning "shift the time of entry earlier or later"; "systematic time-shifting away from priced peaks" | binary enter / do not enter | The implemented base action space has two actions; fee per entering agent is flat over the run, so no retiming happens |
 
 ---
 
@@ -1607,4 +1871,44 @@ by hand also requires `[Content_Types].xml` to be the first archive entry.
 | Fit the departure profile to an observed time-of-day distribution | data acquisition plus a re-run | The only fix for the temporal residual (implied k 0.157 against 0.10); the profile is currently assumed, so absolute peak LoS cannot be read |
 | Estimate an OD matrix instead of drawing destinations uniformly | observed trip-end data plus a model change | Would let the paper speak to observed travel patterns, not only to volume and spatial spread |
 
----
+### 12. The trip-suppression re-run and version tagging (2026-08-06)
+
+**The base arm was re-run first, alone, and that was a mistake worth
+recording.** Re-running `paper-figs` on the fixed model updated the untagged
+base files while the `_rt` / `_rr` / `_rt_rr` files stayed pre-fix, so for a
+day the tables directory silently mixed two model versions and every cross-arm
+comparison in the pack was invalid. Nothing in the filenames revealed this;
+only the timestamps did. The three extension experiments were relaunched the
+same day (log `output/extension_arms_rerun_20260806.log`; the `retiming`
+experiment re-runs its OFF cells too, which rewrites the base files — same
+model, same seed, so that doubles as a determinism check).
+
+**Root cause fixed prospectively: exports now stamp the model version.**
+`save-records`, `save-hourly`, `save-links` and `save-los-hours` append a
+`model_version` column (see `model-version` in `akl_pricing.nls`, currently
+`v3-2026-07-30-trip-suppression-fix`). A column was chosen over a filename tag
+because every plotting script globs the current filenames, and over a header
+comment because `csv.DictReader`/`pandas` would choke on one. Files written
+before 2026-08-06 lack the column; `output/tables/MANIFEST.md` records what
+they are. Rule adopted: **after any model change, re-run all four arms before
+comparing anything across arms.**
+
+**Why the reductions shrank when the fix landed.** Restoring decliners'
+suburban trips raised the no-charge baseline outside the cordon (Pay boundary
+0.344 to 0.535), so the same absolute response divides by a larger
+denominator. The pre-fix outer-zone reductions were partly measuring deleted
+traffic. The no-displacement conclusion survived; the dramatic numbers did
+not, and the honest ones are the smaller ones.
+
+**Learn's day-14 entry equals its exploration floor, so the "still falling"
+framing was retired.** With epsilon decaying 0.4 x 0.997^13 to about 0.385 and
+an exploring agent entering half the time, exploration alone yields entry of
+about 0.19; the observed day-14 rate is 0.208. The learned policy has
+converged to near-total deterrence and the residual entries are exploration
+noise. Slides and text now say "converged to the exploration floor" rather
+than "had not converged".
+
+**Calibration flagged for re-check, not silently re-used.** Scale-factor 160
+was fitted on pre-fix No-Charge runs, which were missing the suppressed
+suburban trips; the fitted ratio of 1.013 therefore needs a post-fix
+`calibration-demand` re-run before it is quoted again.

@@ -149,9 +149,9 @@ p = (ggplot(arms, aes("rule", "value", fill="arm"))
      + scale_y_continuous(expand=(0.02, 0, 0.14, 0))
      + labs(title="What we let agents do changes the answer",
             subtitle="Same network, population and fee schedule; only the set of "
-                     "permitted responses differs.\nPay is robust at 12-26 %; "
-                     "Learn swings from 39 % to 14 %; Oscillate is zero "
-                     "throughout.",
+                     "permitted responses differs.\nPay's inner cut vanishes when "
+                     "rerouting backfills; Learn swings from 24 % to 9 %; "
+                     "Oscillate is zero throughout.",
             x="", y="")
      + BASE_THEME)
 out = os.path.join(FIGS, "arms_comparison_gg.png")

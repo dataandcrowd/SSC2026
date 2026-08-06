@@ -231,3 +231,45 @@ by hand also requires `[Content_Types].xml` to be the first archive entry.
 | Multi-seed replication beyond El Farol | 3–5× any experiment | Every spread quoted is within-seed |
 | Fit the departure profile to an observed time-of-day distribution | data acquisition plus a re-run | The only fix for the temporal residual (implied k 0.157 against 0.10); the profile is currently assumed, so absolute peak LoS cannot be read |
 | Estimate an OD matrix instead of drawing destinations uniformly | observed trip-end data plus a model change | Would let the paper speak to observed travel patterns, not only to volume and spatial spread |
+
+## 12. The trip-suppression re-run and version tagging (2026-08-06)
+
+**The base arm was re-run first, alone, and that was a mistake worth
+recording.** Re-running `paper-figs` on the fixed model updated the untagged
+base files while the `_rt` / `_rr` / `_rt_rr` files stayed pre-fix, so for a
+day the tables directory silently mixed two model versions and every cross-arm
+comparison in the pack was invalid. Nothing in the filenames revealed this;
+only the timestamps did. The three extension experiments were relaunched the
+same day (log `output/extension_arms_rerun_20260806.log`; the `retiming`
+experiment re-runs its OFF cells too, which rewrites the base files — same
+model, same seed, so that doubles as a determinism check).
+
+**Root cause fixed prospectively: exports now stamp the model version.**
+`save-records`, `save-hourly`, `save-links` and `save-los-hours` append a
+`model_version` column (see `model-version` in `akl_pricing.nls`, currently
+`v3-2026-07-30-trip-suppression-fix`). A column was chosen over a filename tag
+because every plotting script globs the current filenames, and over a header
+comment because `csv.DictReader`/`pandas` would choke on one. Files written
+before 2026-08-06 lack the column; `output/tables/MANIFEST.md` records what
+they are. Rule adopted: **after any model change, re-run all four arms before
+comparing anything across arms.**
+
+**Why the reductions shrank when the fix landed.** Restoring decliners'
+suburban trips raised the no-charge baseline outside the cordon (Pay boundary
+0.344 to 0.535), so the same absolute response divides by a larger
+denominator. The pre-fix outer-zone reductions were partly measuring deleted
+traffic. The no-displacement conclusion survived; the dramatic numbers did
+not, and the honest ones are the smaller ones.
+
+**Learn's day-14 entry equals its exploration floor, so the "still falling"
+framing was retired.** With epsilon decaying 0.4 x 0.997^13 to about 0.385 and
+an exploring agent entering half the time, exploration alone yields entry of
+about 0.19; the observed day-14 rate is 0.208. The learned policy has
+converged to near-total deterrence and the residual entries are exploration
+noise. Slides and text now say "converged to the exploration floor" rather
+than "had not converged".
+
+**Calibration flagged for re-check, not silently re-used.** Scale-factor 160
+was fitted on pre-fix No-Charge runs, which were missing the suppressed
+suburban trips; the fitted ratio of 1.013 therefore needs a post-fix
+`calibration-demand` re-run before it is quoted again.

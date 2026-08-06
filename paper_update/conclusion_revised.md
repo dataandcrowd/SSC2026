@@ -15,8 +15,8 @@ of time distribution and the same time-of-use schedule, so that the only thing
 varying between runs was the assumption about how a driver decides. On the
 calibrated model the rules do not merely differ in the size of the response.
 Two of them cut the daily peak volume-to-capacity ratio inside the cordon by
-about a quarter, 23.0 % for the price-responsive rule and 23.8 % for the
-learning rule, while the expectation-based rule changes it by 0.2 %, which is
+a fifth to a quarter, 18.8 % for the price-responsive rule and 24.1 % for the
+learning rule, while the expectation-based rule changes it by 1.7 %, which is
 well inside its own day-to-day variation. The same charge on the same road
 therefore either works or does nothing at all, depending on a behavioural
 assumption that is rarely stated and never observed.
@@ -26,40 +26,51 @@ the route matters for appraisal. The price-responsive rule reads the fee inside
 the decision, so its full effect is present on the first charged day and
 nothing accumulates thereafter. The learning rule never sees the fee when it
 decides and feels it only through the reward that follows, so its entry rate
-begins at the uncharged level and falls for the whole fortnight, from 0.51 to
-0.24, without having levelled off when the run ended. An evaluation carried out
-a week after launch would read these two behavioural worlds very differently,
-even though their fortnight-average reductions are almost identical. The
+begins at the uncharged level and falls for the whole fortnight, from 0.47 to
+0.21, coming to rest on the floor set by its own exploration: by the last day
+the learned policy is not to enter for essentially every agent, and the
+remaining fifth of entries is the exploration the algorithm still performs
+rather than willingness to pay. An evaluation carried out a week after launch
+would read these two behavioural worlds very differently, even though their
+fortnight-average reductions are of similar size. The
 expectation-based rule is more cautionary still. It does deter on the first
-day, when entry falls to 0.57 against 0.73 without a charge, but its own
+day, when entry falls to 0.58 against 0.74 without a charge, but its own
 feedback erases that deterrence within a single day, and by the second day both
-regimes sit at about 0.91. A policy that appeared to work at first inspection
+regimes sit at about 0.92. A policy that appeared to work at first inspection
 would have unwound before the second week.
 
 On the question of displacement, the calibrated runs support the more
 reassuring answer. The uncharged network is loaded on the cordon boundary
-rather than inside it, with peak boundary V/C of 0.36 to 0.76 against 0.12 to
+rather than inside it, with peak boundary V/C of 0.54 to 0.79 against 0.12 to
 0.17 in the interior, and under both responsive rules the boundary and the
 peripheral network fall together with the interior rather than absorbing the
-deterred traffic. The link-level map shows the same pattern at a finer grain.
+deterred traffic. Agents deterred from the city centre keep their suburban
+trips in this model, so those roads keep the traffic they should carry and
+lose only the through-component of journeys bound for the cordon. The link-level map shows the same pattern at a finer grain.
 This result is conditional on the design: routes are fixed shortest paths, so
 the only adjustment available to an agent is whether and when to travel, and a
 model with endogenous rerouting could still find diversion that this one cannot
 express.
 
 Two further sets of runs show that the assumption about *what an agent may do*
-matters as much as the assumption about how it decides. Allowing a departure to
-move by one hour, or allowing routes to respond to congestion, changes the
-predicted reduction in peak inner-cordon V/C from 12 to 26 per cent for the
-price rule and from 39 to 14 per cent for the learner, with the network, the
-demand and the fee schedule unchanged. The two options act on different
+matters as much as the assumption about how it decides. Allowing a departure
+to move by one hour, or allowing routes to respond to congestion, moves the
+predicted reduction in peak inner-cordon V/C between zero and 24 per cent for
+the price rule and between 9 and 24 per cent for the learner, with the
+network, the demand and the fee schedule unchanged — and for the price rule
+the routing assumption moves not only the size of the benefit but its
+location. With congestion-aware routing the charge still deters a quarter of
+entries, but the road space freed inside the cordon is refilled by rerouting
+traffic, so the interior is unchanged while the cordon boundary falls by a
+fifth: the familiar triple-convergence result, reproduced here by a behavioural
+mechanism rather than assumed. The two options act on different
 quantities: departure-time choice changes how many trips are made, and is the
 reason the learner's headline collapses, because an agent given somewhere to
 move stops forgoing the trip; route choice leaves the number of trips
-untouched and changes only where they go, moving a third of the load off the
-cordon boundary before any charge is applied. The single largest effect
-observed across all of these runs is therefore a modelling assumption rather
-than a policy.
+untouched and changes only where they go, moving two fifths to half of the
+load off the cordon boundary before any charge is applied. The single largest
+effect observed across all of these runs is therefore a modelling assumption
+rather than a policy.
 
 The distributional result deserves its own sentence, because the aggregate
 figures conceal it. Under the price rule the deterrent scales with the fee
@@ -98,18 +109,23 @@ binary, to enter or not to enter, so the model cannot produce departure-time
 substitution and the reductions reported here are deterrence rather than peak
 spreading.
 
-One limitation is structural rather than parametric and bounds the results
-outside the cordon in particular. Every agent with a city-centre destination in
-this model also has others, 3.76 on average, and an agent that declines the
-charge is deactivated for the whole day, so its suburban stops are cancelled
-with its city-centre one. In the order of a hundred thousand vehicle-trips a
-day therefore leave roads outside the cordon for no behavioural reason, which
-inflates the peripheral reductions and flatters the no-displacement result. A
-driver who abandons a city-centre appointment would in reality still run the
-other errands. Note that the k-factor sensitivity does not bear on this: that
-parameter sets the denominator of the flow V/C used for grading, and traffic is
-identical across its values at a fixed seed, so it tests how congestion is
-measured rather than how much demand there is.
+One check was structural rather than parametric and materially moved the
+results outside the cordon. Every agent with a city-centre destination in this
+model also has others, 3.76 on average, and in an earlier version an agent
+that declined the charge was deactivated for the whole day, cancelling its
+suburban stops with its city-centre one — in the order of a hundred thousand
+vehicle-trips a day leaving roads outside the cordon for no behavioural
+reason. Correcting this (a declining agent now skips only its city-centre
+stops) raised the uncharged baseline outside the cordon substantially and
+roughly halved the measured outer-zone reductions, from 44.6 to 22.6 per cent
+at the boundary for the learning rule; the no-displacement conclusion
+survived, and now rests on roads that carry the traffic they should. We report
+it because it shows how easily a demand-suppression artefact can flatter
+exactly the spatial results a cordon study leans on. Note that the k-factor
+sensitivity could never have caught it: that parameter sets the denominator of
+the flow V/C used for grading, and traffic is identical across its values at a
+fixed seed, so it tests how congestion is measured rather than how much demand
+there is.
 
 Within those bounds, the contribution is not a forecast. It is that an
 agent-based framework can hold competing behavioural theories in one network
