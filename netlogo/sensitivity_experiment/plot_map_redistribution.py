@@ -147,7 +147,7 @@ else:
     fig.suptitle("Link-level response to the ToU cordon charge, by decision rule "
                  "(14 days, calibrated model; dashed line = cordon)", y=0.95)
     out = os.path.join(FIGS, "map_redistribution.png")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
+    fig.savefig(out, dpi=400, bbox_inches="tight")
     print("wrote", out)
     plt.close(fig)
 
@@ -184,6 +184,6 @@ else:
     fig.suptitle("Daily peak Level of Service by link under no charge "
                  "(calibrated model, 14 days)", y=0.95)
     out = os.path.join(FIGS, "map_baseline_los.png")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
+    fig.savefig(out, dpi=400, bbox_inches="tight")
     print("wrote", out)
     plt.close(fig)

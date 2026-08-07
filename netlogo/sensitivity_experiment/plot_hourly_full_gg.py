@@ -92,9 +92,9 @@ def draw(g, labels, title, subtitle, ylab, fname, clip_zero=False):
                 caption="Line = mean of 14 simulated days, band = ±1 SD across "
                         "those days (one seed).\nShaded columns are the peak fee "
                         "windows.")
-         + theme(figure_size=(11, 7.2)) + BASE_THEME)
+         + BASE_THEME + theme(figure_size=(11, 7.2)))
     out = os.path.join(FIGS, fname)
-    p.save(out, dpi=200, verbose=False)
+    p.save(out, dpi=400, verbose=False)
     print("wrote", out)
 
 
@@ -125,9 +125,9 @@ def draw_groups(g, labels, colours, title, subtitle, ylab, fname):
                 caption="Line = mean of 14 simulated days, band = ±1 SD across "
                         "those days (one seed).\nShaded columns are the peak fee "
                         "windows. Rows share a scale, so read top against bottom.")
-         + theme(figure_size=(11, 5.4)) + BASE_THEME)
+         + BASE_THEME + theme(figure_size=(11, 5.4)))
     out = os.path.join(FIGS, fname)
-    p.save(out, dpi=200, verbose=False)
+    p.save(out, dpi=400, verbose=False)
     print("wrote", out)
 
 

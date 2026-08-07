@@ -67,5 +67,5 @@ p = (ggplot(long, aes("day", "peak_vc", colour="fee"))
              panel_grid_minor=element_blank(),
              figure_size=(11, 6.5)))
 out = os.path.join(FIGS, "daily_peak_gg.png")
-p.save(out, dpi=200, verbose=False)
+p.save(out, dpi=400, verbose=False)
 print("wrote", out)
