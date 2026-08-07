@@ -42,6 +42,21 @@ are to the capacity assumption. See `../LOS_IMPLEMENTATION.md` for details
 and results. `plot_sensitivity.py` draws boxplots, the ToU-reduction line
 plot, and the El Farol daily time series into `output/figures/`.
 
+## Equity run (equity_experiment.xml)
+
+`equity-quintile` is a separate 6-run experiment (all three rules × No-Charge/ToU,
+14 days, seed 11, flat outside option) that measures the "who pays" claims
+in-run: entry rate by VOT quintile (`optin-q 1..5`) and the fee burden in
+hours of own time for the bottom and top quintiles (`burden-quintile 1` and
+`5` only — q = 2..4 are defective and deliberately not recorded, see
+`paper_update/decisions_log.md`). Run it with:
+
+```bash
+export NETLOGO=~/NetLogo-6.4.0-64
+bash run_equity.sh              # writes output/tables/equity-quintile.csv
+python3 plot_equity.py          # figure + summary table
+```
+
 ## How to run
 
 1. Install NetLogo 6.x (tested 6.4.0 headless, Java 11+).

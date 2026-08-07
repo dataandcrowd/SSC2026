@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+
+  <!-- Equity by VOT quintile, measured in-run.
+       Purpose: turn the "who pays" claims (entry-rate loss and fee burden by
+       income proxy) from equation-derived into measured, for all three
+       decision rules under No-Charge vs ToU at the baseline outside option
+       (transit-penalty 0, the original spatially-flat spec).
+
+       Metrics:
+       - optin-q 1..5  : CBD entry rate among agents with a CBD trip today,
+                         by VOT quintile (1 = poorest fifth).
+       - optin-tier 1/2: entry rate by home transit tier (context).
+       - burden-quintile 1 and 5 ONLY: mean fee/VOT (hours of own time per
+         entry) for the bottom and top quintile of entrants. q = 2..4 are NOT
+         recorded because the reporter returns the whole population for those
+         bands (known defect, left unfixed by decision - see
+         paper_update/decisions_log.md).
+
+       Seed: control-seed? true, current-seed 11 (explicit; matches the
+       widget defaults and the other single-seed experiments). -->
+  <experiment name="equity-quintile" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-days</go>
+    <exitCondition>current-sim-day &gt;= n-sim-days</exitCondition>
+    <metric>current-sim-day</metric>
+    <metric>peak-vc-inner</metric>
+    <metric>optin-q 1</metric>
+    <metric>optin-q 2</metric>
+    <metric>optin-q 3</metric>
+    <metric>optin-q 4</metric>
+    <metric>optin-q 5</metric>
+    <metric>optin-tier 1</metric>
+    <metric>optin-tier 2</metric>
+    <metric>burden-quintile 1</metric>
+    <metric>burden-quintile 5</metric>
+    <metric>mean [fee-paid-today] of vehicles</metric>
+    <enumeratedValueSet variable="decision-rule">
+      <value value="&quot;Exp-Decay&quot;"/>
+      <value value="&quot;El Farol&quot;"/>
+      <value value="&quot;Q-Learning&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fee-regime"><value value="&quot;No-Charge&quot;"/><value value="&quot;tou&quot;"/></enumeratedValueSet>
+    <enumeratedValueSet variable="transit-penalty"><value value="0"/></enumeratedValueSet>
+    <enumeratedValueSet variable="n-sim-days"><value value="14"/></enumeratedValueSet>
+    <enumeratedValueSet variable="control-seed?"><value value="true"/></enumeratedValueSet>
+    <enumeratedValueSet variable="current-seed"><value value="11"/></enumeratedValueSet>
+  </experiment>
+
+</experiments>
