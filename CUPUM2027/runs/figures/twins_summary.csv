@@ -1,0 +1,7 @@
+run,n_pairs,differ_d1,differ_d10,differ_d11,differ_d12,differ_d20,differ_d30,same_d10,differ_d11_given_same_d10
+R-daily,30,8,11,14,13,11,11,19,7
+R-clock,30,8,9,17,17,18,16,21,9
+L-clock (mock),30,12,15,16,15,15,15,15,6
+L-daily (mock),30,12,14,13,14,16,11,16,5
+R-clock (traits off),30,0,1,3,3,3,3,29,2
+L-clock (mock) (traits off),30,0,8,4,4,5,5,22,3

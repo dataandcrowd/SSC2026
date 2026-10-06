@@ -1,0 +1,216 @@
+{
+ "capacity_scale": 0.46743,
+ "target_peak_delay_min": 15.0,
+ "achieved_peak_delay_min": 14.853,
+ "busiest_corridor": 2,
+ "peak_by_corridor": {
+  "0": 0.0,
+  "1": 22.9137,
+  "2": 3.0023,
+  "3": 19.6971,
+  "4": 17.8167
+ },
+ "calib_metric": "car_weighted_mean",
+ "status": "converged",
+ "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 6-10",
+ "seed": 1,
+ "n_agents": 300,
+ "capacity_mode": "demand_share",
+ "rush_window_min": 60.0,
+ "traits": "on",
+ "history": [
+  {
+   "capacity_scale": 0.05,
+   "peak_delay_min": 72.7622,
+   "busiest_corridor": 2,
+   "mean_cars": 168.8,
+   "mean_pt": 78.4,
+   "mean_wfh": 29.2,
+   "mean_queue_delay": 35.7535,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 86.0345,
+    "2": 62.8419,
+    "3": 51.915,
+    "4": 85.2751
+   }
+  },
+  {
+   "capacity_scale": 10.0,
+   "peak_delay_min": 0.0,
+   "busiest_corridor": 2,
+   "mean_cars": 265.6,
+   "mean_pt": 33.4,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 0.0,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0
+   }
+  },
+  {
+   "capacity_scale": 0.707107,
+   "peak_delay_min": 1.925,
+   "busiest_corridor": 2,
+   "mean_cars": 264.4,
+   "mean_pt": 34.6,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 0.7294,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 1.9667,
+    "2": 0.9543,
+    "3": 2.5727,
+    "4": 2.7164
+   }
+  },
+  {
+   "capacity_scale": 0.18803,
+   "peak_delay_min": 72.7394,
+   "busiest_corridor": 2,
+   "mean_cars": 170.0,
+   "mean_pt": 78.6,
+   "mean_wfh": 29.4,
+   "mean_queue_delay": 34.9388,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 86.0345,
+    "2": 65.3218,
+    "3": 51.915,
+    "4": 85.2751
+   }
+  },
+  {
+   "capacity_scale": 0.364633,
+   "peak_delay_min": 33.2783,
+   "busiest_corridor": 2,
+   "mean_cars": 227.0,
+   "mean_pt": 54.4,
+   "mean_wfh": 10.2,
+   "mean_queue_delay": 13.1215,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 48.0476,
+    "2": 18.5322,
+    "3": 37.0727,
+    "4": 38.4
+   }
+  },
+  {
+   "capacity_scale": 0.507774,
+   "peak_delay_min": 9.796,
+   "busiest_corridor": 2,
+   "mean_cars": 262.0,
+   "mean_pt": 35.0,
+   "mean_wfh": 0.4,
+   "mean_queue_delay": 3.5212,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 6.339,
+    "2": 2.0905,
+    "3": 30.0679,
+    "4": 6.0254
+   }
+  },
+  {
+   "capacity_scale": 0.430292,
+   "peak_delay_min": 17.0728,
+   "busiest_corridor": 2,
+   "mean_cars": 253.6,
+   "mean_pt": 41.2,
+   "mean_wfh": 2.4,
+   "mean_queue_delay": 6.8484,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 24.7898,
+    "2": 3.5234,
+    "3": 21.2627,
+    "4": 24.7757
+   }
+  },
+  {
+   "capacity_scale": 0.46743,
+   "peak_delay_min": 14.853,
+   "busiest_corridor": 2,
+   "mean_cars": 260.2,
+   "mean_pt": 36.2,
+   "mean_wfh": 0.8,
+   "mean_queue_delay": 5.6836,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 22.9137,
+    "2": 3.0023,
+    "3": 19.6971,
+    "4": 17.8167
+   }
+  }
+ ],
+ "by_seed": {
+  "1": {
+   "capacity_scale": 0.46743,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 14.853,
+   "busiest_corridor": 2,
+   "peak_by_corridor": {
+    "0": 0.0,
+    "1": 22.9137,
+    "2": 3.0023,
+    "3": 19.6971,
+    "4": 17.8167
+   },
+   "calib_metric": "car_weighted_mean",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 6-10",
+   "seed": 1,
+   "n_agents": 300,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on"
+  },
+  "2": {
+   "capacity_scale": 0.425862,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 16.902,
+   "busiest_corridor": 1,
+   "peak_by_corridor": {
+    "0": 1.5,
+    "1": 2.2665,
+    "2": 16.6057,
+    "3": 36.0474,
+    "4": 22.4857
+   },
+   "calib_metric": "car_weighted_mean",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 6-10",
+   "seed": 2,
+   "n_agents": 300,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on"
+  },
+  "3": {
+   "capacity_scale": 0.430292,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 13.7301,
+   "busiest_corridor": 1,
+   "peak_by_corridor": {
+    "0": 1.5,
+    "1": 8.8122,
+    "2": 9.68,
+    "3": 26.11,
+    "4": 15.9672
+   },
+   "calib_metric": "car_weighted_mean",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 6-10",
+   "seed": 3,
+   "n_agents": 300,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on"
+  }
+ }
+}

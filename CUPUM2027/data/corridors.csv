@@ -1,0 +1,6 @@
+corridor_id,name,n_gates,capacity_vph_raw,bearing_deg,x_nztm,y_nztm,main_streets
+0,"East (The Strand, Gladstone Road)",4,7100.0,89.2,1758860.9,5920408.7,The Strand;Gladstone Road
+1,"South-east (Alten Road, Parnell Rise)",4,3600.0,124.87,1758094.8,5920024.5,Alten Road;Parnell Rise;Grafton Road
+2,South (Wellesley Street ramp),1,1500.0,185.52,1757376.6,5919261.4,Wellesley Street ramp
+3,"South-west (Northern Motorway ramp, Helensville ramp)",11,19500.0,218.7,1756410.8,5919486.8,Northern Motorway ramp;Helensville ramp;Hopetoun Street
+4,"West (Fanshawe Street ramp, Westhaven Drive)",7,9800.0,288.73,1756252.3,5920669.0,Fanshawe Street ramp;Westhaven Drive;Beaumont Street

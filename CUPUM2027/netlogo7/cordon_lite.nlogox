@@ -1,0 +1,1999 @@
+<?xml version="1.0" encoding="utf-8"?>
+<model version="NetLogo 7.0.4" snapToGrid="false">
+  <code><![CDATA[;; Cordon-Lite NetLogo model. One file, two uses:
+;;  - Open it to watch a run: every car drives on the TomTom major-road network of Auckland from its
+;;    origin to its gate, waits in the gate queue and parks at its workplace in the city centre. The
+;;    model plays each morning until every commuter has arrived (1 tick = 15 simulated seconds).
+;;  - Python drives it headless as NetLogoEngine (cordonlite/engine.py) through setup-from-dir,
+;;    set-clock and run-day, exchanging CSV files with a run folder; that path loads no map.
+;; Both uses compute the gate queues with the same procedure, point-queues: one Vickrey point queue
+;; per corridor at minute resolution, identical to PyEngine.
+;;
+;; Each commuter lives at its Cordon-Lite origin and works in one building inside the cordon, drawn
+;; at random once (fixed seed) and kept for every day. On each day (plans_dayNN.csv of a run folder)
+;; a car leaves home at its departure minute, drives the free-flow shortest path to its gate (the
+;; prep gate of its origin: where its path first enters the cordon), waits in its corridor's queue
+;; and drives on to its building. The minutes are the engine's: gate arrival = departure + free-flow
+;; minutes to the gate (agents.csv); gate exit from point-queues (the same FIFO order, carry and cap
+;; as PyEngine, so the same minutes); arrival =
+;; gate exit + free-flow minutes from the gate. The network only says where a car is between those
+;; minutes. PT riders leave home and appear at their building at the PT arrival minute of the run
+;; (outcomes.csv); WFH and SKIP stay at home. Nothing here feeds back into a Cordon-Lite run.
+;;
+;; Inputs, relative to this model:
+;;   scenario-dir     a run folder of python -m cordonlite.run (corridors.csv, agents.csv, fees.csv,
+;;                    plans_dayNN.csv, scenario.csv, personas.csv, outcomes.csv) or demo_scenario
+;;   gis/tomtom_major_roads.shp, gis/cordon.shp, gis/cbd_buildings.shp, gis/cbd_buildings.csv
+;;                                                     map layers (prep.build_netlogo_layers)
+;;   ../data/origins.csv, ../data/gates.csv            prep outputs: the gate of every origin
+
+extensions [ csv table gis nw ]
+
+globals [
+  ;; scenario (a run folder of python -m cordonlite.run)
+  scen-dir            ;; folder loaded by setup
+  sim-start-min       ;; first minute simulated
+  sim-end-cap-min     ;; last minute a queue is served
+  corr-ids            ;; corridor ids, ascending
+  corr-caps           ;; capacity (cars per minute), same order
+  corr-names          ;; corridor names, same order
+  corr-xy             ;; [x y] NZTM of each corridor, same order
+  corr-index          ;; table corridor_id -> position in the lists above
+  agent-fg            ;; table agent_id -> free-flow minutes origin to gate
+  agent-gd            ;; table agent_id -> free-flow minutes gate to destination
+  commuter-of         ;; table agent_id -> commuter
+  agent-corr          ;; table agent_id -> corridor_id
+  fee-list            ;; 1440 fees by minute (fees.csv)
+  charge-from-day     ;; from scenario.csv: first charged day (0 = never); -1 = use the fee-start-day input
+  scen-n-days         ;; from scenario.csv: number of days in the run; -1 = unknown (demo)
+  pt-times            ;; table "day agent_id" -> [depart arrive] of PT trips (outcomes.csv of a run)
+  ;; the day on screen
+  current-day         ;; 0 before the first day
+  day-running?        ;; a day is being animated
+  clock               ;; minutes after midnight
+  day-start           ;; first minute shown today
+  day-end-min         ;; the day ends at this minute (the last arrival)
+  vehicles-per-agent  ;; real cars one agent stands for (agents_represented / agents)
+  fee-active-today?   ;; charge levied today
+  n-cars              ;; cars today
+  mean-delay          ;; mean queue delay (min) of today's served cars
+  max-delay           ;; max queue delay (min) today
+  day-exits           ;; gate-exit minutes of today's served cars (cordon entries)
+  last-plot-min       ;; last minute plotted today
+  ;; headless engine (run-day, NetLogoEngine): the last day computed
+  agent-mode          ;; table agent_id -> mode
+  last-minute         ;; last minute processed
+  last-profile        ;; rows [day corridor_id minute arrivals served queue_len]
+  last-exits          ;; gate-exit minutes of the served cars
+  ;; map and network
+  map-view            ;; "Auckland" | "City centre"
+  map-env             ;; [minx maxx miny maxy] NZTM of the world edges (gis:world-envelope)
+  net-env             ;; map-env of the Auckland view, where the (hidden) nodes are placed
+  roads-ds            ;; GIS datasets
+  cordon-ds
+  buildings-ds
+  road-classes        ;; road features by TomTom frc 0..4 (drawing style)
+  road-classes-cc     ;; the same, only features near the cordon (City centre view)
+  main-inner          ;; the largest connected set of cordon nodes (roads with both ends inside)
+  node-at             ;; table "X Y" (NZTM rounded to 1 m) -> node
+  seg-ends            ;; table gate segment_id -> [node node]
+  route-cache         ;; table "who who" -> list of nodes
+]
+
+;; breeds declared later are drawn on top
+breed [ nodes node ]
+undirected-link-breed [ roads road ]
+breed [ buildings building ]
+breed [ gates gate ]
+breed [ commuters commuter ]
+breed [ tags tag ]               ;; corridor labels, drawn above gates and cars
+tags-own [ tag-cid ]             ;; the corridor a tag labels
+nodes-own [ nx ny in-cordon? ]   ;; NZTM metres rounded to 1 m, as the prep graph
+roads-own [
+  tt                  ;; free-flow minutes = distance / speed limit (the prep weight)
+  tt-in               ;; tt + cordon-exit-penalty on a road with an end outside the cordon
+]
+buildings-own [ building-id bx by bnode ]   ;; point inside the footprint; nearest node in the cordon
+gates-own [ gate-id corridor-id gx gy u-node v-node ]   ;; gate point; outside and inside end node
+commuters-own [
+  agent-id corridor-id home-x home-y home-node my-gate work-building
+  route-out len-out   ;; NZTM [x y] points home -> gate point, and cumulative metres
+  route-in len-in     ;; NZTM [x y] points gate point -> building, and cumulative metres
+  mode-today dep gate-arr gate-exit arr   ;; today's trip in minutes (-1 = none)
+  q-rank              ;; place in the queue at its gate (0 = head)
+]
+
+;; ------------------------------------------------------------------ constants
+
+to-report roads-file
+  report path-join map-dir "tomtom_major_roads.shp"
+end
+
+to-report map-dir
+  report "gis"
+end
+
+to-report prep-dir
+  report "../data"
+end
+
+to-report workplace-seed
+  report 2027
+end
+
+;; animation steps per simulated minute: 1 tick = 15 s, so cars move smoothly
+to-report steps-per-minute
+  report 4
+end
+
+;; Road length one queued agent takes up, metres. An agent stands for vehicles-per-agent cars (about
+;; 63 in a 300-agent run); at 7 m per car in 2 lanes [A] that is about 220 m, so a queue drawn back
+;; along the approach road is as long as the real queue it stands for.
+to-report queue-spacing-m
+  report max (list 15 (vehicles-per-agent * 7 / 2))
+end
+
+;; minutes added to a road with an end outside the cordon when routing a car from its gate to its
+;; building, so that it leaves the cordon only where the roads inside do not connect
+to-report cordon-exit-penalty
+  report 60
+end
+
+;; ------------------------------------------------------------------ helpers
+
+to-report path-join [ dir file ]
+  report (word dir "/" file)
+end
+
+to-report pad2 [ d ]
+  report ifelse-value (d < 10) [ (word "0" d) ] [ (word d) ]
+end
+
+to-report col [ header name ]
+  let i position name header
+  if i = false [ error (word "column " name " missing") ]
+  report i
+end
+
+to-report read-rows [ dir file ]
+  let f path-join dir file
+  if not file-exists? f [ error (word "missing file " f) ]
+  report filter [ r -> length r > 1 ] csv:from-file f
+end
+
+;; no greens (PT) and no red (cars waiting in a gate queue) in the corridor palette
+to-report corridor-color [ cid ]
+  let palette [ 105 45 125 25 85 135 95 115 35 5 ]
+  report item ((table:get corr-index cid) mod length palette) palette
+end
+
+;; "South-west (Fanshawe Street ramp, ...)" -> "SW"
+to-report compass-abbrev [ nm ]
+  let i position " (" nm
+  let head ifelse-value (i = false) [ nm ] [ substring nm 0 i ]
+  let k position head [ "North" "North-east" "East" "South-east" "South" "South-west" "West" "North-west" ]
+  if k != false [ report item k [ "N" "NE" "E" "SE" "S" "SW" "W" "NW" ] ]
+  let out ""
+  let new-word? true
+  foreach n-values length head [ j -> item j head ] [ ch ->
+    if new-word? and (ch != "-") and (ch != " ") [ set out (word out ch) ]
+    set new-word? (ch = "-") or (ch = " ")
+  ]
+  report out
+end
+
+to-report charge-on? [ d ]
+  if charge-from-day >= 0 [ report (charge-from-day > 0) and (d >= charge-from-day) ]
+  report d >= fee-start-day
+end
+
+to-report hhmm [ m ]
+  let mm floor m
+  report (word pad2 floor (mm / 60) ":" pad2 (mm mod 60))
+end
+
+to-report xy-key [ x y ]
+  report (word round x " " round y)
+end
+
+to-report dist-m [ a b ]
+  report sqrt (((item 0 b) - (item 0 a)) ^ 2 + ((item 1 b) - (item 1 a)) ^ 2)
+end
+
+;; ------------------------------------------------------------------ setup
+
+to setup
+  clear-all
+  set scen-dir scenario-dir
+  set sim-start-min 330
+  set sim-end-cap-min 720
+  set current-day 0
+  set day-running? false
+  set clock sim-start-min
+  set day-start sim-start-min
+  set day-end-min sim-start-min
+  set fee-active-today? false
+  set n-cars 0
+  set mean-delay 0
+  set max-delay 0
+  set day-exits []
+  set last-plot-min -1
+  set route-cache table:make
+  read-corridors
+  read-agents
+  read-fees
+  read-scenario-meta
+  read-clock
+  read-pt-times
+  print (word "Cordon-Lite network model: " count commuters " commuters, " length corr-ids " corridors from " scen-dir)
+  load-map
+  build-network
+  read-buildings
+  make-gates
+  assign-workplaces
+  make-routes
+  set-map-view "Auckland"
+  reset-ticks
+  print "Ready: press go to drive the next day."
+end
+
+to read-scenario-meta
+  set charge-from-day -1
+  set scen-n-days -1
+  let f path-join scen-dir "scenario.csv"
+  if file-exists? f [
+    foreach but-first csv:from-file f [ r ->
+      if (item 0 r) = "charge_from_day" [ set charge-from-day item 1 r ]
+      if (item 0 r) = "n_days" [ set scen-n-days item 1 r ]
+    ]
+  ]
+end
+
+;; From the run's config_snapshot.toml: the engine clock ([time] sim_start_min, sim_end_cap_min; the
+;; values NetLogoEngine passes with set-clock) and [engine] agents_represented. Without the file
+;; (demo_scenario) the config.toml values: 330, 720 and 19,000.
+to read-clock
+  let represented 19000
+  let f path-join scen-dir "config_snapshot.toml"
+  if file-exists? f [
+    let section ""
+    file-open f
+    while [ not file-at-end? ] [
+      let txt file-read-line
+      if (length txt > 0) and (first txt = "[") [ set section txt ]
+      if member? "=" txt [
+        let k position "=" txt
+        let key-name remove " " substring txt 0 k
+        let value-text substring txt (k + 1) (length txt)
+        if section = "[time]" and key-name = "sim_start_min" [ set sim-start-min read-from-string value-text ]
+        if section = "[time]" and key-name = "sim_end_cap_min" [ set sim-end-cap-min read-from-string value-text ]
+        if section = "[engine]" and key-name = "agents_represented" [ set represented read-from-string value-text ]
+      ]
+    ]
+    file-close
+  ]
+  set vehicles-per-agent represented / max (list 1 count commuters)
+  set clock sim-start-min
+  set day-start sim-start-min
+  set day-end-min sim-start-min
+end
+
+to read-corridors
+  let rows read-rows scen-dir "corridors.csv"
+  let h first rows
+  let ic col h "corridor_id"
+  let ik col h "capacity_per_min"
+  let iname col h "name"
+  let ix col h "x"
+  let iy col h "y"
+  let body sort-by [ [a b] -> (item ic a) < (item ic b) ] but-first rows
+  set corr-ids map [ r -> item ic r ] body
+  set corr-caps map [ r -> item ik r ] body
+  set corr-names map [ r -> (word item iname r) ] body
+  set corr-xy map [ r -> list (item ix r) (item iy r) ] body
+  set corr-index table:make
+  foreach range length corr-ids [ k -> table:put corr-index (item k corr-ids) k ]
+end
+
+to read-agents
+  let rows read-rows scen-dir "agents.csv"
+  let h first rows
+  let ia col h "agent_id"
+  let ic col h "corridor_id"
+  let ig col h "fftt_to_gate_min"
+  let id col h "fftt_gate_to_dest_min"
+  let ix col h "x"
+  let iy col h "y"
+  set agent-fg table:make
+  set agent-gd table:make
+  set agent-corr table:make
+  set commuter-of table:make
+  foreach but-first rows [ r ->
+    let aid item ia r
+    table:put agent-corr aid (item ic r)
+    table:put agent-fg aid (item ig r)
+    table:put agent-gd aid (item id r)
+    create-commuters 1 [
+      set agent-id aid
+      set corridor-id item ic r
+      set home-x item ix r
+      set home-y item iy r
+      set mode-today "NONE"
+      set dep -1
+      set gate-arr -1
+      set gate-exit -1
+      set arr -1
+      set q-rank 0
+      set hidden? true
+      table:put commuter-of aid self
+    ]
+  ]
+end
+
+to read-fees
+  let rows read-rows scen-dir "fees.csv"
+  let h first rows
+  let im col h "minute"
+  let ifee col h "fee"
+  let t table:make
+  foreach but-first rows [ r -> table:put t (item im r) (item ifee r) ]
+  set fee-list n-values 1440 [ m -> ifelse-value (table:has-key? t m) [ table:get t m ] [ 0 ] ]
+end
+
+;; PT departure and arrival minutes of every PT trip of the run (outcomes.csv); empty without it
+to read-pt-times
+  set pt-times table:make
+  let f path-join scen-dir "outcomes.csv"
+  if not file-exists? f [ stop ]
+  let rows read-rows scen-dir "outcomes.csv"
+  let h first rows
+  let ia col h "agent_id"
+  let id col h "day"
+  let im col h "mode"
+  let idep col h "depart_min"
+  let iarr col h "arrive_min"
+  foreach but-first rows [ r ->
+    if (item im r) = "PT" and is-number? item idep r and is-number? item iarr r [
+      table:put pt-times (word item id r " " item ia r) (list (item idep r) (item iarr r))
+    ]
+  ]
+end
+
+;; ------------------------------------------------------------------ map and network
+
+to load-map
+  foreach (list roads-file (path-join map-dir "cordon.shp") (path-join map-dir "cbd_buildings.shp")
+                (path-join map-dir "cbd_buildings.csv")) [ f ->
+    if not file-exists? f [ error (word "missing " f ": run python -m prep.build_netlogo_layers") ]
+  ]
+  ;; every layer is NZTM2000 (EPSG:2193) and is used in its own coordinates, so no coordinate
+  ;; system is loaded (gis:load-coordinate-system on each setup only printed a re-projection warning)
+  set roads-ds gis:load-dataset roads-file
+  set cordon-ds gis:load-dataset path-join map-dir "cordon.shp"
+  set buildings-ds gis:load-dataset path-join map-dir "cbd_buildings.shp"
+  set road-classes map [ k -> filter [ f -> gis:property-value f "frc" = k ] gis:feature-list-of roads-ds ]
+                       [ 0 1 2 3 4 ]
+  ;; the City centre view draws only the roads near the cordon (a square around its view envelope)
+  let ve view-envelope "City centre"
+  let half 0.5 * max (list ((item 1 ve) - (item 0 ve)) ((item 3 ve) - (item 2 ve)))
+  let cx ((item 0 ve) + (item 1 ve)) / 2
+  let cy ((item 2 ve) + (item 3 ve)) / 2
+  let near (list (cx - half) (cx + half) (cy - half) (cy + half))
+  set road-classes-cc map [ fs -> filter [ f -> envelopes-overlap? gis:envelope-of f near ] fs ] road-classes
+  ;; the network is built (and nodes placed) in the Auckland view
+  apply-envelope view-envelope "Auckland"
+  set map-view "Auckland"
+  set net-env map-env
+end
+
+;; Nodes and roads from the TomTom shapefile, as the prep graph (prep/build_inputs.py, build_graph):
+;; a node per segment end, NZTM rounded to 1 m; segments whose ends coincide are dropped; of
+;; parallel segments between the same two nodes the fastest is kept (28,520 nodes, 30,846 roads);
+;; then only the giant component is kept: 28,507 nodes and 30,835 roads, the graph prep routes on.
+to build-network
+  reset-timer
+  set node-at table:make
+  set seg-ends table:make
+  let gate-segs table:make
+  let grows read-rows prep-dir "gates.csv"
+  let iseg col first grows "segment_id"
+  foreach but-first grows [ r -> table:put gate-segs (word item iseg r) true ]
+  let best table:make   ;; "who who" -> [a b minutes]
+  foreach gis:feature-list-of roads-ds [ f ->
+    let vl first gis:vertex-lists-of f
+    let a node-for nztm-of gis:location-of first vl
+    let b node-for nztm-of gis:location-of last vl
+    let sid (word gis:property-value f "segment_id")
+    if table:has-key? gate-segs sid [ table:put seg-ends sid (list a b) ]
+    if a != b [
+      let t (gis:property-value f "distance") / 1000 / (gis:property-value f "speedLimit") * 60
+      let key ifelse-value ([who] of a < [who] of b) [ (word [who] of a " " [who] of b) ] [ (word [who] of b " " [who] of a) ]
+      if (not table:has-key? best key) or (t < item 2 table:get best key) [ table:put best key (list a b t) ]
+    ]
+  ]
+  foreach table:values best [ ent ->
+    ask item 0 ent [ create-road-with item 1 ent [ set tt item 2 ent  set hidden? true ] ]
+  ]
+  nw:set-context nodes roads
+  ;; the two small fragments (13 nodes, none in the cordon) cannot be reached from anywhere else
+  let comps sort-by [ [p q] -> count p > count q ] nw:weak-component-clusters
+  foreach but-first comps [ c -> ask c [ table:remove node-at xy-key nx ny  die ] ]
+  ;; inside the cordon (on its boundary counts as inside, as prep's inside_mask)
+  let ce gis:envelope-of cordon-ds
+  ask nodes [ set in-cordon? false ]
+  ask nodes with [ nx >= item 0 ce and nx <= item 1 ce and ny >= item 2 ce and ny <= item 3 ce ]
+    [ set in-cordon? gis:intersects? cordon-ds self ]
+  ask roads [ set tt-in tt + ifelse-value ([in-cordon?] of end1 and [in-cordon?] of end2) [ 0 ] [ cordon-exit-penalty ] ]
+  ;; the cordon's own roads fall into 15 pieces (the SA3 line cuts some streets); buildings are
+  ;; reached from the largest, which holds 1,066 of the 1,106 cordon nodes
+  nw:with-context (nodes with [ in-cordon? ]) (roads with [ [in-cordon?] of end1 and [in-cordon?] of end2 ]) [
+    set main-inner first sort-by [ [p q] -> count p > count q ] nw:weak-component-clusters
+  ]
+  print (word "Road network: " count nodes " nodes, " count roads " roads, "
+              count nodes with [ in-cordon? ] " nodes in the cordon (" precision timer 1 " s)")
+end
+
+;; NetLogo [x y] -> NZTM [X Y]: inverse of the linear map of the current world envelope
+to-report envelopes-overlap? [ a b ]
+  report ((item 0 a) <= (item 1 b)) and ((item 1 a) >= (item 0 b)) and
+         ((item 2 a) <= (item 3 b)) and ((item 3 a) >= (item 2 b))
+end
+
+to-report nztm-of [ p ]
+  report (list ((item 0 map-env) + ((item 0 p) - (min-pxcor - 0.5)) * ((item 1 map-env) - (item 0 map-env)) / world-width)
+               ((item 2 map-env) + ((item 1 p) - (min-pycor - 0.5)) * ((item 3 map-env) - (item 2 map-env)) / world-height))
+end
+
+to-report node-for [ xy ]
+  let key xy-key (item 0 xy) (item 1 xy)
+  if table:has-key? node-at key [ report table:get node-at key ]
+  let n nobody
+  create-nodes 1 [
+    set nx round item 0 xy
+    set ny round item 1 xy
+    set hidden? true
+    let p map-xy nx ny
+    setxy (item 0 p) (item 1 p)
+    set n self
+  ]
+  table:put node-at key n
+  report n
+end
+
+to-report nearest-node [ x y candidates ]
+  report min-one-of candidates [ (nx - x) ^ 2 + (ny - y) ^ 2 ]
+end
+
+;; workplaces: one point inside each footprint, gis/cbd_buildings.csv
+to read-buildings
+  let rows read-rows map-dir "cbd_buildings.csv"
+  let h first rows
+  let ii col h "building_id"
+  let ix col h "x_nztm"
+  let iy col h "y_nztm"
+  foreach but-first rows [ r ->
+    create-buildings 1 [
+      set building-id item ii r
+      set bx item ix r
+      set by item iy r
+      set bnode nobody
+      set shape "square"
+      set hidden? true
+    ]
+  ]
+end
+
+;; One gate turtle per prep gate an agent uses (data/origins.csv gate_id of its origin, found through
+;; personas.csv origin_id or the origin coordinates). A scenario whose agents are not prep origins
+;; (demo_scenario) queues each corridor at its corridor point instead.
+to make-gates
+  let origin-gate table:make     ;; origin_id -> gate_id
+  let xy-gate table:make         ;; "X Y" -> gate_id
+  let orows read-rows prep-dir "origins.csv"
+  let oh first orows
+  foreach but-first orows [ r ->
+    table:put origin-gate (item (col oh "origin_id") r) (item (col oh "gate_id") r)
+    table:put xy-gate (xy-key (item (col oh "x_nztm") r) (item (col oh "y_nztm") r)) (item (col oh "gate_id") r)
+  ]
+  let persona-origin table:make  ;; agent_id -> origin_id
+  if file-exists? path-join scen-dir "personas.csv" [
+    let prows read-rows scen-dir "personas.csv"
+    let ph first prows
+    if member? "origin_id" ph [
+      foreach but-first prows [ r -> table:put persona-origin (item (col ph "agent_id") r) (item (col ph "origin_id") r) ]
+    ]
+  ]
+  let grows read-rows prep-dir "gates.csv"
+  let gh first grows
+  let gate-row table:make
+  foreach but-first grows [ r -> table:put gate-row (item (col gh "gate_id") r) r ]
+  let gate-key table:make        ;; agent_id -> [gate_id corridor_id], gate_id -1 = corridor point
+  ask commuters [
+    set home-node ifelse-value table:has-key? node-at xy-key home-x home-y
+      [ table:get node-at xy-key home-x home-y ] [ nearest-node home-x home-y nodes ]
+    let gid -1
+    if table:has-key? persona-origin agent-id [
+      let oid table:get persona-origin agent-id
+      if table:has-key? origin-gate oid [ set gid table:get origin-gate oid ]
+    ]
+    if gid = -1 and table:has-key? xy-gate xy-key home-x home-y [ set gid table:get xy-gate xy-key home-x home-y ]
+    table:put gate-key agent-id (list gid corridor-id)
+  ]
+  let gate-of table:make         ;; "gate_id corridor_id" -> gate turtle
+  foreach sort-on [ agent-id ] commuters [ c ->
+    let gk table:get gate-key [ agent-id ] of c
+    let key (word item 0 gk " " item 1 gk)
+    if not table:has-key? gate-of key [ table:put gate-of key new-gate (item 0 gk) (item 1 gk) gate-row gh ]
+    ask c [ set my-gate table:get gate-of key ]
+  ]
+end
+
+;; a gate turtle: prep gate gid (its crossing point and the two ends of its segment), or the
+;; corridor point of cid when gid = -1
+to-report new-gate [ gid cid gate-row gh ]
+  let g nobody
+  create-gates 1 [
+    set g self
+    set gate-id gid
+    set corridor-id cid
+    set shape "target"
+    set color corridor-color cid
+    ifelse (gid >= 0) and table:has-key? gate-row gid [
+      let r table:get gate-row gid
+      set gx item (col gh "x_nztm") r
+      set gy item (col gh "y_nztm") r
+      let ends table:get-or-default seg-ends (word item (col gh "segment_id") r) []
+      ifelse length ends = 2 [
+        ;; prep gate: the path enters the cordon from the outside end u to the inside end v
+        let outside filter [ n -> not [in-cordon?] of n ] ends
+        set u-node ifelse-value (length outside = 1) [ first outside ] [ item 0 ends ]
+        set v-node ifelse-value (u-node = item 0 ends) [ item 1 ends ] [ item 0 ends ]
+      ] [
+        set u-node nearest-node gx gy nodes with [ not in-cordon? ]
+        set v-node nobody
+      ]
+    ] [
+      let p item (table:get corr-index cid) corr-xy
+      set gx item 0 p
+      set gy item 1 p
+      set u-node nearest-node gx gy nodes
+      set v-node nobody
+    ]
+  ]
+  report g
+end
+
+to assign-workplaces
+  if not any? buildings [ error "no buildings in gis/cbd_buildings.csv" ]
+  with-local-randomness [
+    random-seed workplace-seed
+    foreach sort-on [ agent-id ] commuters [ c -> ask c [ set work-building one-of buildings ] ]
+  ]
+  let inside ifelse-value any? main-inner [ main-inner ] [ nodes ]
+  ask (turtle-set [ work-building ] of commuters) [ set bnode nearest-node bx by inside ]
+end
+
+;; shortest path a -> b on link weight w ("tt" or "tt-in") as a list of nodes (cached); a straight
+;; hop when unreachable, which cannot happen on the giant component but is reported if it does
+to-report route-nodes [ a b w ]
+  if a = b [ report (list a) ]
+  let key (word [who] of a " " [who] of b " " w)
+  if table:has-key? route-cache key [ report table:get route-cache key ]
+  let p false
+  ;; the nw primitives take the weight as a literal name, not as a variable holding it
+  ifelse w = "tt-in"
+    [ ask a [ set p nw:turtles-on-weighted-path-to b "tt-in" ] ]
+    [ ask a [ set p nw:turtles-on-weighted-path-to b "tt" ] ]
+  if not is-list? p [
+    print (word "No road path between " a " and " b ": drawn as a straight line")
+    set p (list a b)
+  ]
+  table:put route-cache key p
+  report p
+end
+
+to-report node-points [ ns ]
+  report map [ n -> list ([nx] of n) ([ny] of n) ] ns
+end
+
+to-report cum-lengths [ pts ]
+  let out [ 0 ]
+  foreach range (length pts - 1) [ i -> set out lput ((last out) + dist-m (item i pts) (item (i + 1) pts)) out ]
+  report out
+end
+
+;; home -> outside end of the gate segment -> gate point; gate point -> inside end -> building.
+;; The leg from the gate is routed on tt-in, so a car that has passed its gate stays inside the
+;; cordon wherever the cordon's roads connect (on plain tt about two thirds of these legs would
+;; leave and re-enter it). On roads it leaves only from gates whose inside end connects to the rest
+;; of the cordon through a road just outside it (the Wellesley Street ramp, about 100 to 160 m, and
+;; Hopetoun Street); the setup message counts those legs. The car parks at the cordon node nearest
+;; its building, and the commuter is drawn at the building on arrival.
+;; A home that is not a road node (synthetic folders such as demo_scenario) starts with a straight
+;; hop to its nearest node; the setup message counts homes more than 500 m from one.
+to make-routes
+  reset-timer
+  let n-leave 0
+  let n-far 0
+  ask commuters [
+    let g my-gate
+    let gp list ([gx] of g) ([gy] of g)
+    let out node-points route-nodes home-node [u-node] of g "tt"
+    if dist-m (list home-x home-y) (first out) > 500 [ set n-far n-far + 1 ]
+    if dist-m (list home-x home-y) (first out) > 0.5 [ set out fput (list home-x home-y) out ]
+    set route-out lput gp out
+    let wb work-building
+    let leg route-nodes (leg-start g) [bnode] of wb "tt-in"
+    if any? (turtle-set leg) with [ not in-cordon? ] [ set n-leave n-leave + 1 ]
+    ;; the car parks at the road node nearest the building (median 65 m away); the commuter is
+    ;; drawn at the building on arrival, so no car drives off the roads (across the wharves)
+    set route-in fput gp (node-points leg)
+    set len-out cum-lengths route-out
+    set len-in cum-lengths route-in
+  ]
+  print (word "Routes: " count commuters " commuters; " n-leave " legs from a gate to a building use "
+              "roads outside the cordon (" precision timer 1 " s)")
+  if n-far > 0 [
+    print (word n-far " homes are more than 500 m from a road node and start with a straight line "
+                "(their folder's homes are not prep origins)")
+  ]
+end
+
+;; first node after the gate point: the inside end of a prep gate segment, else the gate node
+to-report leg-start [ g ]
+  report ifelse-value ([v-node] of g != nobody) [ [v-node] of g ] [ [u-node] of g ]
+end
+
+;; ------------------------------------------------------------------ views
+
+to set-map-view [ v ]
+  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not member? v [ "Auckland" "City centre" ] [ error (word "unknown map view " v) ]
+  set map-view v
+  apply-envelope view-envelope v
+  draw-map
+  place-gates
+  update-commuters
+  display   ;; the view updates on ticks; a view change between ticks must show at once
+end
+
+to apply-envelope [ env ]
+  gis:set-world-envelope env
+  set map-env gis:world-envelope
+end
+
+;; [minx maxx miny maxy] NZTM of view v: the layer's envelope plus a margin (gis:set-world-envelope
+;; widens it to the world's aspect ratio)
+to-report view-envelope [ v ]
+  let cc? v = "City centre"
+  let env ifelse-value cc? [ gis:envelope-of cordon-ds ] [ gis:envelope-of roads-ds ]
+  let margin ifelse-value cc? [ 0.15 ] [ 0.01 ]
+  let w ((item 1 env) - (item 0 env)) * margin
+  let h ((item 3 env) - (item 2 env)) * margin
+  report (list ((item 0 env) - w) ((item 1 env) + w) ((item 2 env) - h) ((item 3 env) + h))
+end
+
+;; NZTM metres -> [xcor ycor] (gis:location-of's mapping); [] outside the world
+to-report map-xy [ x y ]
+  let px (min-pxcor - 0.5) + (x - item 0 map-env) * world-width / ((item 1 map-env) - (item 0 map-env))
+  let py (min-pycor - 0.5) + (y - item 2 map-env) * world-height / ((item 3 map-env) - (item 2 map-env))
+  if (px < min-pxcor - 0.5) or (px >= max-pxcor + 0.5) or (py < min-pycor - 0.5) or (py >= max-pycor + 0.5)
+    [ report [] ]
+  report list px py
+end
+
+;; turtle procedure: show at NZTM (x, y), hidden when outside the view
+to place-at [ x y ]
+  let p map-xy x y
+  ifelse empty? p [ set hidden? true ] [ setxy (item 0 p) (item 1 p)  set hidden? false ]
+end
+
+to draw-map
+  clear-drawing
+  let cc? map-view = "City centre"
+  if cc? [
+    gis:set-drawing-color gray - 3.5
+    gis:fill buildings-ds 0
+  ]
+  ;; local roads first, motorways last so they stay on top
+  let road-colors [ 7 5 4 3 2.5 ]                 ;; frc 0 motorway .. 4 local
+  let road-widths ifelse-value cc? [ [ 3 2.5 2 1.5 1 ] ] [ [ 1.5 1 0.8 0.5 0.5 ] ]
+  foreach [ 4 3 2 1 0 ] [ k ->
+    gis:set-drawing-color item k road-colors
+    let w item k road-widths
+    foreach item k (ifelse-value cc? [ road-classes-cc ] [ road-classes ]) [ f -> gis:draw f w ]
+  ]
+  gis:set-drawing-color white
+  gis:draw cordon-ds ifelse-value cc? [ 2 ] [ 1.5 ]
+end
+
+;; gates at their crossing point. In the City centre view each corridor is labelled below its
+;; busiest gate with the number of cars waiting in its queue, by a tag turtle (the last breed, so the
+;; label is drawn above gates and cars; update-tags refreshes it every minute).
+to place-gates
+  let cc? map-view = "City centre"
+  ask gates [
+    place-at gx gy
+    set size ifelse-value cc? [ 3 ] [ 2 ]
+  ]
+  ask tags [ die ]
+  if cc? [
+    foreach corr-ids [ cid ->
+      let gs gates with [ corridor-id = cid and not hidden? ]
+      if any? gs [
+        let g max-one-of gs [ count commuters with [ my-gate = myself ] ]
+        let k table:get corr-index cid
+        ;; a label ends at its turtle; about 1.4 patches per character at this patch and font size
+        let w 1.4 * length (word compass-abbrev item k corr-names " " cid ": 99 waiting")
+        create-tags 1 [
+          set size 0
+          set tag-cid cid
+          setxy (max (list (min-pxcor - 0.5 + w) (min (list (max-pxcor + 0.49) ([xcor] of g + w / 2)))))
+                (max (list (min-pycor - 0.5) ([ycor] of g - 3.5)))
+          set label-color white
+        ]
+      ]
+    ]
+  ]
+end
+
+;; ------------------------------------------------------------------ days
+
+;; One tick = 15 simulated seconds. The day ends when every commuter has arrived; go then stops,
+;; or with keep-going? on the next day follows.
+to go
+  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not day-running? [
+    start-day current-day + 1
+    if not day-running? [ stop ]
+  ]
+  set clock min (list day-end-min (clock + 1 / steps-per-minute))
+  update-commuters
+  plot-until clock
+  tick
+  if clock >= day-end-min [
+    end-day
+    if not keep-going? [ stop ]
+  ]
+end
+
+;; the rest of today (or the whole next day) at once, without animation
+to finish-day
+  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not day-running? [
+    start-day current-day + 1
+    if not day-running? [ stop ]
+  ]
+  let skipped day-end-min - clock
+  set clock day-end-min
+  update-commuters
+  plot-until clock
+  tick-advance skipped * steps-per-minute
+  display
+  end-day
+end
+
+to start-day [ d ]
+  let f (word "plans_day" pad2 d ".csv")
+  let rows []
+  ifelse file-exists? path-join scen-dir f [ set rows read-rows scen-dir f ] [
+    if scen-n-days >= 0 [
+      user-message (word "This run has " scen-n-days " days: there is no plans file for day " d ".")
+      stop
+    ]
+    set rows demo-plans d
+  ]
+  set current-day d
+  set fee-active-today? charge-on? d
+  ask commuters [
+    set mode-today "NONE"
+    set dep -1
+    set gate-arr -1
+    set gate-exit -1
+    set arr -1
+    set q-rank 0
+  ]
+  let h first rows
+  let ia col h "agent_id"
+  let im col h "mode"
+  let idep col h "depart_min"
+  foreach but-first rows [ r ->
+    if not table:has-key? commuter-of item ia r [ error (word "unknown agent_id " item ia r) ]
+    ask table:get commuter-of item ia r [
+      set mode-today (word item im r)
+      if mode-today = "CAR" [ set dep item idep r ]
+      if mode-today = "PT" [
+        ;; PT minutes come from the run's outcomes.csv; without it a rider is at work all day
+        let key (word d " " agent-id)
+        ifelse table:has-key? pt-times key
+          [ set dep item 0 table:get pt-times key  set arr item 1 table:get pt-times key ]
+          [ set dep sim-start-min  set arr sim-start-min ]
+      ]
+    ]
+  ]
+  simulate-queues
+  let cars commuters with [ mode-today = "CAR" ]
+  set n-cars count cars
+  let served cars with [ gate-exit >= 0 ]
+  let delays [ gate-exit - gate-arr ] of served
+  set mean-delay ifelse-value (empty? delays) [ 0 ] [ mean delays ]
+  set max-delay ifelse-value (empty? delays) [ 0 ] [ max delays ]
+  set day-exits [ gate-exit ] of served
+  ;; the day runs from shortly before the first departure until the last commuter has arrived (a
+  ;; car the engine never serves keeps it open to sim-end-cap-min); the tick counter counts 15-second
+  ;; steps from the start of the engine clock (sim-start-min, 05:30)
+  let movers commuters with [ dep >= 0 ]
+  let first-dep ifelse-value any? movers [ min [ dep ] of movers ] [ sim-start-min ]
+  set day-start max (list sim-start-min (15 * floor ((first-dep - 10) / 15)))
+  let ends sentence [ arr ] of commuters with [ arr >= 0 ]
+                    (ifelse-value any? cars with [ gate-exit = -1 ] [ (list sim-end-cap-min) ] [ [] ])
+  set day-end-min (max (fput (day-start + 1) ends)) + 2
+  reset-ticks
+  tick-advance (day-start - sim-start-min) * steps-per-minute
+  set clock day-start
+  set last-plot-min day-start - 1
+  set day-running? true
+  setup-day-plots
+  update-commuters
+  plot-until clock
+end
+
+to end-day
+  set day-running? false
+end
+
+;; Demo plans when a folder has no plans file (demo_scenario): every commuter drives, departing
+;; 06:45 to 08:00 (seed 1000 + d - 1, as the earlier schematic replay GUI).
+to-report demo-plans [ d ]
+  let rows []
+  with-local-randomness [
+    random-seed 1000 + d - 1
+    set rows map [ aid -> (list aid "CAR" (405 + 15 * random 6)) ] sort table:keys agent-fg
+  ]
+  report fput [ "agent_id" "mode" "depart_min" ] rows
+end
+
+;; ------------------------------------------------------------------ engine
+
+;; The Cordon-Lite engine: one Vickrey point queue per corridor at minute resolution (PyEngine,
+;; simulate_point_queues). arrivals: one [gate-arrival-minute agent_id corridor_id] per car. Each
+;; minute from sim-start-min, the cars that have arrived join their corridor queue (FIFO by arrival
+;; minute, then agent_id) and the corridor serves floor(carry + capacity) of them; the remainder is
+;; carried to the next minute and capped at 1 when the queue empties. It stops when every car is
+;; served or at sim-end-cap-min. Reports [exits profile last-minute]: exits = table agent_id ->
+;; gate-exit minute (a car not in it was not served); profile = rows [corridor_id minute arrivals
+;; served queue_len], corridor by corridor.
+to-report point-queues [ arrivals ]
+  let nk length corr-ids
+  let lanes n-values nk [ [] ]
+  foreach arrivals [ row ->
+    let k table:get corr-index (item 2 row)
+    set lanes replace-item k lanes (lput (list (item 0 row) (item 1 row)) (item k lanes))
+  ]
+  set lanes map [ lane0 -> sort-by [ [p q] -> ((item 0 p) < (item 0 q)) or (((item 0 p) = (item 0 q)) and ((item 1 p) < (item 1 q))) ] lane0 ] lanes
+  let n-total length arrivals
+  let arr-ptr n-values nk [ 0 ]
+  let srv-ptr n-values nk [ 0 ]
+  let carry n-values nk [ 0 ]
+  let prof n-values nk [ [] ]
+  let exits table:make
+  let served-total 0
+  let m sim-start-min
+  let done? false
+  while [ not done? ] [
+    foreach range nk [ k ->
+      let lane item k lanes
+      let ap item k arr-ptr
+      let n-arr 0
+      while [ (ap < length lane) and ((item 0 (item ap lane)) <= m) ] [
+        set ap ap + 1
+        set n-arr n-arr + 1
+      ]
+      let sp item k srv-ptr
+      let avail (item k carry) + (item k corr-caps)
+      let n min (list (ap - sp) (floor avail))
+      repeat n [
+        table:put exits (item 1 (item sp lane)) m
+        set sp sp + 1
+      ]
+      let cr avail - n
+      if sp = ap [ set cr min (list cr 1) ]
+      set carry replace-item k carry cr
+      set arr-ptr replace-item k arr-ptr ap
+      set srv-ptr replace-item k srv-ptr sp
+      set served-total served-total + n
+      set prof replace-item k prof (lput (list (item k corr-ids) m n-arr n (ap - sp)) (item k prof))
+    ]
+    ifelse (served-total = n-total) or (m >= sim-end-cap-min) [ set done? true ] [ set m m + 1 ]
+  ]
+  report (list exits (ifelse-value (nk = 0) [ [] ] [ reduce sentence prof ]) m)
+end
+
+;; today's cars on screen: gate-arr, gate-exit (-1 when not served by sim-end-cap-min) and arr
+to simulate-queues
+  let cars sort-on [ agent-id ] commuters with [ mode-today = "CAR" ]
+  let arrivals []
+  foreach cars [ c ->
+    ask c [
+      set gate-arr dep + table:get agent-fg agent-id
+      if gate-arr < sim-start-min [ error (word "agent " agent-id " reaches its gate before sim-start-min") ]
+      set arrivals lput (list gate-arr agent-id corridor-id) arrivals
+    ]
+  ]
+  let exits item 0 point-queues arrivals
+  foreach cars [ c ->
+    ask c [
+      set gate-exit ifelse-value (table:has-key? exits agent-id) [ table:get exits agent-id ] [ -1 ]
+      set arr ifelse-value (gate-exit >= 0) [ gate-exit + table:get agent-gd agent-id ] [ -1 ]
+    ]
+  ]
+end
+
+;; ------------------------------------------------------------------ headless engine (NetLogoEngine)
+;; Python (cordonlite/engine.py) loads this model through pynetlogo and calls:
+;;   setup-from-dir "<dir>"            reads corridors.csv, agents.csv, fees.csv (no map, no network)
+;;   set-clock <sim-start> <cap>       engine clock (defaults 330 and 720)
+;;   run-day <day> "<dir>" <fee?>      reads plans_dayNN.csv, writes outcomes_dayNN.csv, profile_dayNN.csv
+
+to setup-from-dir [ dir ]
+  clear-all
+  set scen-dir dir
+  set sim-start-min 330
+  set sim-end-cap-min 720
+  set current-day 0
+  set day-running? false
+  set fee-active-today? false
+  set n-cars 0
+  set mean-delay 0
+  set max-delay 0
+  set last-minute sim-start-min
+  set last-profile []
+  set last-exits []
+  set agent-mode table:make
+  read-corridors
+  read-agents
+  read-fees
+  read-scenario-meta
+  reset-ticks
+end
+
+to set-clock [ start cap ]
+  set sim-start-min start
+  set sim-end-cap-min cap
+end
+
+to run-day [ d dir fee? ]
+  run-day-io d dir dir fee?
+end
+
+;; plans_dayNN.csv from in-dir; outcomes_dayNN.csv and profile_dayNN.csv to out-dir
+to run-day-io [ d in-dir out-dir fee? ]
+  set current-day d
+  set fee-active-today? fee?
+  let rows read-rows in-dir (word "plans_day" pad2 d ".csv")
+  let h first rows
+  let ia col h "agent_id"
+  let im col h "mode"
+  let idep col h "depart_min"
+  let arrivals []   ;; [gate-arrival agent_id corridor_id]
+  let cars []       ;; [agent_id corridor_id depart gate-arrival]
+  set agent-mode table:make
+  foreach but-first rows [ r ->
+    let aid item ia r
+    let md (word item im r)
+    table:put agent-mode aid md
+    if md = "CAR" [
+      if not table:has-key? agent-corr aid [ error (word "unknown agent_id " aid) ]
+      let cid table:get agent-corr aid
+      let dep-min item idep r
+      let a dep-min + (table:get agent-fg aid)
+      if a < sim-start-min [ error (word "agent " aid " reaches its gate before sim-start-min") ]
+      set arrivals lput (list a aid cid) arrivals
+      set cars lput (list aid cid dep-min a) cars
+    ]
+  ]
+  let result point-queues arrivals
+  let exits item 0 result
+  set last-minute item 2 result
+  let out []
+  let delays []
+  let exit-list []
+  foreach sort-by [ [p q] -> (item 0 p) < (item 0 q) ] cars [ c ->
+    let aid item 0 c
+    let a item 3 c
+    ifelse table:has-key? exits aid [
+      let x table:get exits aid
+      let fee ifelse-value fee? [ item x fee-list ] [ 0 ]
+      set out lput (list aid d (item 1 c) (item 2 c) a x (x - a) (x + table:get agent-gd aid) fee) out
+      set delays lput (x - a) delays
+      set exit-list lput x exit-list
+    ] [
+      set out lput (list aid d (item 1 c) (item 2 c) a -1 -1 -1 0) out
+    ]
+  ]
+  set n-cars length cars
+  set mean-delay ifelse-value (empty? delays) [ 0 ] [ mean delays ]
+  set max-delay ifelse-value (empty? delays) [ 0 ] [ max delays ]
+  set last-exits exit-list
+  set last-profile map [ row -> fput d row ] (item 1 result)
+  csv:to-file (path-join out-dir (word "outcomes_day" pad2 d ".csv"))
+    fput [ "agent_id" "day" "corridor_id" "depart_min" "gate_arrive_min" "gate_exit_min" "queue_delay_min" "arrive_min" "fee_paid" ] out
+  csv:to-file (path-join out-dir (word "profile_day" pad2 d ".csv"))
+    fput [ "day" "corridor_id" "minute" "arrivals" "served" "queue_len" ] last-profile
+end
+
+;; ------------------------------------------------------------------ positions
+
+;; commuter reporter: "home" | "driving" | "queued" | "transit" (PT) | "work" at minute m
+to-report state-at [ m ]
+  if mode-today = "CAR" [
+    if m < dep [ report "home" ]
+    if m < gate-arr [ report "driving" ]
+    if (gate-exit = -1) or (m < gate-exit) [ report "queued" ]
+    if m < arr [ report "driving" ]
+    report "work"
+  ]
+  if mode-today = "PT" [
+    if m < dep [ report "home" ]
+    if m < arr [ report "transit" ]
+    report "work"
+  ]
+  report "home"
+end
+
+to update-commuters
+  rank-queues
+  ask commuters [ place-now ]
+  update-tags
+end
+
+;; corridor label: compass sector, corridor id and the cars waiting in its queue now
+to update-tags
+  ask tags [
+    let cid tag-cid
+    let k table:get corr-index cid
+    set label (word compass-abbrev item k corr-names " " cid ": "
+                    count commuters with [ corridor-id = cid and state-at clock = "queued" ] " waiting")
+  ]
+end
+
+;; place in the queue at each gate: FIFO by gate arrival minute, then agent_id (the engine's order)
+to rank-queues
+  let q sort-by [ [a b] -> ([gate-arr] of a < [gate-arr] of b) or
+                           (([gate-arr] of a = [gate-arr] of b) and ([agent-id] of a < [agent-id] of b)) ]
+          commuters with [ state-at clock = "queued" ]
+  let seen table:make
+  foreach q [ c ->
+    let g [ [who] of my-gate ] of c
+    let r table:get-or-default seen g 0
+    ask c [ set q-rank r ]
+    table:put seen g (r + 1)
+  ]
+end
+
+;; commuter procedure: draw at today's position for the current clock
+to place-now
+  let s state-at clock
+  let cc? map-view = "City centre"
+  let base ifelse-value (mode-today = "PT") [ green + 2 ]
+           [ ifelse-value (mode-today = "CAR" or mode-today = "NONE") [ corridor-color corridor-id ] [ gray ] ]
+  set color base
+  if s = "transit" [ set hidden? true  stop ]
+  if s = "home" [
+    set shape "dot"
+    set size ifelse-value cc? [ 1.5 ] [ 1.2 ]
+    place-at home-x home-y
+    stop
+  ]
+  if s = "work" [
+    set shape "dot"
+    set size ifelse-value cc? [ 2 ] [ 0.8 ]
+    place-at [bx] of work-building [by] of work-building
+    stop
+  ]
+  ;; on the road: driving to the gate, queued before it (red), or driving from it to the building
+  if s = "queued" [ set color red ]
+  set shape "car"
+  set size ifelse-value cc? [ 4 ] [ 2.5 ]
+  let pts route-out
+  let cum len-out
+  let d 0
+  ifelse s = "queued" [
+    set d max (list 0 ((last len-out) - q-rank * queue-spacing-m))
+  ] [
+    ifelse clock < gate-arr [
+      set d (last len-out) * (clock - dep) / (gate-arr - dep)
+    ] [
+      set pts route-in
+      set cum len-in
+      set d ifelse-value (arr > gate-exit) [ (last len-in) * (clock - gate-exit) / (arr - gate-exit) ] [ last len-in ]
+    ]
+  ]
+  let p point-along pts cum d
+  place-at (item 0 p) (item 1 p)
+  set heading item 2 p
+end
+
+;; [x y heading] at distance d (metres) along the polyline pts with cumulative lengths cum
+to-report point-along [ pts cum d ]
+  let n length pts
+  if n = 1 [ report (list (item 0 first pts) (item 1 first pts) 0) ]
+  let i 1
+  while [ (i < n - 1) and (item i cum < d) ] [ set i i + 1 ]
+  let a item (i - 1) pts
+  let b item i pts
+  let la item (i - 1) cum
+  let lb item i cum
+  let f ifelse-value (lb > la) [ max (list 0 (min (list 1 ((d - la) / (lb - la))))) ] [ 1 ]
+  report (list ((item 0 a) + f * ((item 0 b) - (item 0 a)))
+               ((item 1 a) + f * ((item 1 b) - (item 1 a)))
+               (bearing-of a b))
+end
+
+to-report bearing-of [ a b ]
+  let ddx (item 0 b) - (item 0 a)
+  let ddy (item 1 b) - (item 1 a)
+  report ifelse-value ((ddx = 0) and (ddy = 0)) [ 0 ] [ atan ddx ddy ]
+end
+
+;; ------------------------------------------------------------------ monitors and plots
+
+to-report n-state [ s ]
+  report count commuters with [ state-at clock = s ]
+end
+
+;; plots use hours on the x-axis (7.5 = 07:30)
+to setup-day-plots
+  let x0 day-start
+  let x1 max (list (x0 + 15) day-end-min)
+  set-current-plot "Commuters"
+  clear-plot
+  set-plot-x-range (x0 / 60) (x1 / 60)
+  set-current-plot "Queue length by corridor"
+  clear-plot
+  set-plot-x-range (x0 / 60) (x1 / 60)
+  foreach range length corr-ids [ k ->
+    create-temporary-plot-pen (word item k corr-ids ": " item k corr-names)
+    set-plot-pen-color corridor-color item k corr-ids
+  ]
+  set-current-plot "Cordon entries per 15 min"
+  clear-plot
+  set-plot-x-range (x0 / 60) (x1 / 60)
+  ;; charge drawn scaled so its peak equals the day's highest 15-min entry count (shape only)
+  set-current-plot-pen "charge (scaled)"
+  if fee-active-today? [
+    let counts map [ b -> length filter [ x -> (x >= b) and (x < b + 15) ] day-exits ] (range x0 x1 15)
+    let top max (fput 1 counts)
+    let fmax max (fput 0.01 sublist fee-list x0 x1)
+    foreach (range x0 x1) [ mm -> plotxy (mm / 60) (top * (item mm fee-list) / fmax) ]
+  ]
+end
+
+;; one point per whole minute up to m (a finished day is plotted in full)
+to plot-until [ m ]
+  while [ last-plot-min < floor m ] [
+    set last-plot-min last-plot-min + 1
+    let mm last-plot-min
+    let states [ state-at mm ] of commuters
+    set-current-plot "Commuters"
+    set-current-plot-pen "driving"
+    plotxy (mm / 60) length filter [ s -> s = "driving" ] states
+    set-current-plot-pen "queued"
+    plotxy (mm / 60) length filter [ s -> s = "queued" ] states
+    set-current-plot-pen "at work"
+    plotxy (mm / 60) length filter [ s -> s = "work" ] states
+    set-current-plot "Queue length by corridor"
+    foreach range length corr-ids [ k ->
+      let cid item k corr-ids
+      set-current-plot-pen (word cid ": " item k corr-names)
+      plotxy (mm / 60) count commuters with [ corridor-id = cid and state-at mm = "queued" ]
+    ]
+  ]
+  set-current-plot "Cordon entries per 15 min"
+  set-current-plot-pen "entries"
+  histogram map [ x -> x / 60 ] filter [ x -> x <= m ] day-exits
+end]]></code>
+  <widgets>
+    <view x="330" wrappingAllowedX="false" y="10" frameRate="30.0" minPycor="-60" height="551" showTickCounter="true" patchSize="4.5" fontSize="10" wrappingAllowedY="false" width="551" tickCounterLabel="ticks (1 tick = 15 s)" maxPycor="60" updateMode="1" maxPxcor="60" minPxcor="-60"></view>
+    <input x="10" multiline="false" y="10" height="60" variable="scenario-dir" type="string" width="310">../runs/R-clock_mock_py_s1</input>
+    <button x="10" y="80" height="35" disableUntilTicks="false" forever="false" kind="Observer" width="150" display="setup">setup</button>
+    <button x="170" y="80" height="35" disableUntilTicks="true" forever="true" kind="Observer" width="150" display="go">go</button>
+    <switch x="10" y="120" height="35" on="false" variable="keep-going?" width="150" display="keep-going?"></switch>
+    <button x="170" y="120" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="150" display="skip to end of day">finish-day</button>
+    <monitor x="10" precision="0" y="165" height="49" fontSize="11" width="95" display="day" sizeVersion="0">current-day</monitor>
+    <monitor x="115" precision="0" y="165" height="49" fontSize="11" width="95" display="time" sizeVersion="0">hhmm clock</monitor>
+    <monitor x="220" precision="0" y="165" height="49" fontSize="11" width="100" display="charge on" sizeVersion="0">fee-active-today?</monitor>
+    <monitor x="10" precision="0" y="220" height="49" fontSize="11" width="95" display="driving" sizeVersion="0">n-state "driving"</monitor>
+    <monitor x="115" precision="0" y="220" height="49" fontSize="11" width="95" display="in a queue" sizeVersion="0">n-state "queued"</monitor>
+    <monitor x="220" precision="0" y="220" height="49" fontSize="11" width="100" display="at work" sizeVersion="0">n-state "work"</monitor>
+    <monitor x="10" precision="0" y="275" height="49" fontSize="11" width="150" display="cars today" sizeVersion="0">n-cars</monitor>
+    <monitor x="170" precision="1" y="275" height="49" fontSize="11" width="150" display="mean queue wait (min)" sizeVersion="0">mean-delay</monitor>
+    <note x="10" y="335" backgroundDark="0" fontSize="12" width="310" markdown="false" height="175" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">1. Pick a run folder in scenario-dir and press setup (about 40 s).
+2. Press go: one morning plays until everyone has arrived at work, then go stops.
+3. To run day after day, switch keep-going? on before pressing go.
+4. City-centre view zooms in on the gates and the queues.
+
+Dots are commuters (colour = entry corridor, green = public transport, grey = stays home). Cars drive to the cordon, wait in red queues at the gates, then park at their workplace.</note>
+    <input x="10" multiline="false" y="520" height="60" variable="fee-start-day" type="number" width="150">11.0</input>
+    <note x="170" y="520" backgroundDark="0" fontSize="10" width="150" markdown="false" height="60" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">first charged day (demo only; a run folder sets its own)</note>
+    <button x="330" y="570" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="180" display="Auckland view">set-map-view "Auckland"</button>
+    <button x="520" y="570" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="180" display="City-centre view">set-map-view "City centre"</button>
+    <plot x="890" autoPlotX="false" yMax="10.0" autoPlotY="true" yAxis="commuters" y="10" xMin="5.5" height="190" legend="true" xMax="9.0" yMin="0.0" width="430" xAxis="hour (7.5 = 07:30)" display="Commuters">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="driving" color="-13345367" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="queued" color="-2674135" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="at work" color="-10899396" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <plot x="890" autoPlotX="false" yMax="10.0" autoPlotY="true" yAxis="cars waiting" y="205" xMin="5.5" height="200" legend="true" xMax="9.0" yMin="0.0" width="430" xAxis="hour (7.5 = 07:30)" display="Queue length by corridor">
+      <setup></setup>
+      <update></update>
+    </plot>
+    <plot x="890" autoPlotX="false" yMax="10.0" autoPlotY="true" yAxis="cars" y="410" xMin="5.5" height="200" legend="true" xMax="9.0" yMin="0.0" width="430" xAxis="hour of cordon crossing" display="Cordon entries per 15 min">
+      <setup></setup>
+      <update></update>
+      <pen interval="0.25" mode="1" display="entries" color="-13345367" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="charge (scaled)" color="-955883" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+  </widgets>
+  <info><![CDATA[## WHAT IS IT?
+
+The Cordon-Lite commuter model with every car driving on the real Auckland road network. Commuters live at their Cordon-Lite origins across Auckland and work in the city centre. Each one works in one building inside the cordon (SA3 "Auckland City Centre"), drawn at random once and kept for every day. On a replayed day a car leaves home, drives the TomTom major-road network to the gate where its route enters the cordon, waits in its corridor's queue and drives on to its building.
+
+## HOW IT WORKS
+
+Road network. setup loads the TomTom major roads (`gis/tomtom_major_roads.shp`, converted from the prep GeoPackage by `python -m prep.build_netlogo_layers`) with the GIS extension and builds a node-link network the same way as the Python prep graph: a node at each segment end (NZTM rounded to 1 m), segments whose ends coincide dropped, and of parallel segments between the same two nodes the fastest kept (28,520 nodes, 30,846 roads). Only the giant component is kept, as the prep routes on it: 28,507 nodes and 30,835 roads, 1,106 nodes inside the cordon. The link weight is free-flow minutes (distance / speed limit). Nodes and links are hidden; the roads are drawn from the shapefile.
+
+Routes. A commuter's gate is the prep gate of its origin (`../data/origins.csv`, `gate_id`; found through `origin_id` in the run's personas.csv, or the origin coordinates). Its car drives the free-flow shortest path from home to the outside end of the gate segment (a prefix of the prep path) and crosses the cordon at the gate point (`../data/gates.csv`). From the inside end it takes the shortest path to the cordon node nearest its building (in the largest connected set of cordon roads), with 60 minutes added to every road that has an end outside the cordon, so that a car that has passed its gate stays inside. On plain free-flow minutes about two thirds of these legs would leave the cordon and come back. A leg still leaves where the cordon's own roads do not connect: from the Wellesley Street ramp gate (about 100 to 160 m) and from Hopetoun Street (about 180 m). The car parks at that node (median 65 m from the building, up to about 780 m for buildings on the wharves, which the major-road network does not reach), and the commuter is drawn at the building on arrival. A folder whose agents are not prep origins (demo_scenario) queues each corridor at its corridor point instead; its homes are synthetic points, some kilometres from any road, so its cars start with a straight line and its speeds are not meaningful.
+
+Clock. The minutes are those of the Cordon-Lite engine. Gate arrival = departure + free-flow minutes to the gate (agents.csv). The queue is the engine's Vickrey point queue per corridor (procedure point-queues, the same FIFO order, carry and cap as PyEngine), so every gate-exit minute equals the run's. Arrival = gate exit + free-flow minutes from the gate. Between those minutes a car moves along its route at constant speed, drawn every 15 simulated seconds (one tick). A day lasts until the last commuter has arrived, then the next day can start. The workplace building therefore sets where a car parks, not when it arrives: the engine's gate-to-destination minutes refer to the single prep destination, not to the building. In the canonical R-clock run the implied speeds are a median of 76 km/h to the gate (5-95%: 50-94 km/h) and 40 km/h from the gate to the parking node (5-95%: 13-72 km/h; a few short engine legs give up to about 95 km/h). Queued cars are red and are drawn back along the approach road from the gate. Each agent stands for about 63 cars (agents_represented / agents), so each takes up about 220 m of road (7 m per car, 2 lanes): the queue on the map is as long as the real queue.
+
+PT riders leave home at their PT departure minute and appear at their building at their PT arrival minute (outcomes.csv of the run; without it they are at work all day). WFH and SKIP commuters stay at home.
+
+Workplaces. One building per commuter, drawn uniformly from the 1,484 building points inside the cordon (`gis/cbd_buildings.csv`, one point inside each footprint) with a fixed seed, in agent_id order, so a replay always shows the same workplaces.
+
+## HOW TO USE IT
+
+1. Type a run folder in scenario-dir (default `../runs/R-clock_mock_py_s1`) and press setup (about 40 s).
+2. Press go. One morning plays until everyone has arrived at work, and go stops. One tick is 15 simulated seconds.
+3. To run day after day, switch keep-going? on before pressing go.
+4. skip to end of day jumps to the end of the morning without animation. Auckland view and City-centre view switch the map; the City-centre view shows the gates and their queues best. The NetLogo speed slider sets the pace.
+
+## THINGS TO NOTICE
+
+Congestion in Cordon-Lite is only the queue at each cordon gate; the roads are free-flow by design. Watch the red queues grow behind the gates around 08:00 and the "waiting" counts in the City-centre view, before and after the charge starts. The plots use hours on the x-axis (7.5 = 07:30). On charged days the entries plot shows the charge, scaled so that its peak equals the highest bar.
+
+## PYTHON ENGINE
+
+This is also the engine Python drives headless (NetLogoEngine, `python -m cordonlite.run --engine netlogo`): it calls setup-from-dir, set-clock and run-day, which load no map and write outcomes_dayNN.csv and profile_dayNN.csv into the run folder. Watching a run in the GUI writes nothing.
+
+## CREDITS AND REFERENCES
+
+Vickrey, W.S. (1969) Congestion theory and transport investment. American Economic Review 59(2), 251-260.
+Part of Cordon-Lite (Hyesop Shin and Milad Malekzadeh, CUPUM 2027). Road network: TomTom major roads. Buildings: LINZ building outlines inside the SA3 Auckland City Centre.]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"></point>
+        <point x="40" y="250"></point>
+        <point x="150" y="205"></point>
+        <point x="260" y="250"></point>
+      </polygon>
+    </shape>
+    <shape name="airplane" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"></point>
+        <point x="135" y="15"></point>
+        <point x="120" y="60"></point>
+        <point x="120" y="105"></point>
+        <point x="15" y="165"></point>
+        <point x="15" y="195"></point>
+        <point x="120" y="180"></point>
+        <point x="135" y="240"></point>
+        <point x="105" y="270"></point>
+        <point x="120" y="285"></point>
+        <point x="150" y="270"></point>
+        <point x="180" y="285"></point>
+        <point x="210" y="270"></point>
+        <point x="165" y="240"></point>
+        <point x="180" y="180"></point>
+        <point x="285" y="195"></point>
+        <point x="285" y="165"></point>
+        <point x="180" y="105"></point>
+        <point x="180" y="60"></point>
+        <point x="165" y="15"></point>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"></point>
+        <point x="0" y="150"></point>
+        <point x="105" y="150"></point>
+        <point x="105" y="293"></point>
+        <point x="195" y="293"></point>
+        <point x="195" y="150"></point>
+        <point x="300" y="150"></point>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="285"></point>
+        <point x="285" y="225"></point>
+        <point x="285" y="75"></point>
+        <point x="150" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="135"></point>
+        <point x="15" y="75"></point>
+        <point x="150" y="15"></point>
+        <point x="285" y="75"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="75"></point>
+        <point x="15" y="225"></point>
+        <point x="150" y="285"></point>
+        <point x="150" y="135"></point>
+      </polygon>
+      <line endX="150" startY="285" marked="false" color="255" endY="135" startX="150"></line>
+      <line endX="15" startY="135" marked="false" color="255" endY="75" startX="150"></line>
+      <line endX="285" startY="135" marked="false" color="255" endY="75" startX="150"></line>
+    </shape>
+    <shape name="bug" rotatable="true" editableColorIndex="0">
+      <circle x="96" y="182" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="110" y="127" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <circle x="110" y="75" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <line endX="80" startY="100" marked="true" color="-1920102913" endY="30" startX="150"></line>
+      <line endX="220" startY="100" marked="true" color="-1920102913" endY="30" startX="150"></line>
+    </shape>
+    <shape name="butterfly" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"></point>
+        <point x="209" y="199"></point>
+        <point x="225" y="225"></point>
+        <point x="225" y="255"></point>
+        <point x="195" y="270"></point>
+        <point x="165" y="255"></point>
+        <point x="150" y="240"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"></point>
+        <point x="89" y="198"></point>
+        <point x="75" y="225"></point>
+        <point x="75" y="255"></point>
+        <point x="105" y="270"></point>
+        <point x="135" y="255"></point>
+        <point x="150" y="240"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"></point>
+        <point x="100" y="105"></point>
+        <point x="55" y="90"></point>
+        <point x="25" y="90"></point>
+        <point x="10" y="105"></point>
+        <point x="10" y="135"></point>
+        <point x="25" y="180"></point>
+        <point x="40" y="195"></point>
+        <point x="85" y="194"></point>
+        <point x="139" y="163"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"></point>
+        <point x="200" y="105"></point>
+        <point x="245" y="90"></point>
+        <point x="275" y="90"></point>
+        <point x="290" y="105"></point>
+        <point x="290" y="135"></point>
+        <point x="275" y="180"></point>
+        <point x="260" y="195"></point>
+        <point x="215" y="195"></point>
+        <point x="162" y="165"></point>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"></point>
+        <point x="135" y="225"></point>
+        <point x="120" y="150"></point>
+        <point x="135" y="120"></point>
+        <point x="150" y="105"></point>
+        <point x="165" y="120"></point>
+        <point x="180" y="150"></point>
+        <point x="165" y="225"></point>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"></circle>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"></line>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"></line>
+    </shape>
+    <shape name="car" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="180" y="15"></point>
+        <point x="164" y="21"></point>
+        <point x="144" y="39"></point>
+        <point x="135" y="60"></point>
+        <point x="132" y="74"></point>
+        <point x="106" y="87"></point>
+        <point x="84" y="97"></point>
+        <point x="63" y="115"></point>
+        <point x="50" y="141"></point>
+        <point x="50" y="165"></point>
+        <point x="60" y="225"></point>
+        <point x="150" y="285"></point>
+        <point x="165" y="285"></point>
+        <point x="225" y="285"></point>
+        <point x="225" y="15"></point>
+        <point x="180" y="15"></point>
+      </polygon>
+      <circle x="180" y="30" marked="false" color="255" diameter="90" filled="true"></circle>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="80" y="138"></point>
+        <point x="78" y="168"></point>
+        <point x="135" y="166"></point>
+        <point x="135" y="91"></point>
+        <point x="105" y="106"></point>
+        <point x="96" y="111"></point>
+        <point x="89" y="120"></point>
+      </polygon>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+      <circle x="195" y="47" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+    </shape>
+    <shape name="circle 2" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+    </shape>
+    <shape name="cow" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="200" y="193"></point>
+        <point x="197" y="249"></point>
+        <point x="179" y="249"></point>
+        <point x="177" y="196"></point>
+        <point x="166" y="187"></point>
+        <point x="140" y="189"></point>
+        <point x="93" y="191"></point>
+        <point x="78" y="179"></point>
+        <point x="72" y="211"></point>
+        <point x="49" y="209"></point>
+        <point x="48" y="181"></point>
+        <point x="37" y="149"></point>
+        <point x="25" y="120"></point>
+        <point x="25" y="89"></point>
+        <point x="45" y="72"></point>
+        <point x="103" y="84"></point>
+        <point x="179" y="75"></point>
+        <point x="198" y="76"></point>
+        <point x="252" y="64"></point>
+        <point x="272" y="81"></point>
+        <point x="293" y="103"></point>
+        <point x="285" y="121"></point>
+        <point x="255" y="121"></point>
+        <point x="242" y="118"></point>
+        <point x="224" y="167"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="73" y="210"></point>
+        <point x="86" y="251"></point>
+        <point x="62" y="249"></point>
+        <point x="48" y="208"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="25" y="114"></point>
+        <point x="16" y="195"></point>
+        <point x="9" y="204"></point>
+        <point x="23" y="213"></point>
+        <point x="25" y="200"></point>
+        <point x="39" y="123"></point>
+      </polygon>
+    </shape>
+    <shape name="cylinder" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+    </shape>
+    <shape name="dot" rotatable="false" editableColorIndex="0">
+      <circle x="90" y="90" marked="true" color="-1920102913" diameter="120" filled="true"></circle>
+    </shape>
+    <shape name="face happy" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"></point>
+        <point x="90" y="239"></point>
+        <point x="62" y="213"></point>
+        <point x="47" y="191"></point>
+        <point x="67" y="179"></point>
+        <point x="90" y="203"></point>
+        <point x="109" y="218"></point>
+        <point x="150" y="225"></point>
+        <point x="192" y="218"></point>
+        <point x="210" y="203"></point>
+        <point x="227" y="181"></point>
+        <point x="251" y="194"></point>
+        <point x="236" y="217"></point>
+        <point x="212" y="240"></point>
+      </polygon>
+    </shape>
+    <shape name="face neutral" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="7" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <rectangle endX="240" startY="195" marked="false" color="255" endY="225" startX="60" filled="true"></rectangle>
+    </shape>
+    <shape name="face sad" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="168"></point>
+        <point x="90" y="184"></point>
+        <point x="62" y="210"></point>
+        <point x="47" y="232"></point>
+        <point x="67" y="244"></point>
+        <point x="90" y="220"></point>
+        <point x="109" y="205"></point>
+        <point x="150" y="198"></point>
+        <point x="192" y="205"></point>
+        <point x="210" y="220"></point>
+        <point x="227" y="242"></point>
+        <point x="251" y="229"></point>
+        <point x="236" y="206"></point>
+        <point x="212" y="183"></point>
+      </polygon>
+    </shape>
+    <shape name="fish" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="44" y="131"></point>
+        <point x="21" y="87"></point>
+        <point x="15" y="86"></point>
+        <point x="0" y="120"></point>
+        <point x="15" y="150"></point>
+        <point x="0" y="180"></point>
+        <point x="13" y="214"></point>
+        <point x="20" y="212"></point>
+        <point x="45" y="166"></point>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="135" y="195"></point>
+        <point x="119" y="235"></point>
+        <point x="95" y="218"></point>
+        <point x="76" y="210"></point>
+        <point x="46" y="204"></point>
+        <point x="60" y="165"></point>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="75" y="45"></point>
+        <point x="83" y="77"></point>
+        <point x="71" y="103"></point>
+        <point x="86" y="114"></point>
+        <point x="166" y="78"></point>
+        <point x="135" y="60"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="136"></point>
+        <point x="151" y="77"></point>
+        <point x="226" y="81"></point>
+        <point x="280" y="119"></point>
+        <point x="292" y="146"></point>
+        <point x="292" y="160"></point>
+        <point x="287" y="170"></point>
+        <point x="270" y="195"></point>
+        <point x="195" y="210"></point>
+        <point x="151" y="212"></point>
+        <point x="30" y="166"></point>
+      </polygon>
+      <circle x="215" y="106" marked="false" color="255" diameter="30" filled="true"></circle>
+    </shape>
+    <shape name="flag" rotatable="false" editableColorIndex="0">
+      <rectangle endX="75" startY="15" marked="true" color="-1920102913" endY="300" startX="60" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="90" y="150"></point>
+        <point x="270" y="90"></point>
+        <point x="90" y="30"></point>
+      </polygon>
+      <line endX="90" startY="135" marked="true" color="-1920102913" endY="135" startX="75"></line>
+      <line endX="90" startY="45" marked="true" color="-1920102913" endY="45" startX="75"></line>
+    </shape>
+    <shape name="flower" rotatable="false" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="135" y="120"></point>
+        <point x="165" y="165"></point>
+        <point x="180" y="210"></point>
+        <point x="180" y="240"></point>
+        <point x="150" y="300"></point>
+        <point x="165" y="300"></point>
+        <point x="195" y="240"></point>
+        <point x="195" y="195"></point>
+        <point x="165" y="135"></point>
+      </polygon>
+      <circle x="85" y="132" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="130" y="147" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="192" y="85" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="85" y="40" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="177" y="40" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="177" y="132" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="70" y="85" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="130" y="25" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="96" y="51" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="113" y="68" marked="false" color="255" diameter="74" filled="true"></circle>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="189" y="233"></point>
+        <point x="219" y="188"></point>
+        <point x="249" y="173"></point>
+        <point x="279" y="188"></point>
+        <point x="234" y="218"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="180" y="255"></point>
+        <point x="150" y="210"></point>
+        <point x="105" y="210"></point>
+        <point x="75" y="240"></point>
+        <point x="135" y="240"></point>
+      </polygon>
+    </shape>
+    <shape name="house" rotatable="false" editableColorIndex="0">
+      <rectangle endX="255" startY="120" marked="true" color="-1920102913" endY="285" startX="45" filled="true"></rectangle>
+      <rectangle endX="180" startY="210" marked="false" color="255" endY="285" startX="120" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="120"></point>
+        <point x="150" y="15"></point>
+        <point x="285" y="120"></point>
+      </polygon>
+      <line endX="270" startY="120" marked="false" color="255" endY="120" startX="30"></line>
+    </shape>
+    <shape name="leaf" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="210"></point>
+        <point x="135" y="195"></point>
+        <point x="120" y="210"></point>
+        <point x="60" y="210"></point>
+        <point x="30" y="195"></point>
+        <point x="60" y="180"></point>
+        <point x="60" y="165"></point>
+        <point x="15" y="135"></point>
+        <point x="30" y="120"></point>
+        <point x="15" y="105"></point>
+        <point x="40" y="104"></point>
+        <point x="45" y="90"></point>
+        <point x="60" y="90"></point>
+        <point x="90" y="105"></point>
+        <point x="105" y="120"></point>
+        <point x="120" y="120"></point>
+        <point x="105" y="60"></point>
+        <point x="120" y="60"></point>
+        <point x="135" y="30"></point>
+        <point x="150" y="15"></point>
+        <point x="165" y="30"></point>
+        <point x="180" y="60"></point>
+        <point x="195" y="60"></point>
+        <point x="180" y="120"></point>
+        <point x="195" y="120"></point>
+        <point x="210" y="105"></point>
+        <point x="240" y="90"></point>
+        <point x="255" y="90"></point>
+        <point x="263" y="104"></point>
+        <point x="285" y="105"></point>
+        <point x="270" y="120"></point>
+        <point x="285" y="135"></point>
+        <point x="240" y="165"></point>
+        <point x="240" y="180"></point>
+        <point x="270" y="195"></point>
+        <point x="240" y="210"></point>
+        <point x="180" y="210"></point>
+        <point x="165" y="195"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="195"></point>
+        <point x="135" y="240"></point>
+        <point x="120" y="255"></point>
+        <point x="105" y="255"></point>
+        <point x="105" y="285"></point>
+        <point x="135" y="285"></point>
+        <point x="165" y="240"></point>
+        <point x="165" y="195"></point>
+      </polygon>
+    </shape>
+    <shape name="line" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="300" startX="150"></line>
+    </shape>
+    <shape name="line half" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="150" startX="150"></line>
+    </shape>
+    <shape name="pentagon" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="15"></point>
+        <point x="15" y="120"></point>
+        <point x="60" y="285"></point>
+        <point x="240" y="285"></point>
+        <point x="285" y="120"></point>
+      </polygon>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="120" y="195"></point>
+        <point x="90" y="285"></point>
+        <point x="105" y="300"></point>
+        <point x="135" y="300"></point>
+        <point x="150" y="225"></point>
+        <point x="165" y="300"></point>
+        <point x="195" y="300"></point>
+        <point x="210" y="285"></point>
+        <point x="180" y="195"></point>
+        <point x="195" y="90"></point>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"></point>
+        <point x="240" y="150"></point>
+        <point x="225" y="180"></point>
+        <point x="165" y="105"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="60" y="150"></point>
+        <point x="75" y="180"></point>
+        <point x="135" y="105"></point>
+      </polygon>
+    </shape>
+    <shape name="plant" rotatable="false" editableColorIndex="0">
+      <rectangle endX="165" startY="90" marked="true" color="-1920102913" endY="300" startX="135" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="255"></point>
+        <point x="90" y="210"></point>
+        <point x="45" y="195"></point>
+        <point x="75" y="255"></point>
+        <point x="135" y="285"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="255"></point>
+        <point x="210" y="210"></point>
+        <point x="255" y="195"></point>
+        <point x="225" y="255"></point>
+        <point x="165" y="285"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="180"></point>
+        <point x="90" y="135"></point>
+        <point x="45" y="120"></point>
+        <point x="75" y="180"></point>
+        <point x="135" y="210"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="180"></point>
+        <point x="165" y="210"></point>
+        <point x="225" y="180"></point>
+        <point x="255" y="120"></point>
+        <point x="210" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="105"></point>
+        <point x="90" y="60"></point>
+        <point x="45" y="45"></point>
+        <point x="75" y="105"></point>
+        <point x="135" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="105"></point>
+        <point x="165" y="135"></point>
+        <point x="225" y="105"></point>
+        <point x="255" y="45"></point>
+        <point x="210" y="60"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="90"></point>
+        <point x="120" y="45"></point>
+        <point x="150" y="15"></point>
+        <point x="180" y="45"></point>
+        <point x="165" y="90"></point>
+      </polygon>
+    </shape>
+    <shape name="square" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"></rectangle>
+    </shape>
+    <shape name="square 2" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"></rectangle>
+      <rectangle endX="240" startY="60" marked="false" color="255" endY="240" startX="60" filled="true"></rectangle>
+    </shape>
+    <shape name="star" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="1"></point>
+        <point x="185" y="108"></point>
+        <point x="298" y="108"></point>
+        <point x="207" y="175"></point>
+        <point x="242" y="282"></point>
+        <point x="151" y="216"></point>
+        <point x="59" y="282"></point>
+        <point x="94" y="175"></point>
+        <point x="3" y="108"></point>
+        <point x="116" y="108"></point>
+      </polygon>
+    </shape>
+    <shape name="target" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+      <circle x="60" y="60" marked="true" color="-1920102913" diameter="180" filled="true"></circle>
+      <circle x="90" y="90" marked="false" color="255" diameter="120" filled="true"></circle>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"></circle>
+    </shape>
+    <shape name="tree" rotatable="false" editableColorIndex="0">
+      <circle x="118" y="3" marked="true" color="-1920102913" diameter="94" filled="true"></circle>
+      <rectangle endX="180" startY="195" marked="false" color="-1653716737" endY="300" startX="120" filled="true"></rectangle>
+      <circle x="65" y="21" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="116" y="41" marked="true" color="-1920102913" diameter="127" filled="true"></circle>
+      <circle x="45" y="90" marked="true" color="-1920102913" diameter="120" filled="true"></circle>
+      <circle x="104" y="74" marked="true" color="-1920102913" diameter="152" filled="true"></circle>
+    </shape>
+    <shape name="triangle" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"></point>
+        <point x="15" y="255"></point>
+        <point x="285" y="255"></point>
+      </polygon>
+    </shape>
+    <shape name="triangle 2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"></point>
+        <point x="15" y="255"></point>
+        <point x="285" y="255"></point>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="99"></point>
+        <point x="225" y="223"></point>
+        <point x="75" y="224"></point>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="false" editableColorIndex="0">
+      <rectangle endX="195" startY="45" marked="true" color="-1920102913" endY="187" startX="4" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="296" y="193"></point>
+        <point x="296" y="150"></point>
+        <point x="259" y="134"></point>
+        <point x="244" y="104"></point>
+        <point x="208" y="104"></point>
+        <point x="207" y="194"></point>
+      </polygon>
+      <rectangle endX="195" startY="60" marked="false" color="-1" endY="105" startX="195" filled="true"></rectangle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="238" y="112"></point>
+        <point x="252" y="141"></point>
+        <point x="219" y="141"></point>
+        <point x="218" y="112"></point>
+      </polygon>
+      <circle x="234" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <rectangle endX="214" startY="185" marked="true" color="-1920102913" endY="194" startX="181" filled="true"></rectangle>
+      <circle x="144" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <circle x="24" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <circle x="24" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+      <circle x="144" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+      <circle x="234" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="215" y="204"></point>
+        <point x="240" y="233"></point>
+        <point x="246" y="254"></point>
+        <point x="228" y="266"></point>
+        <point x="215" y="252"></point>
+        <point x="193" y="210"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="195" y="90"></point>
+        <point x="225" y="75"></point>
+        <point x="245" y="75"></point>
+        <point x="260" y="89"></point>
+        <point x="269" y="108"></point>
+        <point x="261" y="124"></point>
+        <point x="240" y="105"></point>
+        <point x="225" y="105"></point>
+        <point x="210" y="105"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="105" y="90"></point>
+        <point x="75" y="75"></point>
+        <point x="55" y="75"></point>
+        <point x="40" y="89"></point>
+        <point x="31" y="108"></point>
+        <point x="39" y="124"></point>
+        <point x="60" y="105"></point>
+        <point x="75" y="105"></point>
+        <point x="90" y="105"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="132" y="85"></point>
+        <point x="134" y="64"></point>
+        <point x="107" y="51"></point>
+        <point x="108" y="17"></point>
+        <point x="150" y="2"></point>
+        <point x="192" y="18"></point>
+        <point x="192" y="52"></point>
+        <point x="169" y="65"></point>
+        <point x="172" y="87"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="85" y="204"></point>
+        <point x="60" y="233"></point>
+        <point x="54" y="254"></point>
+        <point x="72" y="266"></point>
+        <point x="85" y="252"></point>
+        <point x="107" y="210"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="119" y="75"></point>
+        <point x="179" y="75"></point>
+        <point x="209" y="101"></point>
+        <point x="224" y="135"></point>
+        <point x="220" y="225"></point>
+        <point x="175" y="261"></point>
+        <point x="128" y="261"></point>
+        <point x="81" y="224"></point>
+        <point x="74" y="135"></point>
+        <point x="88" y="99"></point>
+      </polygon>
+    </shape>
+    <shape name="wheel" rotatable="false" editableColorIndex="0">
+      <circle x="3" y="3" marked="true" color="-1920102913" diameter="294" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+      <line endX="150" startY="285" marked="true" color="-1920102913" endY="15" startX="150"></line>
+      <line endX="285" startY="150" marked="true" color="-1920102913" endY="150" startX="15"></line>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"></circle>
+      <line endX="79" startY="40" marked="true" color="-1920102913" endY="269" startX="216"></line>
+      <line endX="269" startY="84" marked="true" color="-1920102913" endY="221" startX="40"></line>
+      <line endX="269" startY="216" marked="true" color="-1920102913" endY="79" startX="40"></line>
+      <line endX="221" startY="40" marked="true" color="-1920102913" endY="269" startX="84"></line>
+    </shape>
+    <shape name="x" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="270" y="75"></point>
+        <point x="225" y="30"></point>
+        <point x="30" y="225"></point>
+        <point x="75" y="270"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="75"></point>
+        <point x="75" y="30"></point>
+        <point x="270" y="225"></point>
+        <point x="225" y="270"></point>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0.0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+        <line x="0.0" visible="true">
+          <dash value="1.0"></dash>
+          <dash value="0.0"></dash>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+  <previewCommands>need-to-manually-make-preview-for-this-model</previewCommands>
+</model>
