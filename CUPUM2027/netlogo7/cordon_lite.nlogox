@@ -6,26 +6,34 @@
 ;;    model plays each morning until every commuter has arrived (1 tick = 15 simulated seconds).
 ;;  - Python drives it headless as NetLogoEngine (cordonlite/engine.py) through setup-from-dir,
 ;;    set-clock and run-day, exchanging CSV files with a run folder; that path loads no map.
-;; Both uses compute the gate queues with the same procedure, point-queues: one Vickrey point queue
-;; per corridor at minute resolution, identical to PyEngine.
+;; Both uses compute the day with the same two procedures, identical to PyEngine: road-arrivals (the
+;; congested roads from home to the gate, cordonlite/roads.py simulate_roads) and point-queues (one
+;; Vickrey point queue per corridor at minute resolution).
 ;;
 ;; Each commuter lives at its Cordon-Lite origin and works in one building inside the cordon, drawn
 ;; at random once (fixed seed) and kept for every day. On each day (plans_dayNN.csv of a run folder)
 ;; a car leaves home at its departure minute, drives the free-flow shortest path to its gate (the
 ;; prep gate of its origin: where its path first enters the cordon), waits in its corridor's queue
 ;; and drives on to its building. The minutes are the engine's: gate arrival = departure + free-flow
-;; minutes to the gate (agents.csv); gate exit from point-queues (the same FIFO order, carry and cap
-;; as PyEngine, so the same minutes); arrival =
-;; gate exit + free-flow minutes from the gate. The network only says where a car is between those
-;; minutes. PT riders leave home and appear at their building at the PT arrival minute of the run
-;; (outcomes.csv); WFH and SKIP stay at home. Nothing here feeds back into a Cordon-Lite run.
+;; minutes to the gate (agents.csv) + road delay (road-arrivals: traffic on the way, 0 without the
+;; road files); gate exit from point-queues (the same FIFO order, carry and cap as PyEngine, so the
+;; same minutes); arrival = gate exit + free-flow minutes from the gate. The network only says where
+;; a car is between those minutes (before the gate it follows its section times from road-arrivals,
+;; plan-drives). PT riders leave home and appear at their building at the PT arrival minute of the
+;; run (outcomes.csv); WFH and SKIP stay at home. The roads on the commuters' routes are coloured by
+;; how fast their traffic moves, every 5 minutes (update-road-colours). Nothing here feeds back into
+;; a Cordon-Lite run.
 ;;
 ;; Inputs, relative to this model:
 ;;   scenario-dir     a run folder of python -m cordonlite.run (corridors.csv, agents.csv, fees.csv,
-;;                    plans_dayNN.csv, scenario.csv, personas.csv, outcomes.csv) or demo_scenario
+;;                    plans_dayNN.csv, scenario.csv, personas.csv, outcomes.csv; road_sections.csv,
+;;                    agent_routes.csv, road_profile.csv, road_params.csv when roads are congested)
+;;                    or demo_scenario (free-flow roads)
 ;;   gis/tomtom_major_roads.shp, gis/cordon.shp, gis/cbd_buildings.shp, gis/cbd_buildings.csv
 ;;                                                     map layers (prep.build_netlogo_layers)
 ;;   ../data/origins.csv, ../data/gates.csv            prep outputs: the gate of every origin
+;;   ../data/section_segments.csv                      prep.build_roads: the TomTom segments of each
+;;                                                     road section (road colours)
 
 extensions [ csv table gis nw ]
 
@@ -65,6 +73,37 @@ globals [
   last-minute         ;; last minute processed
   last-profile        ;; rows [day corridor_id minute arrivals served queue_len]
   last-exits          ;; gate-exit minutes of the served cars
+  last-road           ;; rows [day section_id minute entries] (road_dayNN.csv)
+  ;; roads from home to the gate (read-roads; PyEngine: cordonlite/roads.py)
+  road-on?            ;; the road files were read; false = free-flow roads (road delay 0)
+  sec-ids             ;; road section ids, ascending
+  sec-index           ;; table section_id -> position in the section lists below
+  sec-ff              ;; free-flow minutes of each section
+  sec-cap             ;; capacity (veh/h, one direction)
+  sec-bg              ;; background peak-hour flow (veh/h)
+  sec-obs             ;; observed peak-hour flow (veh/h: background + usual commuters)
+  sec-w               ;; commuter weight (w_factor)
+  sec-fpe             ;; veh/h that one commuter entry adds while it is in the flow window
+  agent-route         ;; table agent_id -> section positions of its route to the gate, from home
+  road-r              ;; 1440 time-profile values by minute (share of the peak-hour flow)
+  road-alpha          ;; BPR alpha (beta is 4)
+  road-floor          ;; lowest speed factor
+  road-window         ;; flow window (min): commuter entries counted at minutes m - window .. m - 1
+  road-vpa            ;; real cars one agent stands for (road_params.csv vehicles_per_agent)
+  today-road          ;; road-arrivals result of the day on screen ([] before the first day)
+  ;; road colours (GUI): traffic speed on the sections of the commuters' routes
+  sec-feats           ;; road features (TomTom segments) of each section, sec-ids order
+  sec-feats-cc        ;; the same, only those near the cordon (City centre view)
+  sec-frc             ;; TomTom frc of each section (0 = motorway)
+  sec-order           ;; section positions in drawing order: local roads first, motorways last
+  speed-grade         ;; grade of each section at grade-minute, from its speed (speed-grade-of):
+                      ;; 0 = normal, 1 = slow, 2 = heavy, 3 = jammed
+  grade-minute        ;; minute of those grades (a multiple of 5; -1 = grade again)
+  grade-shown         ;; grade each section is drawn in on the map
+  grade-pending       ;; sections whose colour on the map is not their grade's yet (redrawn by ticks)
+  grade-entries       ;; today's commuter entries by minute: item (m - grade-first-min) = [[i n] ...],
+                      ;; n entries of the section at position i at minute m
+  grade-first-min     ;; minute of the first item of grade-entries
   ;; map and network
   map-view            ;; "Auckland" | "City centre"
   map-env             ;; [minx maxx miny maxy] NZTM of the world edges (gis:world-envelope)
@@ -98,8 +137,13 @@ gates-own [ gate-id corridor-id gx gy u-node v-node ]   ;; gate point; outside a
 commuters-own [
   agent-id corridor-id home-x home-y home-node my-gate work-building
   route-out len-out   ;; NZTM [x y] points home -> gate point, and cumulative metres
+  tt-out              ;; free-flow minutes from home to each point of route-out (at the gate point:
+                      ;; to the inside end of the gate segment, as the engine's route)
   route-in len-in     ;; NZTM [x y] points gate point -> building, and cumulative metres
   mode-today dep gate-arr gate-exit arr   ;; today's trip in minutes (-1 = none)
+  road-delay          ;; today's road delay (whole minutes; -1 = not driving today)
+  t-out               ;; minute at which today's car passes each point of route-out (plan-drives)
+  out-ptr             ;; the route-out point the car passed last (place-now)
   q-rank              ;; place in the queue at its gate (0 = head)
 ]
 
@@ -137,6 +181,42 @@ end
 ;; building, so that it leaves the cordon only where the roads inside do not connect
 to-report cordon-exit-penalty
   report 60
+end
+
+;; free-flow minutes of a straight hop of m metres where a route has no road (a home off the road
+;; network, a gate without its segment's inside end): 50 km/h
+to-report hop-tt [ m ]
+  report m / 1000 / 50 * 60
+end
+
+;; map style of TomTom frc k (0 motorway .. 4 local): grey shade, and line width in each view
+to-report road-color [ k ]
+  report item k [ 7 5 4 3 2.5 ]
+end
+
+to-report road-width [ k cc? ]
+  report item k ifelse-value cc? [ [ 3 2.5 2 1.5 1 ] ] [ [ 1.5 1 0.8 0.5 0.5 ] ]
+end
+
+;; a road section on the commuters' routes is drawn a little wider than other roads of its class,
+;; and wider again the slower its traffic (speed grade g), so that its colour shows in both views
+to-report section-width [ k g cc? ]
+  report (max (list (road-width k cc?) ifelse-value cc? [ 2.5 ] [ 1.2 ])) + g * ifelse-value cc? [ 0.6 ] [ 0.5 ]
+end
+
+;; colours (RGB) of slow, heavy and jammed traffic (normal traffic keeps the road's grey): light
+;; yellow, amber orange, bright purple, all clearly visible on black. No red (queued cars), no green
+;; (public transport), and none of the corridor colours of the cars (corridor-color: 105 blue, 45
+;; yellow, 125 magenta, 25 orange, 85 cyan): the yellow is paler, the orange yellower and the purple
+;; lighter than the nearest car colour, so a car stands out on any road
+to-report grade-colors
+  report [ [ 255 235 120 ] [ 255 160 0 ] [ 185 95 255 ] ]
+end
+
+;; speed grades by speed factor f (share of free-flow speed): normal f >= 0.80, slow 0.60 to 0.80,
+;; heavy 0.40 to 0.60, jammed below 0.40 (these are the lower bounds of the first three)
+to-report grade-bands
+  report [ 0.80 0.60 0.40 ]
 end
 
 ;; ------------------------------------------------------------------ helpers
@@ -219,15 +299,18 @@ to setup
   set day-exits []
   set last-plot-min -1
   set route-cache table:make
+  set today-road []
   read-corridors
   read-agents
   read-fees
   read-scenario-meta
   read-clock
+  read-roads
   read-pt-times
   print (word "Cordon-Lite network model: " count commuters " commuters, " length corr-ids " corridors from " scen-dir)
   load-map
   build-network
+  read-section-map
   read-buildings
   make-gates
   assign-workplaces
@@ -251,7 +334,8 @@ end
 
 ;; From the run's config_snapshot.toml: the engine clock ([time] sim_start_min, sim_end_cap_min; the
 ;; values NetLogoEngine passes with set-clock) and [engine] agents_represented. Without the file
-;; (demo_scenario) the config.toml values: 330, 720 and 19,000.
+;; (demo_scenario) the config.toml values: 330, 720 and 19,000. With road files read-roads then sets
+;; vehicles-per-agent to their value.
 to read-clock
   let represented 19000
   let f path-join scen-dir "config_snapshot.toml"
@@ -340,6 +424,88 @@ to read-fees
   set fee-list n-values 1440 [ m -> ifelse-value (table:has-key? t m) [ table:get t m ] [ 0 ] ]
 end
 
+;; The road files of a run folder (cordonlite/roads.py write_road_scenario), all four or none:
+;;   road_sections.csv  section_id, ff_min, cap_vph, bg_peak_vph, obs_peak_vph, w_factor
+;;   agent_routes.csv   agent_id, seq, section_id (the route from home to the gate, seq 0 at home)
+;;   road_profile.csv   minute, r (1440 rows)
+;;   road_params.csv    key, value: bpr_alpha, bpr_beta (4), speed_floor, flow_window_min,
+;;                      vehicles_per_agent
+;; Without them road-on? is false and every car drives at free flow. With them vehicles-per-agent is
+;; the file's value (not agents_represented / commuters), as in PyEngine. Python checks the files
+;; (cordonlite.roads.read_road_scenario) before NetLogoEngine loads them.
+to read-roads
+  set road-on? false
+  set sec-ids []
+  set sec-index table:make
+  set sec-ff []
+  set sec-cap []
+  set sec-bg []
+  set sec-obs []
+  set sec-w []
+  set sec-fpe []
+  set agent-route table:make
+  set road-r []
+  let files [ "road_sections.csv" "agent_routes.csv" "road_profile.csv" "road_params.csv" ]
+  let present filter [ fname -> file-exists? path-join scen-dir fname ] files
+  if empty? present [ stop ]
+  if length present < length files [ error (word "incomplete road files in " scen-dir ": only " present) ]
+  ;; parameters
+  let p table:make
+  foreach but-first read-rows scen-dir "road_params.csv" [ r -> table:put p (word item 0 r) (item 1 r) ]
+  foreach [ "bpr_alpha" "bpr_beta" "speed_floor" "flow_window_min" "vehicles_per_agent" ] [ key ->
+    if not table:has-key? p key [ error (word "road_params.csv lacks " key) ]
+  ]
+  if (table:get p "bpr_beta") != 4 [ error "road_params.csv: bpr_beta must be 4 (the engines compute (x * x) * (x * x))" ]
+  set road-alpha table:get p "bpr_alpha"
+  set road-floor table:get p "speed_floor"
+  set road-window table:get p "flow_window_min"
+  set road-vpa table:get p "vehicles_per_agent"
+  ;; sections, ascending section_id
+  let rows read-rows scen-dir "road_sections.csv"
+  let h first rows
+  let isec col h "section_id"
+  let iff col h "ff_min"
+  let icap col h "cap_vph"
+  let ibg col h "bg_peak_vph"
+  let iobs col h "obs_peak_vph"
+  let iw col h "w_factor"
+  let body sort-by [ [a b] -> (item isec a) < (item isec b) ] but-first rows
+  set sec-ids map [ r -> item isec r ] body
+  set sec-ff map [ r -> item iff r ] body
+  set sec-cap map [ r -> item icap r ] body
+  set sec-bg map [ r -> item ibg r ] body
+  set sec-obs map [ r -> item iobs r ] body
+  set sec-w map [ r -> item iw r ] body
+  foreach range length sec-ids [ k -> table:put sec-index (item k sec-ids) k ]
+  ;; the same expression as RoadScenario.fpe: ((vehicles_per_agent * w_factor) * 60) / window
+  set sec-fpe map [ w -> ((road-vpa * w) * 60) / road-window ] sec-w
+  ;; time profile
+  set rows read-rows scen-dir "road_profile.csv"
+  set h first rows
+  let im col h "minute"
+  let ir col h "r"
+  let t table:make
+  foreach but-first rows [ r -> table:put t (item im r) (item ir r) ]
+  foreach range 1440 [ m -> if not table:has-key? t m [ error (word "road_profile.csv lacks minute " m) ] ]
+  set road-r n-values 1440 [ m -> table:get t m ]
+  ;; routes: section positions in seq order
+  set rows read-rows scen-dir "agent_routes.csv"
+  set h first rows
+  let ia col h "agent_id"
+  let iq col h "seq"
+  set isec col h "section_id"
+  let legs table:make   ;; agent_id -> [seq section_id] rows
+  foreach but-first rows [ r ->
+    table:put legs (item ia r) (lput (list (item iq r) (item isec r)) (table:get-or-default legs (item ia r) []))
+  ]
+  foreach sort table:keys legs [ aid ->
+    let ordered sort-by [ [a b] -> (item 0 a) < (item 0 b) ] table:get legs aid
+    table:put agent-route aid map [ q -> table:get sec-index (item 1 q) ] ordered
+  ]
+  set road-on? true
+  set vehicles-per-agent road-vpa
+end
+
 ;; PT departure and arrival minutes of every PT trip of the run (outcomes.csv); empty without it
 to read-pt-times
   set pt-times table:make
@@ -373,12 +539,8 @@ to load-map
   set buildings-ds gis:load-dataset path-join map-dir "cbd_buildings.shp"
   set road-classes map [ k -> filter [ f -> gis:property-value f "frc" = k ] gis:feature-list-of roads-ds ]
                        [ 0 1 2 3 4 ]
-  ;; the City centre view draws only the roads near the cordon (a square around its view envelope)
-  let ve view-envelope "City centre"
-  let half 0.5 * max (list ((item 1 ve) - (item 0 ve)) ((item 3 ve) - (item 2 ve)))
-  let cx ((item 0 ve) + (item 1 ve)) / 2
-  let cy ((item 2 ve) + (item 3 ve)) / 2
-  let near (list (cx - half) (cx + half) (cy - half) (cy + half))
+  ;; the City centre view draws only the roads near the cordon
+  let near near-cordon-envelope
   set road-classes-cc map [ fs -> filter [ f -> envelopes-overlap? gis:envelope-of f near ] fs ] road-classes
   ;; the network is built (and nodes placed) in the Auckland view
   apply-envelope view-envelope "Auckland"
@@ -431,6 +593,62 @@ to build-network
   ]
   print (word "Road network: " count nodes " nodes, " count roads " roads, "
               count nodes with [ in-cordon? ] " nodes in the cordon (" precision timer 1 " s)")
+end
+
+;; [minx maxx miny maxy] NZTM: a square around the City centre view envelope (the roads drawn there)
+to-report near-cordon-envelope
+  let ve view-envelope "City centre"
+  let half 0.5 * max (list ((item 1 ve) - (item 0 ve)) ((item 3 ve) - (item 2 ve)))
+  let cx ((item 0 ve) + (item 1 ve)) / 2
+  let cy ((item 2 ve) + (item 3 ve)) / 2
+  report (list (cx - half) (cx + half) (cy - half) (cy + half))
+end
+
+;; The road features of every section of this run (road_sections.csv), from the prep file
+;; ../data/section_segments.csv (section_id, seq, segment_id: the TomTom segments of each section),
+;; and each section's frc. Sections are then graded at the clock (before the first day: background
+;; traffic only). Without road files, or without that file, roads keep their grey.
+to read-section-map
+  set sec-feats []
+  set sec-feats-cc []
+  set sec-frc []
+  set sec-order []
+  set speed-grade []
+  set grade-shown []
+  set grade-pending []
+  set grade-minute -1
+  set grade-entries []
+  set grade-first-min 0
+  if not road-on? [ stop ]
+  if not file-exists? path-join prep-dir "section_segments.csv" [
+    print (word "No " path-join prep-dir "section_segments.csv" ": roads are not coloured by traffic")
+    stop
+  ]
+  let rows read-rows prep-dir "section_segments.csv"
+  let isec col first rows "section_id"
+  let iseg col first rows "segment_id"
+  let pos-of table:make        ;; segment_id -> section position
+  foreach but-first rows [ r ->
+    if table:has-key? sec-index item isec r [ table:put pos-of (word item iseg r) (table:get sec-index item isec r) ]
+  ]
+  let found table:make         ;; section position -> its features
+  foreach gis:feature-list-of roads-ds [ ft ->
+    let sid (word gis:property-value ft "segment_id")
+    if table:has-key? pos-of sid [
+      let i table:get pos-of sid
+      table:put found i (lput ft (table:get-or-default found i []))
+    ]
+  ]
+  set sec-feats map [ i -> table:get-or-default found i [] ] range length sec-ids
+  set sec-frc map [ fs -> ifelse-value (empty? fs) [ 4 ] [ gis:property-value first fs "frc" ] ] sec-feats
+  let near near-cordon-envelope
+  set sec-feats-cc map [ fs -> filter [ ft -> envelopes-overlap? gis:envelope-of ft near ] fs ] sec-feats
+  set sec-order sort-by [ [a b] -> ((item a sec-frc) > (item b sec-frc)) or (((item a sec-frc) = (item b sec-frc)) and (a < b)) ]
+                        range length sec-ids
+  let n-missing length filter empty? sec-feats
+  if n-missing > 0 [ print (word n-missing " road sections have no segment in section_segments.csv and are not coloured") ]
+  set grade-shown n-values length sec-ids [ 0 ]
+  regrade-roads
 end
 
 ;; NetLogo [x y] -> NZTM [X Y]: inverse of the linear map of the current world envelope
@@ -618,9 +836,24 @@ to make-routes
   ask commuters [
     let g my-gate
     let gp list ([gx] of g) ([gy] of g)
-    let out node-points route-nodes home-node [u-node] of g "tt"
+    let ns route-nodes home-node [u-node] of g "tt"
+    let out node-points ns
+    ;; free-flow minutes along the route (the road links' tt, as prep's path weights)
+    let tts [ 0 ]
+    foreach range (length ns - 1) [ j ->
+      let lk [ road-with item (j + 1) ns ] of item j ns
+      set tts lput ((last tts) + ifelse-value (lk != nobody) [ [tt] of lk ] [ hop-tt dist-m (item j out) (item (j + 1) out) ]) tts
+    ]
     if dist-m (list home-x home-y) (first out) > 500 [ set n-far n-far + 1 ]
-    if dist-m (list home-x home-y) (first out) > 0.5 [ set out fput (list home-x home-y) out ]
+    if dist-m (list home-x home-y) (first out) > 0.5 [
+      let hop hop-tt dist-m (list home-x home-y) (first out)
+      set tts fput 0 map [ t -> t + hop ] tts
+      set out fput (list home-x home-y) out
+    ]
+    ;; the gate point closes the route with the minutes of the whole gate segment (to its inside end,
+    ;; where the engine's route to the gate ends)
+    let gate-link ifelse-value ([v-node] of g != nobody) [ [ road-with [v-node] of g ] of [u-node] of g ] [ nobody ]
+    set tt-out lput ((last tts) + ifelse-value (gate-link != nobody) [ [tt] of gate-link ] [ hop-tt dist-m (last out) gp ]) tts
     set route-out lput gp out
     let wb work-building
     let leg route-nodes (leg-start g) [bnode] of wb "tt-in"
@@ -696,15 +929,117 @@ to draw-map
     gis:fill buildings-ds 0
   ]
   ;; local roads first, motorways last so they stay on top
-  let road-colors [ 7 5 4 3 2.5 ]                 ;; frc 0 motorway .. 4 local
-  let road-widths ifelse-value cc? [ [ 3 2.5 2 1.5 1 ] ] [ [ 1.5 1 0.8 0.5 0.5 ] ]
   foreach [ 4 3 2 1 0 ] [ k ->
-    gis:set-drawing-color item k road-colors
-    let w item k road-widths
+    gis:set-drawing-color road-color k
+    let w road-width k cc?
     foreach item k (ifelse-value cc? [ road-classes-cc ] [ road-classes ]) [ f -> gis:draw f w ]
   ]
+  draw-sections sec-order false
+  set grade-pending []
+  draw-cordon
+end
+
+to draw-cordon
   gis:set-drawing-color white
-  gis:draw cordon-ds ifelse-value cc? [ 2 ] [ 1.5 ]
+  gis:draw cordon-ds ifelse-value (map-view = "City centre") [ 2 ] [ 1.5 ]
+end
+
+;; draw the road sections at positions ids in the colour of their speed grade: normal in the road's
+;; grey, slow, heavy and jammed in grade-colors, each a little wider than the one before. erase? first
+;; paints them black, 2 wider than they are drawn now: lines are drawn anti-aliased, so a line drawn
+;; again over itself would grow bolder at every change, and a black line only 1 wider leaves a faint
+;; rim of the old colour (roads back to normal after the peak looked brownish).
+to draw-sections [ ids erase? ]
+  let cc? map-view = "City centre"
+  let feats ifelse-value cc? [ sec-feats-cc ] [ sec-feats ]
+  if erase? [
+    gis:set-drawing-color black
+    foreach ids [ i ->
+      let w (section-width (item i sec-frc) (item i grade-shown) cc?) + 2
+      foreach item i feats [ f -> gis:draw f w ]
+    ]
+  ]
+  foreach ids [ i ->
+    let k item i sec-frc
+    let g item i speed-grade
+    gis:set-drawing-color ifelse-value (g = 0) [ road-color k ] [ item (g - 1) grade-colors ]
+    let w section-width k g cc?
+    foreach item i feats [ f -> gis:draw f w ]
+    set grade-shown replace-item i grade-shown g
+  ]
+end
+
+;; sections redrawn per tick at most (about 0.1 ms each, with the erase, in the Auckland view), so
+;; that a 5-minute mark at which many roads change colour (07:30, 08:15, 09:15: 500 to 900 sections)
+;; does not stall the animation
+to-report road-redraw-budget
+  report 60
+end
+
+;; Every 5 simulated minutes: grade the sections again (regrade-roads) and queue those whose colour
+;; changed; each tick redraws up to road-redraw-budget of the queue over the drawing (a view change
+;; redraws the whole map)
+to update-road-colours
+  if empty? sec-feats [ stop ]
+  if 5 * floor (clock / 5) != grade-minute [ regrade-roads ]
+  draw-pending road-redraw-budget
+end
+
+;; redraw the first n queued sections
+to draw-pending [ n ]
+  if empty? grade-pending [ stop ]
+  let k min (list n length grade-pending)
+  draw-sections sublist grade-pending 0 k true
+  set grade-pending sublist grade-pending k length grade-pending
+  draw-cordon
+end
+
+;; grade every section at the last 5-minute mark of the clock (speed-grades-at) and queue, in
+;; sec-order, the sections whose colour on the map differs from their grade's
+to regrade-roads
+  let m 5 * floor (clock / 5)
+  set speed-grade speed-grades-at m
+  set grade-minute m
+  set grade-pending filter [ i -> (item i speed-grade) != (item i grade-shown) ] sec-order
+end
+
+;; speed grade of every section at minute m, from its speed factor: the engine's road-speed-factor
+;; (background traffic of minute m plus today's commuter entries at minutes m - road-window .. m - 1,
+;; over the section's capacity; speed / free-flow speed, at least road-floor)
+to-report speed-grades-at [ m ]
+  let cs n-values length sec-ids [ 0 ]
+  foreach (range (m - road-window) m) [ j ->
+    let k j - grade-first-min
+    if (k >= 0) and (k < length grade-entries) [
+      foreach item k grade-entries [ en -> set cs replace-item (item 0 en) cs ((item (item 0 en) cs) + (item 1 en)) ]
+    ]
+  ]
+  report (map [ [i c] -> speed-grade-of road-speed-factor i m c ] (range length sec-ids) cs)
+end
+
+;; 0 = normal (f >= 0.80), 1 = slow (0.60 <= f < 0.80), 2 = heavy (0.40 <= f < 0.60), 3 = jammed
+to-report speed-grade-of [ f ]
+  let bands grade-bands
+  let g 0
+  while [ (g < 3) and (f < item g bands) ] [ set g g + 1 ]
+  report g
+end
+
+;; today's commuter entries (today-road rows [section_id minute entries]) grouped by minute, for
+;; speed-grades-at
+to index-road-entries
+  set grade-entries []
+  set grade-first-min 0
+  if empty? today-road [ stop ]
+  let rows item 1 today-road
+  if empty? rows [ stop ]
+  set grade-first-min min map [ r -> item 1 r ] rows
+  let by-min n-values ((max map [ r -> item 1 r ] rows) - grade-first-min + 1) [ [] ]
+  foreach rows [ r ->
+    let k (item 1 r) - grade-first-min
+    set by-min replace-item k by-min (lput (list (table:get sec-index item 0 r) (item 2 r)) (item k by-min))
+  ]
+  set grade-entries by-min
 end
 
 ;; gates at their crossing point. In the City centre view each corridor is labelled below its
@@ -749,6 +1084,8 @@ to go
   ]
   set clock min (list day-end-min (clock + 1 / steps-per-minute))
   update-commuters
+  update-road-colours
+  if clock >= day-end-min [ draw-pending length grade-pending ]   ;; the last frame of the day is up to date
   plot-until clock
   tick
   if clock >= day-end-min [
@@ -767,6 +1104,8 @@ to finish-day
   let skipped day-end-min - clock
   set clock day-end-min
   update-commuters
+  update-road-colours
+  draw-pending length grade-pending
   plot-until clock
   tick-advance skipped * steps-per-minute
   display
@@ -812,6 +1151,8 @@ to start-day [ d ]
     ]
   ]
   simulate-queues
+  plan-drives
+  index-road-entries
   let cars commuters with [ mode-today = "CAR" ]
   set n-cars count cars
   let served cars with [ gate-exit >= 0 ]
@@ -835,7 +1176,65 @@ to start-day [ d ]
   set day-running? true
   setup-day-plots
   update-commuters
+  set grade-minute -1   ;; today's traffic: grade again at day-start
+  update-road-colours
   plot-until clock
+end
+
+;; Today's drive of every car from home to its gate: t-out, the minute it passes each point of
+;; route-out. With road files the car follows its section times from road-arrivals (today-road): the
+;; free-flow minutes of route it covers grow at each section's congested pace, so it slows down on
+;; busy roads. The times are stretched (by about a minute at most: the engine rounds the free-flow
+;; minutes to the gate and the road delay to whole minutes) so that it reaches the gate point
+;; exactly at gate-arr, the engine's whole minute. Without a route it drives at constant speed.
+to plan-drives
+  let delays ifelse-value (empty? today-road) [ table:make ] [ item 0 today-road ]
+  let times ifelse-value (empty? today-road) [ table:make ] [ item 2 today-road ]
+  ask commuters [
+    set out-ptr 0
+    set road-delay -1
+    set t-out []
+    if mode-today = "CAR" [
+      set road-delay table:get-or-default delays agent-id 0
+      set t-out ifelse-value (table:has-key? times agent-id) [ section-clock table:get times agent-id ] [ even-clock ]
+    ]
+  ]
+end
+
+;; commuter reporter: the minute the car passes each point of route-out at constant speed by metres
+to-report even-clock
+  let total last len-out
+  report lput gate-arr butlast map [ x -> ifelse-value (total > 0) [ dep + (gate-arr - dep) * x / total ] [ dep ] ] len-out
+end
+
+;; commuter reporter: the minute the car passes each point of route-out on the section times tms of
+;; road-arrivals ([t0 .. tn], elapsed minutes at the entry of each section of its route and at the
+;; gate). A point at free-flow minutes F of the route (tt-out, scaled to the route's free-flow sum)
+;; lies in the section k whose free-flow minutes span F; the car passes it at
+;; t_k + (t_k+1 - t_k) x (share of section k before it), stretched by (gate-arr - dep) / tn.
+to-report section-clock [ tms ]
+  let cum [ 0 ]   ;; free-flow minutes of the route before each section, then in all
+  foreach table:get agent-route agent-id [ i -> set cum lput ((last cum) + (item i sec-ff)) cum ]
+  let tn last tms
+  let full last tt-out
+  if (tn <= 0) or (full <= 0) or (gate-arr <= dep) [ report even-clock ]
+  let stretch (gate-arr - dep) / tn
+  let scale (last cum) / full
+  let nk length cum - 2
+  let k 0         ;; the section the point lies in
+  let out (list dep)
+  foreach butlast but-first tt-out [ tt-pt ->
+    let f tt-pt * scale
+    while [ (k < nk) and (item (k + 1) cum <= f) ] [ set k k + 1 ]
+    let lo item k cum
+    let span (item (k + 1) cum) - lo
+    let share ifelse-value (span > 0) [ (f - lo) / span ] [ 1 ]   ;; >= 0: lo <= f
+    if share > 1 [ set share 1 ]
+    let tk item k tms
+    let t dep + (tk + ((item (k + 1) tms) - tk) * share) * stretch
+    set out lput (ifelse-value (t < gate-arr) [ t ] [ gate-arr ]) out
+  ]
+  report lput gate-arr out
 end
 
 to end-day
@@ -854,6 +1253,145 @@ to-report demo-plans [ d ]
 end
 
 ;; ------------------------------------------------------------------ engine
+
+;; Roads from home to the gate (PyEngine: cordonlite/roads.py simulate_roads, ported line by line:
+;; the same operations in the same order, so both engines compute the same numbers).
+;; cars: one [agent_id depart_min] per car today, in any order. Each car drives its route
+;; (agent-route) section by section. It enters a section at minute m = depart + floor(elapsed),
+;; with that section's speed factor at m (road-speed-factor: background flow of minute m plus the
+;; commuter entries at minutes m - road-window .. m - 1, never those of m itself, so the order of
+;; the cars within a minute does not matter), records one entry of the section at m and adds
+;; free-flow minutes / speed factor to its elapsed minutes. Road delay = floor(elapsed - free-flow
+;; sum + 0.5), at least 0; it is 0 for a car without a route and for every car when road-on? is
+;; false. Gate arrival = depart + fftt_to_gate_min (agents.csv) + road delay.
+;; Reports [delays entries times extras counts]:
+;;   delays   table agent_id -> road delay (whole minutes) of every car passed in
+;;   entries  rows [section_id minute entries] (entries > 0), by section_id, then minute
+;;            (road_dayNN.csv without the day column)
+;;   times    table agent_id -> [t0 t1 ... tn] for each car with a route of n sections: elapsed
+;;            minutes since departure when it enters each section (t0 = 0) and, last, when it
+;;            leaves the route at the gate (tn = free-flow sum + extra). Section k of the route
+;;            (position item k of agent-route) is driven from depart + t_k to depart + t_(k+1). The
+;;            engine's gate arrival is the whole minute depart + fftt_to_gate_min + road delay, so a
+;;            drawing that must reach the gate at gate-arr scales these times to it.
+;;   extras   table agent_id -> elapsed - free-flow sum (minutes, before rounding; 0 without route)
+;;   counts   table (entry-key i m) -> commuter entries of the section at position i (sec-ids
+;;            order) in minute m; road-window-count counts i m is its count in the flow window
+;;            before m (one table, not one per section: each table:make gets slower while many
+;;            tables are alive)
+to-report road-arrivals [ cars ]
+  let delays table:make
+  let extras table:make
+  let times table:make
+  foreach cars [ cr ->
+    table:put delays (item 0 cr) 0
+    table:put extras (item 0 cr) 0
+  ]
+  if not road-on? [ report (list delays [] times extras table:make) ]
+  ;; cars with a route: departure minute, elapsed minutes, next route position, free-flow sum
+  let r-dep table:make
+  let r-el table:make
+  let r-k table:make
+  let r-ffsum table:make
+  foreach cars [ cr ->
+    let aid item 0 cr
+    let rte table:get-or-default agent-route aid []
+    if not empty? rte [
+      table:put r-dep aid (item 1 cr)
+      table:put r-el aid 0
+      table:put r-k aid 0
+      let s-ff 0
+      foreach rte [ i -> set s-ff s-ff + (item i sec-ff) ]   ;; left to right, in seq order
+      table:put r-ffsum aid s-ff
+      table:put times aid [ 0 ]
+    ]
+  ]
+  let counts table:make
+  let buckets table:make   ;; minute -> agent_ids that enter their next section at that minute
+  foreach table:keys r-dep [ aid ->
+    let m0 table:get r-dep aid
+    table:put buckets m0 (lput aid (table:get-or-default buckets m0 []))
+  ]
+  let unfinished table:length r-dep
+  let m ifelse-value (unfinished > 0) [ min table:values r-dep ] [ 0 ]
+  while [ unfinished > 0 ] [
+    if table:has-key? buckets m [
+      let ids sort table:get buckets m
+      table:remove buckets m
+      foreach ids [ aid ->
+        let d0 table:get r-dep aid
+        let rte table:get agent-route aid
+        let el table:get r-el aid
+        let k table:get r-k aid
+        let tms table:get times aid
+        let done? false
+        while [ (not done?) and ((d0 + (floor el)) = m) ] [
+          let i item k rte
+          let f road-speed-factor i m (road-window-count counts i m)
+          let key entry-key i m
+          table:put counts key ((table:get-or-default counts key 0) + 1)   ;; one more entry of i at minute m
+          set el el + ((item i sec-ff) / f)
+          set k k + 1
+          set tms lput el tms
+          if k = length rte [ set done? true ]
+        ]
+        table:put r-el aid el
+        table:put r-k aid k
+        table:put times aid tms
+        ifelse done? [ set unfinished unfinished - 1 ] [
+          let nb d0 + (floor el)   ;; always a later minute
+          table:put buckets nb (lput aid (table:get-or-default buckets nb []))
+        ]
+      ]
+    ]
+    set m m + 1
+  ]
+  foreach table:keys r-dep [ aid ->
+    let xm (table:get r-el aid) - (table:get r-ffsum aid)
+    table:put extras aid xm
+    table:put delays aid (max (list 0 (floor (xm + 0.5))))
+  ]
+  let rows []
+  foreach sort table:keys counts [ key ->   ;; ascending key = by section position, then minute
+    let i floor (key / 100000)
+    set rows lput (list (item i sec-ids) (key - (i * 100000)) (table:get counts key)) rows
+  ]
+  report (list delays rows times extras counts)
+end
+
+;; key of section position i and minute m (0 <= m < 100000) in the counts table of road-arrivals
+to-report entry-key [ i m ]
+  report (i * 100000) + m
+end
+
+;; commuter entries of the section at position i at minutes m - road-window .. m - 1 (counts: the
+;; table of road-arrivals)
+to-report road-window-count [ counts i m ]
+  let c 0
+  let j m - road-window
+  while [ j < m ] [
+    set c c + (table:get-or-default counts (entry-key i j) 0)
+    set j j + 1
+  ]
+  report c
+end
+
+;; flow (veh/h) on the section at position i in minute m with c commuter entries in the flow window:
+;; background peak flow x profile of minute m (the last profile minute after 23:59) + c x sec-fpe
+to-report road-volume [ i m c ]
+  let rm ifelse-value (m < 1440) [ item m road-r ] [ item 1439 road-r ]
+  report ((item i sec-bg) * rm) + (c * (item i sec-fpe))
+end
+
+;; speed factor (share of free-flow speed) of the section at position i in minute m with c commuter
+;; entries in the flow window: BPR with beta 4, x4 = (x * x) * (x * x) (not x ^ 4), at least road-floor
+to-report road-speed-factor [ i m c ]
+  let x (road-volume i m c) / (item i sec-cap)
+  let x4 (x * x) * (x * x)
+  let f 1 / (1 + (road-alpha * x4))
+  if f < road-floor [ set f road-floor ]
+  report f
+end
 
 ;; The Cordon-Lite engine: one Vickrey point queue per corridor at minute resolution (PyEngine,
 ;; simulate_point_queues). arrivals: one [gate-arrival-minute agent_id corridor_id] per car. Each
@@ -909,14 +1447,24 @@ to-report point-queues [ arrivals ]
   report (list exits (ifelse-value (nk = 0) [ [] ] [ reduce sentence prof ]) m)
 end
 
-;; today's cars on screen: gate-arr, gate-exit (-1 when not served by sim-end-cap-min) and arr
+;; today's cars on screen: gate-arr, gate-exit (-1 when not served by sim-end-cap-min) and arr, from
+;; the engine's road-arrivals and point-queues (so the same minutes as the run); today-road keeps
+;; the road-arrivals result (road delays, section entries, each car's section times)
 to simulate-queues
   let cars sort-on [ agent-id ] commuters with [ mode-today = "CAR" ]
+  foreach cars [ c ->
+    ask c [
+      if (dep + (table:get agent-fg agent-id)) < sim-start-min [
+        error (word "agent " agent-id " reaches its gate before sim-start-min")
+      ]
+    ]
+  ]
+  set today-road road-arrivals map [ c -> [ list agent-id dep ] of c ] cars
+  let road-delays item 0 today-road
   let arrivals []
   foreach cars [ c ->
     ask c [
-      set gate-arr dep + table:get agent-fg agent-id
-      if gate-arr < sim-start-min [ error (word "agent " agent-id " reaches its gate before sim-start-min") ]
+      set gate-arr (dep + (table:get agent-fg agent-id)) + (table:get road-delays agent-id)
       set arrivals lput (list gate-arr agent-id corridor-id) arrivals
     ]
   ]
@@ -931,9 +1479,11 @@ end
 
 ;; ------------------------------------------------------------------ headless engine (NetLogoEngine)
 ;; Python (cordonlite/engine.py) loads this model through pynetlogo and calls:
-;;   setup-from-dir "<dir>"            reads corridors.csv, agents.csv, fees.csv (no map, no network)
+;;   setup-from-dir "<dir>"            reads corridors.csv, agents.csv, fees.csv and the road files when
+;;                                     present (read-roads; no map, no network)
 ;;   set-clock <sim-start> <cap>       engine clock (defaults 330 and 720)
 ;;   run-day <day> "<dir>" <fee?>      reads plans_dayNN.csv, writes outcomes_dayNN.csv, profile_dayNN.csv
+;;                                     and road_dayNN.csv
 
 to setup-from-dir [ dir ]
   clear-all
@@ -949,11 +1499,14 @@ to setup-from-dir [ dir ]
   set last-minute sim-start-min
   set last-profile []
   set last-exits []
+  set last-road []
+  set today-road []
   set agent-mode table:make
   read-corridors
   read-agents
   read-fees
   read-scenario-meta
+  read-roads
   reset-ticks
 end
 
@@ -966,7 +1519,8 @@ to run-day [ d dir fee? ]
   run-day-io d dir dir fee?
 end
 
-;; plans_dayNN.csv from in-dir; outcomes_dayNN.csv and profile_dayNN.csv to out-dir
+;; plans_dayNN.csv from in-dir; outcomes_dayNN.csv, profile_dayNN.csv and road_dayNN.csv (header only
+;; without road files) to out-dir
 to run-day-io [ d in-dir out-dir fee? ]
   set current-day d
   set fee-active-today? fee?
@@ -975,8 +1529,7 @@ to run-day-io [ d in-dir out-dir fee? ]
   let ia col h "agent_id"
   let im col h "mode"
   let idep col h "depart_min"
-  let arrivals []   ;; [gate-arrival agent_id corridor_id]
-  let cars []       ;; [agent_id corridor_id depart gate-arrival]
+  let cars []       ;; [agent_id corridor_id depart]
   set agent-mode table:make
   foreach but-first rows [ r ->
     let aid item ia r
@@ -986,12 +1539,18 @@ to run-day-io [ d in-dir out-dir fee? ]
       if not table:has-key? agent-corr aid [ error (word "unknown agent_id " aid) ]
       let cid table:get agent-corr aid
       let dep-min item idep r
-      let a dep-min + (table:get agent-fg aid)
-      if a < sim-start-min [ error (word "agent " aid " reaches its gate before sim-start-min") ]
-      set arrivals lput (list a aid cid) arrivals
-      set cars lput (list aid cid dep-min a) cars
+      ;; as PyEngine (car_rows): checked on the free-flow arrival; the road delay is never negative
+      if (dep-min + (table:get agent-fg aid)) < sim-start-min [
+        error (word "agent " aid " reaches its gate before sim-start-min")
+      ]
+      set cars lput (list aid cid dep-min) cars
     ]
   ]
+  ;; gate arrival = depart + free-flow minutes to the gate + road delay
+  let road-res road-arrivals map [ c -> list (item 0 c) (item 2 c) ] cars
+  let road-delays item 0 road-res
+  set cars map [ c -> (lput ((item 2 c) + (table:get agent-fg (item 0 c)) + (table:get road-delays (item 0 c))) c) ] cars
+  let arrivals map [ c -> (list (item 3 c) (item 0 c) (item 1 c)) ] cars   ;; [gate-arrival agent_id corridor_id]
   let result point-queues arrivals
   let exits item 0 result
   set last-minute item 2 result
@@ -1001,14 +1560,15 @@ to run-day-io [ d in-dir out-dir fee? ]
   foreach sort-by [ [p q] -> (item 0 p) < (item 0 q) ] cars [ c ->
     let aid item 0 c
     let a item 3 c
+    let rd table:get road-delays aid
     ifelse table:has-key? exits aid [
       let x table:get exits aid
       let fee ifelse-value fee? [ item x fee-list ] [ 0 ]
-      set out lput (list aid d (item 1 c) (item 2 c) a x (x - a) (x + table:get agent-gd aid) fee) out
+      set out lput (list aid d (item 1 c) (item 2 c) rd a x (x - a) (x + table:get agent-gd aid) fee) out
       set delays lput (x - a) delays
       set exit-list lput x exit-list
     ] [
-      set out lput (list aid d (item 1 c) (item 2 c) a -1 -1 -1 0) out
+      set out lput (list aid d (item 1 c) (item 2 c) rd a -1 -1 -1 0) out
     ]
   ]
   set n-cars length cars
@@ -1016,10 +1576,13 @@ to run-day-io [ d in-dir out-dir fee? ]
   set max-delay ifelse-value (empty? delays) [ 0 ] [ max delays ]
   set last-exits exit-list
   set last-profile map [ row -> fput d row ] (item 1 result)
+  set last-road map [ row -> fput d row ] (item 1 road-res)
   csv:to-file (path-join out-dir (word "outcomes_day" pad2 d ".csv"))
-    fput [ "agent_id" "day" "corridor_id" "depart_min" "gate_arrive_min" "gate_exit_min" "queue_delay_min" "arrive_min" "fee_paid" ] out
+    fput [ "agent_id" "day" "corridor_id" "depart_min" "road_delay_min" "gate_arrive_min" "gate_exit_min" "queue_delay_min" "arrive_min" "fee_paid" ] out
   csv:to-file (path-join out-dir (word "profile_day" pad2 d ".csv"))
     fput [ "day" "corridor_id" "minute" "arrivals" "served" "queue_len" ] last-profile
+  csv:to-file (path-join out-dir (word "road_day" pad2 d ".csv"))
+    fput [ "day" "section_id" "minute" "entries" ] last-road
 end
 
 ;; ------------------------------------------------------------------ positions
@@ -1091,27 +1654,41 @@ to place-now
     place-at [bx] of work-building [by] of work-building
     stop
   ]
-  ;; on the road: driving to the gate, queued before it (red), or driving from it to the building
+  ;; on the road: driving to the gate (on its section times), queued before it (red), or driving
+  ;; from it to the building
   if s = "queued" [ set color red ]
   set shape "car"
   set size ifelse-value cc? [ 4 ] [ 2.5 ]
-  let pts route-out
-  let cum len-out
-  let d 0
+  let p []
   ifelse s = "queued" [
-    set d max (list 0 ((last len-out) - q-rank * queue-spacing-m))
+    set p point-along route-out len-out max (list 0 ((last len-out) - q-rank * queue-spacing-m))
   ] [
     ifelse clock < gate-arr [
-      set d (last len-out) * (clock - dep) / (gate-arr - dep)
+      set p drive-point clock
     ] [
-      set pts route-in
-      set cum len-in
-      set d ifelse-value (arr > gate-exit) [ (last len-in) * (clock - gate-exit) / (arr - gate-exit) ] [ last len-in ]
+      set p point-along route-in len-in
+              ifelse-value (arr > gate-exit) [ (last len-in) * (clock - gate-exit) / (arr - gate-exit) ] [ last len-in ]
     ]
   ]
-  let p point-along pts cum d
   place-at (item 0 p) (item 1 p)
   set heading item 2 p
+end
+
+;; commuter reporter: [x y heading] on route-out at minute m of today's drive to the gate: between
+;; the two points it passes before and after m (t-out), at the share of that stretch's minutes gone.
+;; At gate-arr it is the gate point. out-ptr remembers the last point passed (the clock only moves on).
+to-report drive-point [ m ]
+  let n length t-out
+  if (out-ptr > 0) and (item out-ptr t-out > m) [ set out-ptr 0 ]
+  while [ (out-ptr < n - 2) and (item (out-ptr + 1) t-out <= m) ] [ set out-ptr out-ptr + 1 ]
+  let a item out-ptr route-out
+  let b item (out-ptr + 1) route-out
+  let ta item out-ptr t-out
+  let tb item (out-ptr + 1) t-out
+  let f ifelse-value (tb > ta) [ max (list 0 (min (list 1 ((m - ta) / (tb - ta))))) ] [ 1 ]
+  report (list ((item 0 a) + f * ((item 0 b) - (item 0 a)))
+               ((item 1 a) + f * ((item 1 b) - (item 1 a)))
+               (bearing-of a b))
 end
 
 ;; [x y heading] at distance d (metres) along the polyline pts with cumulative lengths cum
@@ -1140,6 +1717,12 @@ end
 
 to-report n-state [ s ]
   report count commuters with [ state-at clock = s ]
+end
+
+;; mean road delay (min) of today's cars that have reached their gate so far (0 before the first)
+to-report traffic-delay-now
+  let done commuters with [ mode-today = "CAR" and gate-arr >= 0 and gate-arr <= clock ]
+  report ifelse-value (any? done) [ mean [ road-delay ] of done ] [ 0 ]
 end
 
 ;; plots use hours on the x-axis (7.5 = 07:30)
@@ -1208,14 +1791,15 @@ end]]></code>
     <monitor x="220" precision="0" y="220" height="49" fontSize="11" width="100" display="at work" sizeVersion="0">n-state "work"</monitor>
     <monitor x="10" precision="0" y="275" height="49" fontSize="11" width="150" display="cars today" sizeVersion="0">n-cars</monitor>
     <monitor x="170" precision="1" y="275" height="49" fontSize="11" width="150" display="mean queue wait (min)" sizeVersion="0">mean-delay</monitor>
-    <note x="10" y="335" backgroundDark="0" fontSize="12" width="310" markdown="false" height="175" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">1. Pick a run folder in scenario-dir and press setup (about 40 s).
+    <monitor x="10" precision="1" y="330" height="49" fontSize="11" width="150" display="traffic delay (min)" sizeVersion="0">traffic-delay-now</monitor>
+    <note x="10" y="390" backgroundDark="0" fontSize="12" width="310" markdown="false" height="255" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">1. Pick a run folder in scenario-dir and press setup (about 40 s).
 2. Press go: one morning plays until everyone has arrived at work, then go stops.
 3. To run day after day, switch keep-going? on before pressing go.
 4. City-centre view zooms in on the gates and the queues.
 
-Dots are commuters (colour = entry corridor, green = public transport, grey = stays home). Cars drive to the cordon, wait in red queues at the gates, then park at their workplace.</note>
-    <input x="10" multiline="false" y="520" height="60" variable="fee-start-day" type="number" width="150">11.0</input>
-    <note x="170" y="520" backgroundDark="0" fontSize="10" width="150" markdown="false" height="60" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">first charged day (demo only; a run folder sets its own)</note>
+Dots are commuters (colour = entry corridor, green = public transport, grey = stays home). Cars drive to the cordon, wait in red queues at the gates, then park at their workplace. Roads turn yellow, orange, then purple as traffic slows down.</note>
+    <input x="10" multiline="false" y="655" height="60" variable="fee-start-day" type="number" width="150">11.0</input>
+    <note x="170" y="655" backgroundDark="0" fontSize="10" width="150" markdown="false" height="60" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">first charged day (demo only; a run folder sets its own)</note>
     <button x="330" y="570" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="180" display="Auckland view">set-map-view "Auckland"</button>
     <button x="520" y="570" height="35" disableUntilTicks="true" forever="false" kind="Observer" width="180" display="City-centre view">set-map-view "City centre"</button>
     <plot x="890" autoPlotX="false" yMax="10.0" autoPlotY="true" yAxis="commuters" y="10" xMin="5.5" height="190" legend="true" xMax="9.0" yMin="0.0" width="430" xAxis="hour (7.5 = 07:30)" display="Commuters">
@@ -1253,7 +1837,7 @@ Dots are commuters (colour = entry corridor, green = public transport, grey = st
   </widgets>
   <info><![CDATA[## WHAT IS IT?
 
-The Cordon-Lite commuter model with every car driving on the real Auckland road network. Commuters live at their Cordon-Lite origins across Auckland and work in the city centre. Each one works in one building inside the cordon (SA3 "Auckland City Centre"), drawn at random once and kept for every day. On a replayed day a car leaves home, drives the TomTom major-road network to the gate where its route enters the cordon, waits in its corridor's queue and drives on to its building.
+The Cordon-Lite commuter model with every car driving on the real Auckland road network. Commuters live at their Cordon-Lite origins across Auckland and work in the city centre. Each one works in one building inside the cordon (SA3 "Auckland City Centre"), drawn at random once and kept for every day. On a replayed day a car leaves home, drives the TomTom major-road network through the morning traffic to the gate where its route enters the cordon, waits in its corridor's queue and drives on to its building.
 
 ## HOW IT WORKS
 
@@ -1261,7 +1845,11 @@ Road network. setup loads the TomTom major roads (`gis/tomtom_major_roads.shp`, 
 
 Routes. A commuter's gate is the prep gate of its origin (`../data/origins.csv`, `gate_id`; found through `origin_id` in the run's personas.csv, or the origin coordinates). Its car drives the free-flow shortest path from home to the outside end of the gate segment (a prefix of the prep path) and crosses the cordon at the gate point (`../data/gates.csv`). From the inside end it takes the shortest path to the cordon node nearest its building (in the largest connected set of cordon roads), with 60 minutes added to every road that has an end outside the cordon, so that a car that has passed its gate stays inside. On plain free-flow minutes about two thirds of these legs would leave the cordon and come back. A leg still leaves where the cordon's own roads do not connect: from the Wellesley Street ramp gate (about 100 to 160 m) and from Hopetoun Street (about 180 m). The car parks at that node (median 65 m from the building, up to about 780 m for buildings on the wharves, which the major-road network does not reach), and the commuter is drawn at the building on arrival. A folder whose agents are not prep origins (demo_scenario) queues each corridor at its corridor point instead; its homes are synthetic points, some kilometres from any road, so its cars start with a straight line and its speeds are not meaningful.
 
-Clock. The minutes are those of the Cordon-Lite engine. Gate arrival = departure + free-flow minutes to the gate (agents.csv). The queue is the engine's Vickrey point queue per corridor (procedure point-queues, the same FIFO order, carry and cap as PyEngine), so every gate-exit minute equals the run's. Arrival = gate exit + free-flow minutes from the gate. Between those minutes a car moves along its route at constant speed, drawn every 15 simulated seconds (one tick). A day lasts until the last commuter has arrived, then the next day can start. The workplace building therefore sets where a car parks, not when it arrives: the engine's gate-to-destination minutes refer to the single prep destination, not to the building. In the canonical R-clock run the implied speeds are a median of 76 km/h to the gate (5-95%: 50-94 km/h) and 40 km/h from the gate to the parking node (5-95%: 13-72 km/h; a few short engine legs give up to about 95 km/h). Queued cars are red and are drawn back along the approach road from the gate. Each agent stands for about 63 cars (agents_represented / agents), so each takes up about 220 m of road (7 m per car, 2 lanes): the queue on the map is as long as the real queue.
+Road traffic. A run folder made with road congestion on (road_sections.csv, agent_routes.csv, road_profile.csv and road_params.csv) splits each commuter's route to its gate into road sections. Each minute a section carries background traffic (from the AT/NZTA traffic counts, rising through the morning) plus the commuters' own cars that entered it in the last 15 minutes, each agent standing for about 63 cars. The busier a section is for its capacity, the slower cars drive on it, so a car that leaves at 07:45 takes longer than one that leaves at 06:30, and fewer commuter cars ease the roads. This is the engine's procedure road-arrivals, the same as PyEngine, so every road delay equals the run's. Without these files (an older run folder, demo_scenario) the roads are free-flow and the road delay is 0. The roads inside the cordon are never congested: the gate queue stands for that.
+
+Clock. The minutes are those of the Cordon-Lite engine. Gate arrival = departure + free-flow minutes to the gate (agents.csv) + road delay (whole minutes). The queue is the engine's Vickrey point queue per corridor (procedure point-queues, the same FIFO order, carry and cap as PyEngine), so every gate-exit minute equals the run's. Arrival = gate exit + free-flow minutes from the gate. Before its gate a car follows its section times from road-arrivals: it covers each section's free-flow minutes of route in the minutes the traffic gives it, so it slows down on busy sections, and it reaches the gate point exactly at its gate arrival minute (its times are stretched by about a minute at most for that, as the engine counts whole minutes). Without road files, and after the gate, a car moves along its route at constant speed. Cars are drawn every 15 simulated seconds (one tick). A day lasts until the last commuter has arrived, then the next day can start. The workplace building therefore sets where a car parks, not when it arrives: the engine's gate-to-destination minutes refer to the single prep destination, not to the building. In a 300-agent R-clock run with road congestion the implied speeds to the gate (route length / (gate arrival - departure)) are a median of 51 km/h on days 1 and 11 (5-95%: 22-81 km/h); at free flow they would be a median of 76 km/h (5-95%: 50-94 km/h). From the gate to the parking node the median is 40 km/h (5-95%: 13-72 km/h; a few short engine legs give up to about 95 km/h). Queued cars are red and are drawn back along the approach road from the gate. Each agent stands for about 63 cars (agents_represented / agents), so each takes up about 220 m of road (7 m per car, 2 lanes): the queue on the map is as long as the real queue.
+
+Road colours. The road sections on the commuters' routes are drawn a little wider than other roads and coloured by how fast their traffic moves at the last 5-minute mark, as a share of the free-flow speed (the engine's speed for a car entering the section at that minute): 80% or more keeps the grey of the road, 60-80% (slow) is light yellow, 40-60% (heavy) orange and below 40% (jammed) purple. The slower the traffic, the wider the line. Red stays for queued cars and green for public transport, and the three road colours differ from the colours of the corridors' cars. The segments of each section come from `../data/section_segments.csv` (python -m prep.build_roads). Every 5 minutes only the sections whose colour changed are redrawn, at most 60 per tick, so when many roads change at once (07:30, 08:15, 09:15) the map catches up over a few simulated minutes; switching the view redraws the whole map at once.
 
 PT riders leave home at their PT departure minute and appear at their building at their PT arrival minute (outcomes.csv of the run; without it they are at work all day). WFH and SKIP commuters stay at home.
 
@@ -1270,17 +1858,17 @@ Workplaces. One building per commuter, drawn uniformly from the 1,484 building p
 ## HOW TO USE IT
 
 1. Type a run folder in scenario-dir (default `../runs/R-clock_mock_py_s1`) and press setup (about 40 s).
-2. Press go. One morning plays until everyone has arrived at work, and go stops. One tick is 15 simulated seconds.
+2. Press go. One morning plays until everyone has arrived at work, and go stops. One tick is 15 simulated seconds. "traffic delay (min)" is the mean delay on the roads of today's cars that have reached their gate so far; "mean queue wait (min)" is today's mean wait at the gates.
 3. To run day after day, switch keep-going? on before pressing go.
 4. skip to end of day jumps to the end of the morning without animation. Auckland view and City-centre view switch the map; the City-centre view shows the gates and their queues best. The NetLogo speed slider sets the pace.
 
 ## THINGS TO NOTICE
 
-Congestion in Cordon-Lite is only the queue at each cordon gate; the roads are free-flow by design. Watch the red queues grow behind the gates around 08:00 and the "waiting" counts in the City-centre view, before and after the charge starts. The plots use hours on the x-axis (7.5 = 07:30). On charged days the entries plot shows the charge, scaled so that its peak equals the highest bar.
+There are two kinds of congestion: traffic on the roads into the city centre and the queue at each cordon gate. From about 07:00 the first roads turn yellow, orange or purple, mostly the commuters' own approaches; at 07:30 nearly all of the commuters' roads are yellow (slow), from about 08:15 most are orange (heavy) and the busiest approaches purple (jammed), and by about 09:15 more than half are grey again. Cars leaving in those hours slow down on the way and the "traffic delay (min)" monitor climbs. Watch the red queues grow behind the gates around 08:00 and the "waiting" counts in the City-centre view, before and after the charge starts; on charged days fewer cars drive in the peak, fewer roads turn purple and the traffic delay is lower. The plots use hours on the x-axis (7.5 = 07:30). On charged days the entries plot shows the charge, scaled so that its peak equals the highest bar.
 
 ## PYTHON ENGINE
 
-This is also the engine Python drives headless (NetLogoEngine, `python -m cordonlite.run --engine netlogo`): it calls setup-from-dir, set-clock and run-day, which load no map and write outcomes_dayNN.csv and profile_dayNN.csv into the run folder. Watching a run in the GUI writes nothing.
+This is also the engine Python drives headless (NetLogoEngine, `python -m cordonlite.run --engine netlogo`): it calls setup-from-dir, set-clock and run-day, which load no map and write outcomes_dayNN.csv, profile_dayNN.csv and road_dayNN.csv into the run folder. Watching a run in the GUI writes nothing.
 
 ## CREDITS AND REFERENCES
 
