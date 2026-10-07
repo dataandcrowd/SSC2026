@@ -120,7 +120,7 @@ def check_llm_credentials(cfg: Config) -> None:
 
     The SDK resolves ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, an `ant auth login` profile or
     workload identity federation; constructing the client reads them without a request."""
-    if not (cfg.run.arm.startswith("L-") and cfg.run.backend == "anthropic"):
+    if not (cfg.run.arm.startswith(("L-", "H-")) and cfg.run.backend == "anthropic"):
         return
     import anthropic
 
@@ -277,6 +277,10 @@ def _make_decider(cfg: Config, run_dir: Path, backend: str | None = None,
     rule = RuleDecider(cfg, noise_ids(personas))
     if cfg.run.arm.startswith("R-"):
         return rule
+    if cfg.run.arm.startswith("H-"):
+        from cordonlite.planner import make_hybrid_decider  # imported lazily, like the LLM decider
+
+        return make_hybrid_decider(cfg, run_dir, rule, backend or cfg.run.backend)
     from cordonlite.llm import make_llm_decider  # imported lazily: rule arms never need it
 
     return make_llm_decider(cfg, run_dir, rule, backend or cfg.run.backend)
@@ -335,7 +339,8 @@ def simulate(cfg: Config, run_dir: Path, scale: float, *, backend: str | None = 
                     ref_fee=mem.ref_fee, today=today, traits_shown=traits_shown)
                 if len(opts) == 1:
                     chosen[i] = _forced_decision(ctx)
-                elif should_wake(cfg.run.arm, trig) or mem.standing_option_id is None:
+                elif (should_wake(cfg.run.arm, trig) or mem.standing_option_id is None
+                      or cfg.run.arm.startswith("H-")):   # the hybrid decider sees everyone, every day
                     woken.append(ctx)
                 else:
                     ids = [o.option_id for o in opts]
@@ -354,7 +359,7 @@ def simulate(cfg: Config, run_dir: Path, scale: float, *, backend: str | None = 
                 assert dec is not None
                 opt = next(o for o in opts_by_agent[i] if o.option_id == dec.option_id)
                 chosen_opt.append(opt)
-                if dec.decider != "standing":
+                if dec.decider != "standing" and dec.meta.get("set_standing", True):
                     set_standing(mems[i], opt)
                 plans.append((p.agent_id, opt.mode, int(opt.depart_min) if opt.mode == "CAR" else -1))
             plans_df = pd.DataFrame(plans, columns=list(PLAN_COLUMNS))

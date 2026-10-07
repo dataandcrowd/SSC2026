@@ -24,12 +24,16 @@ import numpy as np
 ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH: Path = ROOT / "config.toml"
 
-ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily")
+# H-clock (cordonlite/planner.py): the LLM plans, the rule chooses the minute
+ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily", "H-clock")
 BACKENDS: tuple[str, ...] = ("mock", "anthropic")
 ENGINES: tuple[str, ...] = ("py", "netlogo")
 REGIMES: tuple[str, ...] = ("tou", "flat", "none")
 EFFORTS: tuple[str, ...] = ("low", "medium", "high", "xhigh", "max")
 TEMPLATE_ID: str = "cl-v1"
+# Implemented prompt templates: cl-v1 (default) and cl-v2 (adds the "you pay today" column and the
+# main_factor / second_factor reply; see cordonlite/llm.py).
+TEMPLATE_IDS: tuple[str, ...] = ("cl-v1", "cl-v2", "plan-v1", "plan-v2", "think-v1")   # plan-*, think-*: arm H-clock only (planner.py, thinker.py)
 # The server-side refusal fallback beta that accepts fallbacks="default".
 FALLBACK_BETAS: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
 N_ARCHETYPES: int = 5
@@ -400,8 +404,10 @@ def _validate(cfg: Config) -> None:
     check(cfg.costs.wfh_form in ("spec", "v3_relative"), "costs.wfh_form must be spec or v3_relative")
     check(cfg.llm.model in cfg.llm.allowed_models, "llm.model not in llm.allowed_models")
     check(cfg.llm.effort in EFFORTS, f"llm.effort must be one of {EFFORTS}")
-    check(cfg.llm.template_id == TEMPLATE_ID, f"llm.template_id must be {TEMPLATE_ID!r} (the only "
-          "implemented prompt template)")
+    check(cfg.llm.template_id in TEMPLATE_IDS, f"llm.template_id must be one of {TEMPLATE_IDS} (the "
+          "implemented prompt templates)")
+    check(not (cfg.llm.template_id.startswith(("plan-", "think-")) and cfg.run.arm.startswith("L-")),
+          "llm.template_id plan-v1 / plan-v2 / think-v1 belongs to arm H-clock; the L arms use cl-v1 or cl-v2")
     check(cfg.llm.fallback_beta in FALLBACK_BETAS,
           f"llm.fallback_beta must be one of {FALLBACK_BETAS} (the beta that accepts fallbacks='default')")
     check(cfg.llm.replicate >= 0, "llm.replicate must be >= 0")

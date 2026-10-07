@@ -1,0 +1,174 @@
+[run]
+seed = 1
+n_agents = 10
+n_days = 30
+arm = "H-clock"
+backend = "anthropic"
+engine = "py"
+traits = "on"
+data_dir = "data"
+runs_dir = "runs"
+
+[time]
+sim_start_min = 330
+sim_end_cap_min = 720
+depart_earliest_min = 360
+depart_latest_min = 585
+depart_step_min = 15
+tstar_earliest_min = 420
+tstar_latest_min = 600
+tstar_step_min = 15
+retime_offsets_min = [0, 15, 30, 45, 60]
+initial_buffer_min = 10
+anchor_offsets_min = [0, 15]
+
+[fees]
+regime = "tou"
+fee_start_day = 11
+fee_flat = 6.0
+tou_points = [[0.0, 2.0], [5.5, 2.0], [6.0, 4.0], [7.5, 4.0], [8.0, 6.0], [9.0, 6.0], [9.5, 4.0], [15.5, 4.0], [16.0, 6.0], [18.0, 6.0], [18.5, 4.0], [20.5, 4.0], [21.0, 2.0], [24.0, 2.0]]
+round_dp = 4
+
+[prep]
+roads_gpkg = "../netlogo/Data/roads/tomtom_major_roads.gpkg"
+roads_layer = "tomtom"
+cordon_gpkg = "../netlogo/Data/roads/akl_CBD_SA3.gpkg"
+cordon_name_field = "SA32025_V1_00_NAME"
+cordon_names = ["Auckland City Centre"]
+crs_epsg = 2193
+node_round_m = 1.0
+ff_factor = 1.0
+n_origin_points = 3000
+local_frc = [3, 4]
+density_radius_m = 500.0
+od_csv = ""
+n_corridors = 5
+frc_capacity_vph = [4000.0, 2500.0, 1500.0, 900.0, 600.0]
+map_sample_origins = 1000
+gate_rule = "first_entry"
+seed = 11
+
+[engine]
+netlogo_home = "/Applications/NetLogo 7.0.4"
+model_path = "netlogo7/cordon_lite.nlogox"
+gui = false
+capacity_mode = "demand_share"
+rush_window_min = 60.0
+agents_represented = 19000.0
+min_capacity_per_min = 0.25
+capacity_scale = 1.0
+use_calibration = true
+calibration_file = "data/calibration.json"
+calib_target_peak_delay_min = 15.0
+calib_days = [6, 10]
+calib_scale_bounds = [0.05, 10.0]
+calib_max_iter = 25
+calib_tol_min = 2.0
+calib_bin_min = 15
+calib_metric = "car_weighted_mean"
+
+[persona]
+vot_mu = 2.3
+vot_sigma = 0.6
+archetype_labels = ["hybrid_office", "onsite_office", "shift_service", "trades_vehicle", "tertiary_student"]
+arch_weight = [0.28, 0.22, 0.08, 0.12, 0.1]
+vot_tilt = [[0.4, 0.7, 1.0, 1.3, 1.6], [1.0, 1.0, 1.0, 1.0, 1.0], [1.6, 1.3, 1.0, 0.7, 0.4], [1.2, 1.1, 1.0, 0.9, 0.8], [1.8, 1.3, 1.0, 0.6, 0.3]]
+tstar_mean_min = [525, 510, 450, 465, 555]
+tstar_sd_min = [30.0, 20.0, 20.0, 30.0, 30.0]
+activity = ["work", "work", "work", "work", "study"]
+fixed_start = [false, true, true, false, false]
+must_drive = [false, false, false, true, false]
+sched_mult = [0.5, 1.0, 1.5, 0.75, 0.5]
+pt_allowed = [true, true, true, false, true]
+wfh_allowed = [true, false, false, false, false]
+company_car_prob = [0.0, 0.0, 0.0, 0.7, 0.0]
+company_car_prob_q5 = [0.2, 0.2, 0.0, 0.7, 0.0]
+park_free_prob = [0.5, 0.5, 0.5, 0.0, 0.0]
+park_cost_paid = [17.0, 17.0, 17.0, 0.0, 12.75]
+n_twins = 0
+early_shift_prob = [0.8, 0.5, 0.0, 0.5, 0.0]
+
+[traits]
+shares_H = [0.05, 0.1, 0.25, 0.35, 0.25]
+shares_F = [0.1, 0.2, 0.4, 0.2, 0.1]
+shares_P = [0.1, 0.2, 0.4, 0.2, 0.1]
+shares_S = [0.1, 0.2, 0.4, 0.2, 0.1]
+off_level = 3
+kappa_h = [0.0, 0.5, 1.0, 2.0, 3.0]
+phi = [2.0, 1.5, 1.0, 0.67, 0.5]
+omega = [2.0, 1.5, 1.0, 0.67, 0.5]
+eta = [0.0, 0.25, 0.5, 0.75, 1.0]
+kappa_h_disc_factor = 0.5
+
+[costs]
+beta_ratio = 0.61
+gamma_ratio = 2.38
+fee_eps = 0.01
+pt_fare = 7.0
+pt_access_min = 10.0
+pt_ratio_default = 1.6
+pt_ratio_by_corridor = []
+pt_unavailable_corridors = []
+wfh_cost = 10.0
+skip_cost = 30.0
+delay_bin_min = 5
+pt_attitude_penalty = 20.0
+skip_vot_hours = 1.0
+pt_headway_min = 10
+wfh_form = "v3_relative"
+fuel_cost_per_km = 0.3
+early_start_min = 420
+early_shift_cost = 3.0
+
+[memory]
+window_days = 5
+ema_alpha = 0.3
+ratio_offset_min = 1.0
+ratio_clip = [0.5, 3.0]
+ref_fee_update = "faced"
+
+[clock]
+fee_change_threshold = 0.5
+late_tolerance_by_F = [5, 5, 10, 15, 15]
+sustained_rel = 0.2
+sustained_days = 2
+discontinuity_triggers = ["T1", "T4", "T6"]
+review_every_days = 0
+
+[events]
+pt_disruption_day = 20
+pt_disruption_corridor = -1
+pt_disruption_time_mult = 2.0
+pt_disruption_announced = true
+
+[rules]
+sigma_rule = 0.5
+
+[llm]
+model = "claude-opus-5-5"
+allowed_models = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-4-5"]
+effort = "low"
+max_tokens = 4000
+use_fallbacks = true
+fallback_beta = "server-side-fallback-2026-07-01"
+max_concurrency = 8
+max_retries = 5
+invalid_output_retries = 1
+template_id = "think-v1"
+reason_max_words = 30
+cache_dir = "runs/llm_cache"
+replicate = 0
+max_consecutive_errors = 5
+traits_off_prompt = "sentences"
+
+[llm.mock]
+w_time = 1.0
+w_schedule = 1.25
+w_fee = 1.5
+w_parking = 1.0
+w_pt = 0.9
+w_wfh = 1.0
+w_skip = 1.0
+w_habit = 0.75
+noise_sigma = 1.0
+w_fuel = 1.0
