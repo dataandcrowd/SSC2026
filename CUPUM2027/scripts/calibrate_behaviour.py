@@ -2,32 +2,60 @@
 
     .venv/bin/python scripts/calibrate_behaviour.py [--workers 12] [--stage all|search|select|final|oos|report]
 
-What it does (R-daily arm, rule decider, PyEngine, seeds 1-3, n = 300, 30 days; LLM arms are
-never calibrated):
+What it does (R-daily arm, rule decider, PyEngine, seeds 1-3, n = run.n_agents of config.toml (950;
+300 before 2026-10-08), 30 days; LLM arms are never calibrated). The single-seed tolerances scale with
+n (seed_tolerance: the n = 300 values x sqrt(300 / n)):
 
 1. ``before``: the pre-recalibration specification (paid-fee reference, eta up to 3, PAP 0, WFH =
-   wfh_cost x phi, kappa_H halved at T2, paid parking NZ$8, no fuel cost), with capacity recalibrated
-   per seed.
-2. ``structural``: the structural fixes alone, at the v3 scalars (PAP 8, k_WFH 8), with the two
-   fixed inputs of the current model: paid parking NZ$17 (PARK_FIXED, an author decision) and the
-   fuel cost (costs.fuel_cost_per_km from config.toml). Neither is searched.
-3. ``search``: a full grid over TWO free scalars on top of the structural fixes:
-   PAP (costs.pt_attitude_penalty) x k_WFH (costs.wfh_cost). Paid parking is fixed at PARK_FIXED
-   (office archetypes; student 0.75 x) and is no longer a calibrated scalar (2026-10-03, DEVIATIONS.md
-   "Parking and fuel fixed by the authors"). For every grid point and seed the corridor capacity
-   is recalibrated first with the project's own ``cordonlite.run.calibrate`` (R-daily, no charge,
-   days 6-10, car-weighted peak 15-min queue delay = 15 min, default bisection bracket), so
-   behaviour and capacity are mutually consistent at every evaluated point (a nested solve rather
-   than alternation). Every evaluated point is logged. Earlier searches are archived in
-   data/behaviour_calibration_pre_fuel.json (no fuel, three scalars) and
-   data/behaviour_calibration_fuel023_park11.json (fuel NZ$0.23/km, three scalars) and
+   wfh_cost x phi, kappa_H halved at T2, paid parking NZ$8, no fuel cost, no early start, no limit on
+   the willingness to pay), with capacity recalibrated per seed. SKIP (postpone the day) was removed
+   from the model on 2026-10-09, so this state no longer has it either.
+2. ``structural``: the structural fixes alone, at the design values (PAP 8, k_WFH 8 [v3]; wtt.beta0
+   0.5 [SSC2026 base_beta]), with the two fixed inputs of the current model: paid parking NZ$17
+   (PARK_FIXED, an author decision) and the fuel cost (costs.fuel_cost_per_km from config.toml).
+   Neither is searched.
+3. ``search``: a staged grid over THREE free scalars on top of the structural fixes (2026-10-09):
+   PAP (costs.pt_attitude_penalty) x k_WFH (costs.wfh_cost) x beta0 (wtt.beta0, the price
+   sensitivity of the willingness to travel: P(WTP >= F) = exp(-beta F / VoT)). Paid parking is fixed
+   at PARK_FIXED (office archetypes; student 0.75 x) and is no longer a calibrated scalar (2026-10-03,
+   DEVIATIONS.md "Parking and fuel fixed by the authors"). For every (PAP, k_WFH) pair and seed the
+   corridor capacity is recalibrated first with the project's own ``cordonlite.run.calibrate``
+   (R-daily, no charge, days 6-10, car-weighted peak 15-min delay = engine.calib_target_peak_delay_min
+   (15 min), where the delay is queue + road delay with engine.calib_delay = "total" (config.toml,
+   2026-10-07) and the gate queue alone with "queue"; default bisection bracket), so behaviour and
+   capacity are mutually consistent at every evaluated point (a nested solve rather than
+   alternation). The calibration runs without the charge, where the willingness to pay removes no
+   option (every fee is 0), so its scale does not depend on beta0: it is solved once per (PAP, k_WFH,
+   seed) and shared by every beta0 of that pair (the days 1-10 of the charged runs, and with them the
+   base shares, are the same for every beta0 too). Even so, the full 27 x 15 x 7 grid (1,215
+   calibrations and 8,505 charged runs) would take about 11 hours on 14 workers (under 14-way load a
+   calibration takes about 140 s and a 30-day run about 44 s of a worker's time; alone about 200 s and
+   70 s), so the search is staged (SEARCH_DESIGN):
+     stage 1: beta0 in BETA0_STAGE1 (0.05 to 1.0) on PAP 21-23 x k_WFH {4, 6, 8, 9, 10, 12, 14, 16}
+              around the earlier optimum (PAP 22, k_WFH 9) and on the four corners of the NZ$1 grid;
+     stage 2: the full NZ$1 k_WFH range 2-16 at every beta0 of stage 1, on the PAP values where stage 1
+              meets the three base-share targets (base shares do not depend on beta0), widened by
+              one step when such a PAP is at the edge of the stage-1 range;
+     stage 3: one finer beta0 step, the midpoints between the stage-2 choice and its neighbours in
+              BETA0_STAGE1, on the same (PAP, k_WFH) pairs.
+   beta0 = 0 (no limit: the model without the willingness to travel) is run on every stage 1-2 pair
+   as a reference and is never selected. Every evaluated point is logged. Earlier searches are
+   archived in data/behaviour_calibration_pre_fuel.json (no fuel, three scalars),
+   data/behaviour_calibration_fuel023_park11.json (fuel NZ$0.23/km, three scalars),
    data/behaviour_calibration_skip25_noearly.json (SKIP cost NZ$25, no early-start option; two
-   scalars); the selection history is carried forward. The SKIP cost (NZ$30) and the early-start
-   option (costs.early_start_min, costs.early_shift_cost, persona.early_shift_prob) are fixed
-   assumptions of the current model (2026-10-05) and are never searched.
+   scalars), data/behaviour_calibration_freeflow300.json (SKIP cost NZ$30 and early start, 300
+   agents, free-flow roads, capacity calibrated to the gate queue alone; two scalars) and
+   data/behaviour_calibration_skip30_nowtt.json (950 agents, congested roads, SKIP cost NZ$30, no
+   willingness to travel; two scalars), each with data/calibration_<tag>.json,
+   docs/calibration_report_<tag>.md and docs/figures/<tag>/ (with the example prompt of that state);
+   the selection history is carried forward from the latest archive (LAST_JSON). The early-start
+   option (costs.early_start_min, costs.early_shift_cost, persona.early_shift_prob) is a fixed
+   assumption of the current model (2026-10-05) and is never searched; so are run.n_agents, the
+   [road] settings, engine.calib_delay, wtt.beta_clip and wtt.vot_ref.
 4. ``select``: lexicographic (SELECTION_DOC): feasible points first (3-seed means in band at the
    targets' stated precision, every seed within the stated tolerance), then the point closest to
-   the literature / design anchors, then the loss. ``--stage select`` re-applies it to the log.
+   the literature / design anchors (PAP 8, k_WFH 8, beta0 0.5), then the loss. ``--stage select``
+   re-applies it to the log.
 5. ``final``: the chosen point on seeds 1-3 and held-out seeds 4-5, no-charge counterfactuals at
    the same capacity (retiming and churn baselines), who-adapts tables by trait level, and
    population trait manipulations (all agents at level 1, 3 or 5 of one trait, capacity fixed).
@@ -39,8 +67,9 @@ never calibrated):
 7. ``report``: data/behaviour_calibration.json and docs/calibration_report.md with figures in
    docs/figures/. ``--stage select`` appends the rule it replaces to ``search.selection_history``.
 
-Everything runs in-process into temporary folders; runs/ and data/calibration.json are not
-touched. Capacity calibration for the chosen values is written separately with
+Behaviour is calibrated at the NZ$6 peak (fees.peak_fee of config.toml); runs at other peaks
+extrapolate. Everything runs in-process into temporary folders; runs/ and data/calibration.json are
+not touched. Capacity calibration for the chosen values is written separately with
 ``python -m cordonlite.run calibrate --seeds 1 2 3`` once config.toml holds them.
 """
 
@@ -66,21 +95,61 @@ if str(ROOT) not in sys.path:
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
+from cordonlite.config import load_config  # noqa: E402
+
 OUT_JSON = ROOT / "data" / "behaviour_calibration.json"
 PRE_FUEL_JSON = ROOT / "data" / "behaviour_calibration_pre_fuel.json"   # archived log of the calibration without fuel
 PREV_JSON = ROOT / "data" / "behaviour_calibration_fuel023_park11.json"   # archived log: fuel 0.23/km, parking searched (chose 11)
-LAST_JSON = ROOT / "data" / "behaviour_calibration_skip25_noearly.json"   # archived log: SKIP cost 25, no early start (chose PAP 20 / k_WFH 10)
+SKIP25_JSON = ROOT / "data" / "behaviour_calibration_skip25_noearly.json"   # archived log: SKIP cost 25, no early start (chose PAP 20 / k_WFH 10)
+# archived log: SKIP cost 30 and early start with 300 agents and free-flow roads, capacity calibrated to the gate
+# queue (chose PAP 20 / k_WFH 10)
+FREEFLOW_JSON = ROOT / "data" / "behaviour_calibration_freeflow300.json"
+# the latest archived log, whose selection history the next search carries forward: 950 agents, congested roads,
+# SKIP cost 30, no willingness to travel, two scalars (chose PAP 22 / k_WFH 9; archived 2026-10-09)
+LAST_JSON = ROOT / "data" / "behaviour_calibration_skip30_nowtt.json"
 OUT_MD = ROOT / "docs" / "calibration_report.md"
 FIG_DIR = ROOT / "docs" / "figures"
+
+
+def archive_paths(log: Path) -> dict[str, str]:
+    """Repository paths of an archived state data/behaviour_calibration_<tag>.json: the log, the capacity
+    calibration data/calibration_<tag>.json, the report docs/calibration_report_<tag>.md and the figures
+    docs/figures/<tag>/."""
+    tag = log.stem.removeprefix("behaviour_calibration_")
+    return {"tag": tag, "log": f"data/{log.name}", "capacity": f"data/calibration_{tag}.json",
+            "report": f"docs/calibration_report_{tag}.md", "figures": f"docs/figures/{tag}/"}
+
+
+def archive_summary(log: Path) -> dict[str, Any]:
+    """What the report's history table reads from an archived two-scalar log (freeflow300 and later)."""
+    old = json.loads(log.read_text())
+    arc = archive_paths(log)
+    return {"source": arc["log"], "report": arc["report"], "capacity": arc["capacity"],
+            "chosen": old["chosen"]["scalars"], "chosen_mean": old["chosen"]["mean"],
+            "n_points": len(old["search"]["points"]),
+            "n_feasible": sum(bool(p["feasible"]) for p in old["search"]["points"]),
+            "on_grid_edge": old["chosen"].get("on_grid_edge"),
+            "n_agents": int(old.get("n_agents", 300)), "road": old.get("road"),
+            "calib_delay": old.get("calib_delay") or "queue",
+            "skip_cost": float(old.get("skip", {}).get("skip_cost", 30.0)),
+            "fuel_cost_per_km": float(old.get("fuel", {}).get("fuel_cost_per_km", 0.30)),
+            "oos_mean_6_12": old.get("out_of_sample", {}).get("chosen", {}).get("mean_6_12")}
+
 
 SEEDS = (1, 2, 3)
 HOLDOUT_SEEDS = (4, 5)
 OOS_SEEDS = tuple(range(6, 13))   # unseen seeds, used only by --stage oos (never in the selection)
 # Ridge alternatives checked out of sample: chosen from the search log by ridge_alternatives() (the
 # non-feasible points that become feasible when the soft overshoot bound is relaxed, nearest the
-# anchors first). Before the fuel addition these were PAP 8 / parking 15 and PAP 10 / parking 17.
+# anchors first). Before the fuel addition these were PAP 8 / parking 15 and PAP 10 / parking 17. In the two-scalar
+# search of 2026-10-09 (archived as skip30_nowtt) no point became feasible with the relaxed bound, so both came from
+# the fallback (the points nearest the anchors among the ten lowest-loss other points): PAP 21 / k_WFH 9 and 10. The
+# same holds in the three-scalar search of the same day, which gives PAP 22 / k_WFH 11 / beta0 0.1 and PAP 22 / k_WFH
+# 10 / beta0 0.05.
 N_RIDGE_ALTERNATIVES = 2
-N_AGENTS, N_DAYS = 300, 30
+# agents per run: run.n_agents of config.toml (950 since 2026-10-08; the archived logs and the search
+# before that date used 300); 30 days
+N_AGENTS, N_DAYS = int(load_config().run.n_agents), 30
 PEAK_BAND = (480, 540)        # gate exits 08:00-09:00, the NZ$6 band of the ToU schedule
 SHOULDER_BAND = (420, 480)    # 07:00-08:00 (NZ$4 to 07:30, ramp to NZ$6 at 08:00)
 
@@ -93,15 +162,48 @@ TARGETS = {
                  "what": "car share, mean of days 6-10 (pre-charge), R-daily"},
     "base_pt": {"lo": 0.08, "hi": 0.15, "centre": 0.115, "what": "PT share, days 6-10"},
     "base_wfh": {"lo": 0.0, "hi": 0.10, "centre": None, "what": "WFH share, days 6-10 (at most)"},
-    "base_skip": {"lo": 0.0, "hi": 0.02, "centre": None, "what": "SKIP share, days 6-10 (at most)"},
     "change_21_30": {"lo": -0.22, "hi": -0.12, "centre": -0.20,
                      "what": "car cordon crossings, mean days 21-30 vs mean days 6-10"},
     "change_11_13": {"lo": -0.30, "hi": 0.0, "centre": None,
                      "what": "overshoot, mean days 11-13 vs days 6-10 (may reach about -30%)"},
 }
-# stated tolerance for single seeds (n = 300): shares +/- 0.05, response +/- 4 pp
-SEED_TOL = {"base_car": 0.05, "base_pt": 0.05, "base_wfh": 0.05, "base_skip": 0.0,
-            "change_21_30": 0.04, "change_11_13": 0.04}
+# The SKIP share target (at most 0.02 on days 6-10, single-seed tolerance 0) was dropped on 2026-10-09 with SKIP.
+# stated tolerance for single seeds at n = 300: shares +/- 0.05, response +/- 4 pp
+SEED_TOL_300 = {"base_car": 0.05, "base_pt": 0.05, "base_wfh": 0.05,
+                "change_21_30": 0.04, "change_11_13": 0.04}
+BASE_KEYS = ("base_car", "base_pt", "base_wfh")   # targets of days 6-10 (uncharged): they do not depend on beta0
+
+
+def seed_tolerance(n_agents: int) -> dict[str, float]:
+    """Single-seed tolerance at n agents: the n = 300 values x sqrt(300 / n), to 3 decimals (the
+    seed-to-seed spread of a share or a change falls with 1 / sqrt(n); seeds 1-5, R-daily, at
+    300 -> 950 the SD of the d21-30 response fell 1.9 -> 1.1 pp, x 0.58 against sqrt(300 / 950) =
+    0.56). At 950: shares +/- 0.028, response +/- 2.2 pp."""
+    f = math.sqrt(300.0 / int(n_agents))
+    return {k: round(v * f, 3) for k, v in SEED_TOL_300.items()}
+
+
+SEED_TOL = seed_tolerance(N_AGENTS)
+
+
+def tolerance_words(tol: dict[str, float]) -> str:
+    """'shares +/-0.028, response +/-2.2 pp' for the report."""
+    return f"shares ±{tol['base_car']:g}, response ±{100 * tol['change_21_30']:g} pp"
+
+
+def use_logged_n(res: dict[str, Any], stage: str) -> None:
+    """A stage that re-uses the logged search keeps the search's n_agents (logs before 2026-10-08 have
+    300): select and report use it for the tolerance and the text; final, oos and gap would add runs,
+    so they stop when config.toml has another run.n_agents."""
+    global N_AGENTS, SEED_TOL
+    n = int(res.get("n_agents", 300))
+    if not res or n == N_AGENTS:
+        return
+    if stage in ("final", "oos", "gap"):
+        raise SystemExit(f"the logged search ({OUT_JSON.name}) used n_agents = {n}, config.toml has "
+                         f"run.n_agents = {N_AGENTS}: rerun --stage search (or all) at {N_AGENTS} agents")
+    print(f"note: the logged search used n_agents = {n} (config.toml {N_AGENTS}); {stage} uses {n}", flush=True)
+    N_AGENTS, SEED_TOL = n, seed_tolerance(n)
 
 
 def park(x: float) -> dict[str, Any]:
@@ -118,8 +220,9 @@ BEFORE = {   # the specification state before this recalibration (explicit, inde
     "costs.pt_attitude_penalty": 0.0,
     "costs.wfh_cost": 8.0,
     "costs.fuel_cost_per_km": 0.0,   # the specification had no fuel cost
-    "costs.skip_cost": 25.0,         # the specification value (NZ$30 since 2026-10-05)
+    # the specification's SKIP option (cost NZ$25) no longer exists (removed 2026-10-09), so it cannot be restored here
     "persona.early_shift_prob": [0.0, 0.0, 0.0, 0.0, 0.0],   # the specification had no early-start option
+    "wtt.beta0": 0.0,                # the specification had no limit on the willingness to pay
     **park(8.0),
 }
 STRUCTURAL = {   # structural fixes (values the v3 note justifies; see DEVIATIONS.md, Recalibration)
@@ -128,20 +231,79 @@ STRUCTURAL = {   # structural fixes (values the v3 note justifies; see DEVIATION
     "costs.wfh_form": "v3_relative",
     "clock.discontinuity_triggers": ["T1", "T4", "T6"],
 }
-V3_SCALARS = {"pap": 8.0, "park": 8.0, "wfh": 8.0}
-# Literature / design anchors used to choose inside the feasible set: PAP and k_WFH at the v3 values.
+# design values of the scalars: PAP, parking and k_WFH from v3; beta0 = SSC2026's base_beta 0.5 [SSC] (2026-10-09)
+V3_SCALARS = {"pap": 8.0, "park": 8.0, "wfh": 8.0, "beta0": 0.5}
+# Literature / design anchors used to choose inside the feasible set: PAP and k_WFH at the v3 values, beta0 at
+# SSC2026's base_beta 0.5 (akl_pricing.nls; 2026-10-09).
 # Paid parking is NOT searched any more: it is fixed at NZ$17/day [author decision, 2026-10-03], consistent
 # with the all-day rate of Auckland Transport's Downtown, Civic and Victoria Street car parks from 1 Dec 2014
 # (Greater Auckland, 18 Nov 2014, quoting AT). It stays in the scalars dict (constant) so that the loss and the
 # anchor distance keep their earlier form; both terms are the same at every point.
 PARK_FIXED = 17.0
-ANCHORS = {"pap": 8.0, "park": 17.0, "wfh": 8.0}
-# Two free scalars. The grid was fixed after a range-finding probe (PAP 12-40 in steps of 4 at k_WFH 8 and 12,
-# seeds 1-3, logged under search.range_probe) and before the search: NZ$1 steps, wide enough that the chosen
-# point is not on an edge (the earlier ranges were PAP 4-12 and k_WFH 2-8, with both chosen values on the edge).
+ANCHORS = {"pap": 8.0, "park": 17.0, "wfh": 8.0, "beta0": 0.5}
+# The NZ$1 ranges of PAP and k_WFH. They were fixed after a range-finding probe (PAP 12-40 in steps of 4 at k_WFH
+# 8 and 12, seeds 1-3, logged under search.range_probe) and before the first two-scalar search, wide enough that
+# the chosen point is not on an edge (the earlier ranges were PAP 4-12 and k_WFH 2-8, with both chosen values on
+# the edge). Searched in full up to 2026-10-09; the three-scalar search covers them in stages (SEARCH_DESIGN).
 GRID = {"pap": [float(x) for x in range(10, 37)],
         "wfh": [float(x) for x in range(2, 17)]}
-RANGE_PROBE = [   # 3-seed means of the range-finding probe, parking 17, fuel 0.30 (run before the grid was fixed)
+# Third free scalar (2026-10-09): wtt.beta0. Stage 1 runs these values; 0.5 is the anchor (SSC2026 base_beta).
+# beta = clip(beta0 x VoT_ref / VoT, 0.1, 2.0), so below beta0 = 0.1 the lower clip holds beta at 0.1 for every
+# commuter with VoT above VoT_ref x beta0 / 0.1: the limit cannot be made weaker than that floor except by
+# beta0 = 0, which switches it off.
+BETA0_STAGE1 = [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0]
+BETA0_REFERENCE = 0.0   # no limit (the model without the willingness to travel): run as a reference, never selected
+STAGE1 = {"pap": [21.0, 22.0, 23.0], "wfh": [4.0, 6.0, 8.0, 9.0, 10.0, 12.0, 14.0, 16.0]}
+STAGE1_CORNERS = [(10.0, 2.0), (10.0, 16.0), (36.0, 2.0), (36.0, 16.0)]
+SEARCH_DESIGN = (
+    "staged grid over PAP x k_WFH x beta0 (paid parking fixed at NZ$17); capacity calibrated once per (PAP, k_WFH, "
+    "seed) and shared by every beta0 of that pair (the calibration has no charge, so the willingness to pay removes "
+    "nothing and the scale does not depend on beta0). Stage 1: beta0 in {0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0} on "
+    "PAP 21-23 x k_WFH {4, 6, 8, 9, 10, 12, 14, 16} around the two-scalar optimum (PAP 22, k_WFH 9) and on the four "
+    "corners of the NZ$1 grid (PAP 10 and 36 x k_WFH 2 and 16). Stage 2: the full NZ$1 k_WFH range 2-16 at every "
+    "stage-1 beta0, on each PAP of stage 1 at which some k_WFH meets the three base-share targets (the base shares "
+    "do not depend on beta0), plus the next PAP outwards when such a PAP is at the edge of 21-23. Stage 3: one finer "
+    "beta0 step, the midpoints between the beta0 the rule chooses after stage 2 and its neighbours in the stage-1 "
+    "list, on the stage-2 pairs. beta0 = 0 (no limit) is run on every stage 1-2 pair as a reference and never "
+    "selected. Seeds 1-3; selection over every non-reference point of the three stages.")
+
+
+def stage2_paps(points: list[dict]) -> list[float]:
+    """PAP values for stage 2: those of stage 1 at which some k_WFH meets the three base-share targets
+    (3-seed means in band at the stated precision and every seed within tolerance), plus the next PAP
+    outwards when such a value is at the edge of STAGE1["pap"]. Without any, the PAP of the point with
+    the smallest base-share excess and its two neighbours."""
+    def base_excess(p):
+        return (sum(band_excess(k, round(p["mean"][k], 2)) for k in BASE_KEYS)
+                + sum(band_excess(k, r[k], SEED_TOL[k]) for r in p["per_seed"] for k in BASE_KEYS))
+
+    cand = [p for p in points if p["scalars"]["pap"] in STAGE1["pap"]]
+    ok = sorted({p["scalars"]["pap"] for p in cand if base_excess(p) == 0.0})
+    if not ok:
+        best = min(cand, key=base_excess)["scalars"]["pap"]
+        return [best - 1.0, best, best + 1.0]
+    out = set(ok)
+    if min(ok) == min(STAGE1["pap"]):
+        out.add(min(ok) - 1.0)
+    if max(ok) == max(STAGE1["pap"]):
+        out.add(max(ok) + 1.0)
+    return sorted(out)
+
+
+def stage3_betas(chosen_b0: float) -> list[float]:
+    """The midpoints between the stage-2 choice of beta0 and its neighbours in BETA0_STAGE1 (half of it
+    below the lowest value, 1.25 above the highest)."""
+    b = sorted(BETA0_STAGE1)
+    i = b.index(chosen_b0) if chosen_b0 in b else min(range(len(b)), key=lambda j: abs(b[j] - chosen_b0))
+    lo = b[i - 1] if i > 0 else 0.0
+    hi = b[i + 1] if i + 1 < len(b) else 1.5 * b[i]
+    return sorted({round((lo + b[i]) / 2, 4), round((b[i] + hi) / 2, 4)} - set(b))
+# 3-seed means of the range-finding probe, parking 17, fuel 0.30, run once before the grid was fixed, in the model
+# of the first two-scalar search: 300 agents, free-flow roads, capacity calibrated to the gate queue, SKIP cost
+# NZ$25, no early start (the same list is in data/behaviour_calibration_skip25_noearly.json). It has not been rerun
+# since; the grid it set has been kept for every later search (2026-10-05; 2026-10-09 with 950 agents and congested
+# roads, where the chosen PAP 22 / k_WFH 9 is again interior). These values do not describe the current model.
+RANGE_PROBE = [
     {"pap": 12, "wfh": 8, "base_car": 0.663, "base_pt": 0.318, "base_skip": 0.009, "change_21_30": -0.220, "change_11_13": -0.330},
     {"pap": 12, "wfh": 12, "base_car": 0.671, "base_pt": 0.319, "base_skip": 0.010, "change_21_30": -0.156, "change_11_13": -0.251},
     {"pap": 16, "wfh": 8, "base_car": 0.736, "base_pt": 0.239, "base_skip": 0.014, "change_21_30": -0.213, "change_11_13": -0.320},
@@ -159,12 +321,23 @@ RANGE_PROBE = [   # 3-seed means of the range-finding probe, parking 17, fuel 0.
 ]
 
 
-def on_grid_edge(sc: dict[str, float]) -> dict[str, bool]:
-    return {k: sc[k] in (min(GRID[k]), max(GRID[k])) for k in GRID}
+def on_grid_edge(sc: dict[str, float], beta0_values: list[float] | None = None) -> dict[str, bool]:
+    """Whether each chosen scalar is at an end of its searched range: PAP and k_WFH against the NZ$1 ranges,
+    beta0 (when present) against the searched positive values (default BETA0_STAGE1)."""
+    out = {k: sc[k] in (min(GRID[k]), max(GRID[k])) for k in GRID}
+    if "beta0" in sc:
+        b = [x for x in (beta0_values or BETA0_STAGE1) if x > 0]
+        out["beta0"] = sc["beta0"] in (min(b), max(b))
+    return out
 
 
-def point_overrides(pap: float, park_paid: float, wfh: float) -> dict[str, Any]:
-    return {**STRUCTURAL, "costs.pt_attitude_penalty": pap, "costs.wfh_cost": wfh, **park(park_paid)}
+def point_overrides(pap: float, park_paid: float, wfh: float, beta0: float) -> dict[str, Any]:
+    return {**STRUCTURAL, "costs.pt_attitude_penalty": pap, "costs.wfh_cost": wfh, "wtt.beta0": beta0,
+            **park(park_paid)}
+
+
+def point_label(sc: dict[str, float]) -> str:
+    return f"pap{sc['pap']:g}_park{sc['park']:g}_wfh{sc['wfh']:g}_b{sc['beta0']:g}"
 
 
 # ----------------------------------------------------------------------------- one evaluation
@@ -205,14 +378,18 @@ def metrics(res, n: int) -> dict[str, Any]:
         b0 = band_cross(6, 10, band)
         return float(band_cross(21, 30, band) / b0 - 1.0) if b0 else float("nan")
 
-    share = {k: [d[k] / n for d in days] for k in ("cars", "pt", "wfh", "skip")}
+    share = {k: [d[k] / n for d in days] for k in ("cars", "pt", "wfh")}
+    # willingness to travel (2026-10-09): commuters with every car option removed / with some removed, and the
+    # decisions forced onto the one option left (PT only)
+    share["no_car"] = [d.get("wtt_no_car", 0) / n for d in days]
+    share["limited"] = [d.get("wtt_limited", 0) / n for d in days]
+    forced = [d.get("calls", {}).get("forced", 0) / n for d in days]
     early = [d.get("early_shift", 0) / n for d in days]            # commuters working the early day (car or PT)
     early_car = [d.get("early_shift_cars", 0) / max(d["cars"], 1) for d in days]   # share of that day's car users
     m = {
         "base_car": float(np.mean(share["cars"][5:10])),
         "base_pt": float(np.mean(share["pt"][5:10])),
         "base_wfh": float(np.mean(share["wfh"][5:10])),
-        "base_skip": float(np.mean(share["skip"][5:10])),
         "change_21_30": chg(21, 30),
         "change_11_13": chg(11, 13),
         "change_by_day": [float(x / pre - 1.0) for x in cr],
@@ -221,7 +398,10 @@ def metrics(res, n: int) -> dict[str, Any]:
         "end_car": float(np.mean(share["cars"][20:30])),
         "end_pt": float(np.mean(share["pt"][20:30])),
         "end_wfh": float(np.mean(share["wfh"][20:30])),
-        "end_skip": float(np.mean(share["skip"][20:30])),
+        "wtt_no_car_11_13": float(np.mean(share["no_car"][10:13])),
+        "end_wtt_no_car": float(np.mean(share["no_car"][20:30])),
+        "end_wtt_limited": float(np.mean(share["limited"][20:30])),
+        "end_forced": float(np.mean(forced[20:30])),
         "base_early": float(np.mean(early[5:10])),
         "end_early": float(np.mean(early[20:30])),
         "early_11_13": float(np.mean(early[10:13])),
@@ -238,8 +418,14 @@ def metrics(res, n: int) -> dict[str, Any]:
         "shoulder_share_21_30": band_share(21, 30, SHOULDER_BAND),
         "exit_hist_6_10": hist(6, 10),
         "exit_hist_21_30": hist(21, 30),
+        # peak 15-min delay, car-weighted over corridors: the gate queue only, and queue + road delay
+        # (the capacity calibration target with engine.calib_delay = "total"); mean road delay of cars
         "peak_delay_6_10": float(np.mean([d["peak_bin_delay_wmean"] for d in days[5:10]])),
         "peak_delay_21_30": float(np.mean([d["peak_bin_delay_wmean"] for d in days[20:30]])),
+        "peak_total_delay_6_10": float(np.mean([d["peak_bin_total_delay_wmean"] for d in days[5:10]])),
+        "peak_total_delay_21_30": float(np.mean([d["peak_bin_total_delay_wmean"] for d in days[20:30]])),
+        "road_delay_6_10": float(np.mean([d["mean_road_delay"] for d in days[5:10]])),
+        "road_delay_21_30": float(np.mean([d["mean_road_delay"] for d in days[20:30]])),
         "revenue": float(sum(d["revenue"] for d in days)),
     }
     return m
@@ -272,25 +458,47 @@ def agent_frame(res, n_twins: int, cfg_early_start: int = 420) -> list[dict]:
     return rows
 
 
+def _calib_record(rec: dict) -> dict:
+    """The part of a cordonlite.run.calibrate record that the log keeps per evaluation."""
+    return {"capacity_scale": float(rec["capacity_scale"]), "achieved_peak_delay_min": rec["achieved_peak_delay_min"],
+            "calib_delay": rec["calib_delay"], "road": rec["road"],
+            "status": rec["status"], "n_probes": len(rec["history"])}
+
+
+def _run_overrides(job: dict) -> dict[str, Any]:
+    return {"run.arm": "R-daily", "run.seed": int(job["seed"]), "run.n_agents": N_AGENTS,
+            "run.n_days": N_DAYS, **job["overrides"]}
+
+
+def capacity(job: dict) -> dict:
+    """Nested capacity calibration of one (PAP, k_WFH, seed) of the search (job: key, overrides, seed). The
+    calibration runs without the charge, where the willingness to pay removes no option, so the record holds
+    for every beta0 of the pair (evaluate takes it as job["calibration"] with job["scale"] = its scale)."""
+    from cordonlite.config import load_config
+    from cordonlite.run import calibrate
+
+    t0 = time.perf_counter()
+    rec = calibrate(load_config(overrides=_run_overrides(job)), progress=False)
+    return {"key": job["key"], "seed": int(job["seed"]), "calibration": _calib_record(rec),
+            "seconds": round(time.perf_counter() - t0, 1)}
+
+
 def evaluate(job: dict) -> dict:
-    """One (overrides, seed) evaluation. job: label, overrides, seed, scale ('calibrate' or float),
-    nofee (also run a no-charge counterfactual at the same capacity), agents (return agent rows)."""
+    """One (overrides, seed) evaluation. job: label, overrides, seed, scale ('calibrate' or float; with a
+    float, an optional calibration record of a shared calibration, see capacity), nofee (also run a
+    no-charge counterfactual at the same capacity), agents (return agent rows)."""
     from cordonlite.config import load_config
     from cordonlite.run import calibrate, simulate
 
     t0 = time.perf_counter()
-    ov = {"run.arm": "R-daily", "run.seed": int(job["seed"]), "run.n_agents": N_AGENTS,
-          "run.n_days": N_DAYS, **job["overrides"]}
-    cfg = load_config(overrides=ov)
-    calib = None
+    cfg = load_config(overrides=_run_overrides(job))
+    calib = job.get("calibration")
     scale = job["scale"]
     if scale == "calibrate":
-        rec = calibrate(cfg, progress=False)
-        scale = float(rec["capacity_scale"])
-        calib = {"capacity_scale": scale, "achieved_peak_delay_min": rec["achieved_peak_delay_min"],
-                 "status": rec["status"], "n_probes": len(rec["history"])}
+        calib = _calib_record(calibrate(cfg, progress=False))
+        scale = calib["capacity_scale"]
     with tempfile.TemporaryDirectory(prefix="cl_bcal_") as tmp:
-        res = simulate(cfg, Path(tmp), float(scale), engine_kind="py", write_plans=False)
+        res = simulate(cfg, Path(tmp), float(scale), engine_kind="py")
     row = {"label": job["label"], "seed": int(job["seed"]), "capacity_scale": float(scale),
            "calibration": calib, **job.get("meta", {}), **metrics(res, N_AGENTS)}
     paying = [float(p.fuel_cost) for p in res.personas if not p.company_car]
@@ -300,15 +508,22 @@ def evaluate(job: dict) -> dict:
         row["agents"] = agent_frame(res, cfg.persona.n_twins, int(cfg.costs.early_start_min))
     row["early_ok_share"] = float(np.mean([bool(p.early_shift_ok and p.tstar_min > cfg.costs.early_start_min)
                                            for p in res.personas]))
+    # willingness to pay: commuters it can limit (no company car, PT or WFH available) and those among all
+    # commuters whose WTP is below the NZ$ peak charge
+    peak = float(cfg.fees.peak_fee)
+    limitable = [p for p in res.personas if not p.company_car and (p.pt_allowed or p.wfh_allowed)]
+    row["wtt_limitable_share"] = len(limitable) / len(res.personas)
+    row["wtp_below_peak_share"] = float(np.mean([p.wtp_fee < peak for p in res.personas]))
+    row["wtp_below_peak_limitable_share"] = float(np.mean([p.wtp_fee < peak for p in limitable])) if limitable else 0.0
     if job.get("nofee"):
         cfg0 = dataclasses.replace(cfg, fees=dataclasses.replace(cfg.fees, regime="none"))
         with tempfile.TemporaryDirectory(prefix="cl_bcal0_") as tmp:
-            res0 = simulate(cfg0, Path(tmp), float(scale), engine_kind="py", write_plans=False)
+            res0 = simulate(cfg0, Path(tmp), float(scale), engine_kind="py")
         m0 = metrics(res0, N_AGENTS)
         row["nofee"] = {k: m0[k] for k in ("crossings_by_day", "peak_band_share_21_30", "shoulder_share_21_30",
                                            "exit_hist_21_30", "end_car", "base_car", "end_pt", "base_pt",
-                                           "end_wfh", "base_wfh", "change_by_day", "change_21_30", "base_skip",
-                                           "end_skip", "base_early", "end_early", "base_early_of_cars",
+                                           "end_wfh", "base_wfh", "change_by_day", "change_21_30",
+                                           "end_wtt_no_car", "base_early", "end_early", "base_early_of_cars",
                                            "end_early_of_cars", "early_by_day", "peak_cross_change",
                                            "pre0730_cross_change", "peak_cross_6_10", "peak_cross_21_30")}
         if job.get("agents"):
@@ -317,12 +532,66 @@ def evaluate(job: dict) -> dict:
     return row
 
 
-def run_jobs(jobs: list[dict], workers: int, desc: str) -> list[dict]:
+def task(job: dict) -> dict:
+    """Process-pool entry of the search: a shared capacity calibration (job["kind"] == "capacity") or an
+    evaluation."""
+    return capacity(job) if job.get("kind") == "capacity" else evaluate(job)
+
+
+def cal_key(pap: float, wfh: float, seed: int) -> str:
+    return f"pap{pap:g}_wfh{wfh:g}_s{int(seed)}"
+
+
+class Checkpoint:
+    """Calibrations and runs of the search so far, in the system temp folder, so that an interrupted
+    --stage search (or all) resumes where it stopped. It is used only while the model (config.toml apart
+    from the three searched scalars), n, the seeds and the search design are unchanged, and is deleted
+    once the search log is written."""
+
+    PATH = Path(tempfile.gettempdir()) / "cordonlite_behaviour_search_checkpoint.json"
+
+    def __init__(self) -> None:
+        import hashlib
+
+        base = load_config(overrides={"costs.pt_attitude_penalty": 0.0, "costs.wfh_cost": 0.0, "wtt.beta0": 0.0})
+        sig = repr((base, N_AGENTS, N_DAYS, SEEDS, STRUCTURAL, PARK_FIXED, SEARCH_DESIGN, BETA0_STAGE1, STAGE1,
+                    STAGE1_CORNERS, BEFORE, V3_SCALARS))
+        self.signature = hashlib.sha256(sig.encode("utf-8")).hexdigest()
+        self.cal: dict[str, dict] = {}
+        self.rows: dict[str, dict] = {}
+        if self.PATH.exists():
+            old = json.loads(self.PATH.read_text(encoding="utf-8"))
+            if old.get("signature") == self.signature:
+                self.cal, self.rows = old["cal"], old["rows"]
+                print(f"resuming from {self.PATH}: {len(self.cal)} calibrations, {len(self.rows)} runs", flush=True)
+
+    def row(self, label: str, seed: int) -> dict | None:
+        return self.rows.get(f"{label}|{int(seed)}")
+
+    def add_row(self, r: dict) -> None:
+        self.rows[f"{r['label']}|{int(r['seed'])}"] = r
+
+    def rows_labelled(self, label: str) -> list[dict]:
+        return [r for r in self.rows.values() if r["label"] == label]
+
+    def save(self) -> None:
+        tmp = self.PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"signature": self.signature, "cal": self.cal, "rows": self.rows}), encoding="utf-8")
+        tmp.replace(self.PATH)
+
+    def clear(self) -> None:
+        self.PATH.unlink(missing_ok=True)
+
+
+def run_jobs(jobs: list[dict], workers: int, desc: str, fn=evaluate, on_result=None) -> list[dict]:
+    """fn over jobs in a process pool, results in job order; on_result(row) is called as each arrives."""
     t0 = time.perf_counter()
     out: list[dict] = []
     with ProcessPoolExecutor(max_workers=workers) as ex:
-        for i, r in enumerate(ex.map(evaluate, jobs), 1):
+        for i, r in enumerate(ex.map(fn, jobs), 1):
             out.append(r)
+            if on_result is not None:
+                on_result(r)
             if i % max(1, len(jobs) // 10) == 0 or i == len(jobs):
                 print(f"  {desc}: {i}/{len(jobs)} [{time.perf_counter() - t0:.0f}s]", flush=True)
     return out
@@ -330,16 +599,20 @@ def run_jobs(jobs: list[dict], workers: int, desc: str) -> list[dict]:
 
 # ----------------------------------------------------------------------------- selection
 
-SUMMARY_KEYS = ("base_car", "base_pt", "base_wfh", "base_skip", "change_21_30", "change_11_13",
+# base_skip and end_skip were dropped with SKIP (2026-10-09); the archived logs still hold them
+SUMMARY_KEYS = ("base_car", "base_pt", "base_wfh", "change_21_30", "change_11_13",
                 "peak_band_share_6_10", "peak_band_share_21_30", "end_car", "end_pt", "end_wfh",
                 "capacity_scale", "peak_delay_6_10", "peak_delay_21_30",
-                "end_skip", "base_early", "end_early", "base_early_of_cars", "end_early_of_cars",
-                "peak_cross_change", "pre0730_cross_change")
+                "peak_total_delay_6_10", "peak_total_delay_21_30", "road_delay_6_10", "road_delay_21_30",
+                "base_early", "end_early", "base_early_of_cars", "end_early_of_cars",
+                "peak_cross_change", "pre0730_cross_change",
+                "wtt_no_car_11_13", "end_wtt_no_car", "end_wtt_limited", "end_forced", "wtp_below_peak_share")
 LOSS_SCALE = {"base_car": 0.05, "base_pt": 0.035, "change_21_30": 0.04}
 
 
 def summarise(rows: list[dict]) -> dict[str, float]:
-    return {k: float(np.mean([r[k] for r in rows])) for k in SUMMARY_KEYS}
+    """3-seed means of SUMMARY_KEYS (a key missing from older logged rows, e.g. the road delays, is left out)."""
+    return {k: float(np.mean([r[k] for r in rows])) for k in SUMMARY_KEYS if all(k in r for r in rows)}
 
 
 def summarise_keys(rows: list[dict], keys) -> dict[str, float]:
@@ -358,14 +631,14 @@ def loss(rows: list[dict], scalars: dict[str, float]) -> dict[str, float]:
             response (scales 0.05, 0.035, 0.04);
     band:   squared band excess of the 3-seed means for every target (scale 0.02), plus squared
             excess beyond the stated single-seed tolerance for each seed;
-    prior:  0.02 x sum of squared relative distances of the scalars from the v3 values (8, 8, 8),
-            a weak tie-break toward the design-note values.
+    prior:  0.02 x sum of squared relative distances of the scalars from the design values (PAP,
+            parking and k_WFH 8 [v3]; beta0 0.5 [SSC2026 base_beta]), a weak tie-break toward them.
     """
     m = summarise(rows)
     centre = sum(((m[k] - TARGETS[k]["centre"]) / s) ** 2 for k, s in LOSS_SCALE.items())
     band = sum((band_excess(k, m[k]) / 0.02) ** 2 for k in TARGETS)
     band += sum((band_excess(k, r[k], SEED_TOL[k]) / 0.02) ** 2 for r in rows for k in TARGETS)
-    prior = 0.02 * sum(((scalars[k] - V3_SCALARS[k]) / V3_SCALARS[k]) ** 2 for k in V3_SCALARS)
+    prior = 0.02 * sum(((scalars[k] - V3_SCALARS[k]) / V3_SCALARS[k]) ** 2 for k in V3_SCALARS if k in scalars)
     return {"total": centre + band + prior, "centre": centre, "band": band, "prior": prior}
 
 
@@ -378,27 +651,38 @@ def feasible(rows: list[dict], mean: dict[str, float] | None = None) -> bool:
 
 
 def anchor_distance(sc: dict[str, float]) -> float:
-    return float(sum(((sc[k] - ANCHORS[k]) / ANCHORS[k]) ** 2 for k in ANCHORS))
+    """Squared relative distance to the anchors (a scalar missing from an archived point is left out)."""
+    return float(sum(((sc[k] - ANCHORS[k]) / ANCHORS[k]) ** 2 for k in ANCHORS if k in sc))
 
 
 SELECTION_DOC = ("lexicographic: (1) feasible = every 3-seed mean in its target band at the targets' stated "
                  "precision (shares to 2 decimals, changes to whole percent) and every seed within the stated "
                  "single-seed tolerance; (2) among feasible points, the smallest squared relative distance "
-                 "to the anchors (PAP 8 [v3], paid parking 17 [AT car-park all-day rate 2014], k_WFH 8 [v3]); "
-                 "(3) loss as tie-break. If no point is feasible, the lowest loss.")
+                 "to the anchors (PAP 8 [v3], paid parking 17 [AT car-park all-day rate 2014], k_WFH 8 [v3], "
+                 "beta0 0.5 [SSC2026 base_beta]); (3) loss as tie-break. If no point is feasible, the lowest "
+                 "loss. Points with beta0 = 0 (no willingness-to-pay limit) are references and are never "
+                 "selected.")
+
+
+def candidates(points: list[dict]) -> list[dict]:
+    """The points the rule may choose: every point except the beta0 = 0 references."""
+    return [p for p in points if not p.get("reference")]
 
 
 def select(points: list[dict]) -> dict:
-    feas = [p for p in points if p["feasible"]]
+    cand = candidates(points)
+    feas = [p for p in cand if p["feasible"]]
     if feas:
         return min(feas, key=lambda p: (round(anchor_distance(p["scalars"]), 9), p["loss"]["total"]))
-    return min(points, key=lambda p: p["loss"]["total"])
+    return min(cand, key=lambda p: p["loss"]["total"])
 
 
-def ridge_alternatives(points: list[dict], chosen_label: str, n: int = N_RIDGE_ALTERNATIVES) -> list[tuple]:
-    """Alternatives checked out of sample: non-feasible points nearest the anchors that become feasible
-    when the soft overshoot bound is relaxed to -33% (the rule used since the search without fuel);
-    filled up from the ten lowest-loss other points (nearest the anchors first) when fewer than n qualify."""
+def ridge_alternatives(points: list[dict], chosen_label: str, n: int = N_RIDGE_ALTERNATIVES) -> list[dict]:
+    """Alternatives checked out of sample (their scalars): non-feasible points nearest the anchors that
+    become feasible when the soft overshoot bound is relaxed to -33% (the rule used since the search
+    without fuel); filled up from the ten lowest-loss other points (nearest the anchors first) when fewer
+    than n qualify. beta0 = 0 references are never alternatives."""
+    points = candidates(points)
     lo0 = TARGETS["change_11_13"]["lo"]
     try:
         TARGETS["change_11_13"]["lo"] = -0.33
@@ -413,11 +697,14 @@ def ridge_alternatives(points: list[dict], chosen_label: str, n: int = N_RIDGE_A
                       key=lambda q: q["loss"]["total"])[:10]
         rest.sort(key=lambda p: (round(anchor_distance(p["scalars"]), 9), p["loss"]["total"]))
         out += rest[:n - len(out)]
-    return [(p["scalars"]["pap"], p["scalars"]["park"], p["scalars"]["wfh"]) for p in out]
+    return [dict(p["scalars"]) for p in out]
 
 
 def selection_sensitivity(points: list[dict]) -> dict[str, Any]:
-    """How the selection depends on rounding and on the soft overshoot bound (no new runs)."""
+    """How the selection depends on rounding and on the soft overshoot bound (no new runs; beta0 = 0
+    references left out)."""
+    points = candidates(points)
+
     def strict(p):
         m = p["mean"]
         return (all(band_excess(k, m[k]) == 0.0 for k in TARGETS)
@@ -593,12 +880,16 @@ def figures(before: list[dict], after: list[dict], after_nofee: list[dict], grid
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.8), sharey=True)
     for ax, rows, title in ((axes[0], before, "Before (specification GC)"),
                             (axes[1], after, "After (structural fixes + calibration)")):
-        for key, mode in (("cars", "CAR"), ("pt", "PT"), ("wfh", "WFH"), ("skip", "SKIP")):
+        for key, mode in (("cars", "CAR"), ("pt", "PT"), ("wfh", "WFH")):
             arr = np.array([r["share_by_day"][key] for r in rows])
             ax.fill_between(days, arr.min(0), arr.max(0), color=MODE_COLOURS[mode], alpha=0.18, lw=0)
             ax.plot(days, arr.mean(0), color=MODE_COLOURS[mode], lw=2, label=mode)
             ax.annotate(mode, (days[-1], arr.mean(0)[-1]), xytext=(4, 0), textcoords="offset points",
                         color=INK2, va="center", fontsize=8)
+        # commuters left without a car option by the willingness to pay (a subset of PT and WFH)
+        arr = np.array([r["share_by_day"].get("no_car", [0.0] * N_DAYS) for r in rows])
+        if arr.max() > 0:
+            ax.plot(days, arr.mean(0), color=INK2, lw=1.2, ls="--", label="no car option (WTP below every charge)")
         style(ax)
         ax.set_title(title, color=INK)
         ax.set_xlabel("day (charge from day 11; PT disruption day 20)")
@@ -611,7 +902,7 @@ def figures(before: list[dict], after: list[dict], after_nofee: list[dict], grid
     p = FIG_DIR / "calib_mode_shares.png"
     fig.savefig(p, dpi=200)
     plt.close(fig)
-    paths["mode_shares"] = str(p.relative_to(ROOT))
+    paths["mode_shares"] = p.relative_to(ROOT).as_posix()
 
     # 2. crossing change by day with Stockholm / Gothenburg references
     fig, ax = plt.subplots(figsize=(8, 3.8))
@@ -641,13 +932,14 @@ def figures(before: list[dict], after: list[dict], after_nofee: list[dict], grid
     p = FIG_DIR / "calib_crossing_change.png"
     fig.savefig(p, dpi=200)
     plt.close(fig)
-    paths["crossing_change"] = str(p.relative_to(ROOT))
+    paths["crossing_change"] = p.relative_to(ROOT).as_posix()
 
     # 3. crossing-time distribution, days 21-30, charged vs no-charge counterfactual (after)
     bins = np.arange(330, 660, 15)
 
-    def mean_hist(dicts):
-        return np.array([[d.get(int(b), 0.0) for b in bins] for d in dicts]).mean(0)
+    def mean_hist(dicts):   # keys are ints in memory and strings once read back from the JSON log (--stage report)
+        return np.array([[float({int(k): v for k, v in d.items()}.get(int(b), 0.0)) for b in bins]
+                         for d in dicts]).mean(0)
 
     h1 = mean_hist([r["exit_hist_21_30"] for r in after])
     h0 = mean_hist([r["exit_hist_21_30"] for r in after_nofee])
@@ -677,35 +969,54 @@ def figures(before: list[dict], after: list[dict], after_nofee: list[dict], grid
     p = FIG_DIR / "calib_crossing_times.png"
     fig.savefig(p, dpi=200)
     plt.close(fig)
-    paths["crossing_times"] = str(p.relative_to(ROOT))
+    paths["crossing_times"] = p.relative_to(ROOT).as_posix()
 
-    # 4. search surface over the two free scalars: d21-30 response and base PT
-    df = pd.DataFrame([{**g["scalars"], **g["mean"]} for g in grid_rows])
-    fig, axes = plt.subplots(2, 1, figsize=(13, 10.5))
-    for ax, key, title, fmt in ((axes[0], "change_21_30", "crossings change d21-30 vs d6-10 (%)", "{:+.0f}"),
-                                (axes[1], "base_pt", "pre-charge PT share (days 6-10, %)", "{:.0f}")):
-        piv = df.pivot(index="wfh", columns="pap", values=key).sort_index(ascending=False)
-        ax.imshow(np.abs(piv.to_numpy() - (TARGETS[key]["centre"])), cmap="Greys_r", aspect="auto",
-                  vmin=0, vmax=0.25 if key == "change_21_30" else 0.15)
+    # 4. search surface over the three free scalars: the responses over k_WFH x beta0 at the chosen PAP, and the
+    # base shares (which do not depend on beta0) over k_WFH x PAP
+    df = pd.DataFrame([{**g["scalars"], **g["mean"], "feasible": bool(g["feasible"])} for g in grid_rows])
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10.5), gridspec_kw={"width_ratios": [1.25, 1]})
+    from matplotlib.patches import Rectangle
+
+    def dist(key, v):   # distance shaded: to the centre where the target has one, else the band excess
+        return abs(v - TARGETS[key]["centre"]) if TARGETS[key]["centre"] is not None else band_excess(key, v)
+
+    at_pap = df[df["pap"] == chosen["pap"]]
+    base = df.drop_duplicates(subset=["pap", "wfh"])   # the base shares are the same for every beta0 of a pair
+    panels = ((axes[0, 0], at_pap, "beta0", "change_21_30", "crossings change d21-30 vs d6-10 (%)", "{:+.0f}", 0.25),
+              (axes[0, 1], at_pap, "beta0", "change_11_13", "crossings change d11-13 vs d6-10 (%)", "{:+.0f}", 0.15),
+              (axes[1, 0], base, "pap", "base_pt", "pre-charge PT share (days 6-10, %)", "{:.0f}", 0.15),
+              (axes[1, 1], base, "pap", "base_car", "pre-charge car share (days 6-10, %)", "{:.0f}", 0.15))
+    for ax, d, col, key, title, fmt, vmax in panels:
+        piv = d.pivot(index="wfh", columns=col, values=key).sort_index(ascending=False)
+        feas = d.pivot(index="wfh", columns=col, values="feasible").reindex_like(piv)
+        ax.imshow(np.vectorize(lambda v: np.nan if pd.isna(v) else dist(key, v))(piv.to_numpy(dtype=float)),
+                  cmap="Greys_r", aspect="auto", vmin=0, vmax=vmax)
         for i, wf in enumerate(piv.index):
-            for j, pap in enumerate(piv.columns):
-                v = piv.loc[wf, pap]
+            for j, c in enumerate(piv.columns):
+                v = piv.loc[wf, c]
                 if pd.isna(v):
                     continue
-                mark = "*" if (pap == chosen["pap"] and wf == chosen["wfh"]) else ""
-                ax.text(j, i, fmt.format(v * 100) + mark, ha="center", va="center", fontsize=7.5,
-                        color="#ffffff" if abs(v - TARGETS[key]["centre"]) < 0.06 else INK)
+                here = wf == chosen["wfh"] and (c == chosen[col])
+                ax.text(j, i, fmt.format(v * 100) + ("*" if here else ""), ha="center", va="center", fontsize=7,
+                        color="#ffffff" if dist(key, v) < 0.4 * vmax else INK)
+                fv = feas.loc[wf, c]
+                if col == "beta0" and not pd.isna(fv) and bool(fv):   # dashed: a beta0 = 0 reference, never selected
+                    ref = c == BETA0_REFERENCE
+                    ax.add_patch(Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, ec=INK2 if ref else SLOTS[0],
+                                           lw=1.2 if ref else 1.6, ls="--" if ref else "-"))
         ax.set_xticks(range(len(piv.columns)), [f"{c:g}" for c in piv.columns])
         ax.set_yticks(range(len(piv.index)), [f"{c:g}" for c in piv.index])
-        ax.set_xlabel("PAP NZ$ (x omega(P))")
+        ax.set_xlabel("beta0 (wtt.beta0; 0 = no limit, reference)" if col == "beta0" else "PAP NZ$ (x omega(P))")
         ax.set_ylabel("k_WFH NZ$ (x phi(F))")
-        ax.set_title(f"{title} (paid parking fixed at NZ${PARK_FIXED:g}; darker = closer to target centre; * chosen)",
-                     color=INK, fontsize=9)
+        ax.set_title(title + (f" at PAP {chosen['pap']:g}; outlined = feasible (dashed: reference)" if col == "beta0"
+                              else "; the same for every beta0"), color=INK, fontsize=9)
+    fig.suptitle(f"Search over PAP, k_WFH and beta0 (paid parking fixed at NZ${PARK_FIXED:g}; darker = closer to the "
+                 "target centre or inside the band; * chosen; blank = not run)", color=INK, fontsize=10)
     fig.tight_layout()
     p = FIG_DIR / "calib_search.png"
     fig.savefig(p, dpi=200)
     plt.close(fig)
-    paths["search"] = str(p.relative_to(ROOT))
+    paths["search"] = p.relative_to(ROOT).as_posix()
     return paths
 
 
@@ -716,19 +1027,44 @@ def pct(x: float) -> str:
     return f"{x * 100:+.1f}%"
 
 
+def calib_delay_words(res: dict) -> str:
+    """What the capacity calibration measured (a log without calib_delay predates road congestion: queue)."""
+    return "queue + road delay" if res.get("calib_delay", "queue") == "total" else "queue delay"
+
+
+def road_words(res: dict) -> str:
+    """The roads of a logged search (a log without "road" predates road congestion: free-flow roads)."""
+    rd = res.get("road") or {}
+    if not rd.get("enabled"):
+        return "free-flow roads"
+    return "congested roads" + (" with the motorway breakdown rule" if rd.get("mwy_breakdown") else "")
+
+
+def state_words(res: dict) -> str:
+    """'300 agents, free-flow roads' / '950 agents, congested roads with the motorway breakdown rule'."""
+    return f"{int(res.get('n_agents', 300))} agents, {road_words(res)}"
+
+
 def write_report(res: dict) -> None:
     ch = res["chosen"]["scalars"]
     tst = res["chosen"]["targets"]
     pf = res.get("pre_fuel") or {}
+    wt = res.get("wtt") or {}
     lines = []
     A = lines.append
     A("# Behaviour calibration report")
     A("")
     A("Generated by `scripts/calibrate_behaviour.py` (data: `data/behaviour_calibration.json`). R-daily arm, "
-      "rule decider, PyEngine, n = 300, 30 days, seeds 1-3 (held-out seeds 4-5 and, after the selection, "
+      f"rule decider, PyEngine, n = {N_AGENTS}, 30 days, seeds 1-3 (held-out seeds 4-5 and, after the selection, "
       "unseen seeds 6-12 for checking only). "
-      "The LLM arms are never calibrated. Capacity is recalibrated per seed and per evaluated point "
-      "with `cordonlite.run.calibrate` (car-weighted peak 15-min queue delay of 15 min, days 6-10, no charge).")
+      "The LLM arms are never calibrated. Capacity is recalibrated per seed and per evaluated (PAP, k_WFH) pair "
+      f"with `cordonlite.run.calibrate` (car-weighted peak 15-min {calib_delay_words(res)} of "
+      f"{res.get('calib_target_peak_delay_min', 15.0):g} min, days 6-10, no charge). Roads: "
+      + ("free flow (no road congestion)." if not (res.get("road") or {}).get("enabled") else
+         f"{road_words(res)} (`[road]` of config.toml, capacity k = {res['road'].get('k')} x directional ADT "
+         "from data/road_meta.json; fixed inputs, not searched).")
+      + f" Behaviour is calibrated at the NZ${wt.get('peak_fee', 6.0):g} peak of the ToU schedule (`fees.peak_fee`); "
+        "runs at other peaks (`--peak-fee`) extrapolate from it.")
     A("")
     A("## Targets (all stated assumptions)")
     A("")
@@ -739,7 +1075,9 @@ def write_report(res: dict) -> None:
     A("")
     A("Response anchors: Stockholm about -20% (an initial -28%, then -23%, settling at 20-22%), Gothenburg "
       "about -12% (Börjesson et al. 2012, Transport Policy 20:1-12; Börjesson and Kristoffersson 2015, "
-      "TR-A 75:134-146). Single-seed tolerance: shares ±0.05, response ±4 pp.")
+      f"TR-A 75:134-146). Single-seed tolerance at n = {N_AGENTS}: {tolerance_words(SEED_TOL)} "
+      "(±0.05 and ±4 pp at n = 300, x sqrt(300 / n)). The SKIP-share target (at most 0.02) went with SKIP on "
+      "2026-10-09; every other target is unchanged.")
     A("")
     A("**Comparability of the anchors.** The Stockholm and Gothenburg figures are reductions of total cordon-crossing "
       "traffic in charged hours (all vehicles and purposes), observed over months to years. v3 section 10.5 lists "
@@ -763,15 +1101,67 @@ def write_report(res: dict) -> None:
     fm = [r.get("fuel_mean_paying") for r in res["chosen"].get("per_seed", []) if r.get("fuel_mean_paying") is not None]
     fuel_txt = (f"mean NZ${np.mean(fm):.1f} a day for a driver who pays it (seeds 1-3: "
                 + ", ".join(f"{x:.1f}" for x in fm) + ")") if fm else "see config.toml"
-    lst = res.get("last") or {}
+    lst = res.get("last") or {}          # the latest archived state (LAST_JSON: SKIP, no willingness to travel)
+    ff = res.get("freeflow300") or {}    # the state with 300 agents and free-flow roads (FREEFLOW_JSON)
+    sk25 = res.get("skip25") or {}       # the state with SKIP cost NZ$25 and no early start (SKIP25_JSON)
     es = res.get("early_start_summary")
-    ea, sk = res.get("early_start", {}), res.get("skip", {})
-    A("## Early start and SKIP cost (author decisions, 2026-10-05)")
+    ea = res.get("early_start", {})
+    vref = wt.get("vot_ref_value", 9.97)
+    peak = wt.get("peak_fee", 6.0)
+    A("## SKIP removed and the willingness to travel (2026-10-09)")
     A("")
-    A(f"Two assumptions changed before this search, and neither is searched. **Cost of postponing**: "
-      f"`costs.skip_cost` = NZ${sk.get('skip_cost', 30):g} plus {sk.get('skip_vot_hours', 1):g} hour of VoT [A, author "
-      "decision 2026-10-05; raised with the driving cost] (NZ$25 before). **Early start**: a commuter whose employer "
-      "allows it (Layer A constraint `early_shift_ok`, probability by archetype "
+    A("Two author decisions of 2026-10-09 change the choice set. **SKIP is removed.** Postponing the day had become a "
+      "permanent choice rather than a one-day postponement: at a NZ$30 peak, 97 of R-clock's 102 skippers skipped "
+      "every one of days 21-30, and at NZ$6, 8 commuters skipped every day; in the rule arms every skipper could have "
+      "taken PT. Every commuter now chooses among CAR (a departure time), PT and WFH where allowed, and the SKIP-share "
+      "target is dropped. **The willingness to travel follows an exponential decay**, after the SSC2026 model "
+      "(akl_pricing.nls: p_enter = clip(base_trip_rate x exp(-beta x fee / VoT), 0.05, 0.95), beta = clip(base_beta x "
+      "median VoT / VoT, 0.1, 2.0), base_beta 0.5). Each commuter draws u ~ U(0, 1) once (Layer A, after every other "
+      "draw; twins copy it) and has a fixed most it would pay a day to drive into the city centre, WTP = -ln(u) x VoT / "
+      f"beta, with beta = clip(beta0 x VoT_ref / VoT, {wt.get('beta_clip', [0.1, 2.0])[0]:g}, "
+      f"{wt.get('beta_clip', [0.1, 2.0])[1]:g}) and VoT_ref = exp(vot_mu) = NZ${vref:.2f}/h (`wtt.vot_ref = "
+      f"\"{wt.get('vot_ref', 'distribution_median')}\"`, the median of the VoT distribution; SSC2026 used the sample "
+      "median). The share willing to pay a charge F is then exp(-beta F / VoT). On a charged day a car option whose "
+      "charge (the fee at its expected crossing) is above WTP is not offered, so cheaper shoulder departures stay "
+      "(retiming) and a commuter unwilling to pay any of them takes PT or works from home; one left with PT only is "
+      "'forced' (no decision is asked). Company cars (the employer pays) and commuters with neither PT nor WFH (an "
+      "essential trip) are exempt. It applies in every arm as a choice-set constraint, and not on uncharged days, so "
+      "days 1-10, the base shares and the capacity calibration do not depend on beta0. beta0 is searched next to PAP "
+      "and k_WFH, with SSC2026's 0.5 as its anchor; beta0 = 0 switches the limit off and is run only as a reference. "
+      f"Because of the lower clip, beta is at least {wt.get('beta_clip', [0.1, 2.0])[0]:g} for every commuter, so "
+      "any positive beta0 removes some car options: below beta0 = 0.1 only commuters with a VoT under "
+      "VoT_ref x beta0 / 0.1 have a beta above the floor.")
+    A("")
+    if es:
+        A("Willingness to pay at the chosen point (R-daily; shares of all commuters; 'limitable' excludes company cars "
+          "and commuters with neither PT nor WFH):")
+        A("")
+        A(f"| Seed | limitable | WTP below NZ${peak:g} (all) | same, limitable | no car option d11-13 | no car option "
+          "d21-30 | some car options removed d21-30 | forced onto PT d21-30 |")
+        A("|---|---|---|---|---|---|---|---|")
+
+        def wtt_row(lab, x):
+            A(f"| {lab} | {x['wtt_limitable_share']:.3f} | {x['wtp_below_peak_share']:.3f} | "
+              f"{x['wtp_below_peak_limitable_share']:.3f} | {x['wtt_no_car_11_13']:.3f} | {x['end_wtt_no_car']:.3f} | "
+              f"{x['end_wtt_limited']:.3f} | {x['end_forced']:.3f} |")
+        for x in es["per_seed"]:
+            wtt_row(f"{x['seed']}" + (" (held out)" if x["seed"] in HOLDOUT_SEEDS else ""), x)
+        wtt_row("mean 1-3", es["mean_1_3"])
+        A("")
+        m_ = es["mean_1_3"]
+        b0 = ch["beta0"]
+        lo_, hi_ = wt.get("beta_clip", [0.1, 2.0])
+        bm = min(max(b0, lo_), hi_)   # beta of a commuter with VoT = VoT_ref
+        A(f"At beta0 = {b0:g} a commuter with the median VoT (NZ${vref:.2f}/h) would pay the NZ${peak:g} peak with "
+          f"probability exp(-{bm:g} x {peak:g} / {vref:.2f}) = {math.exp(-bm * peak / vref):.2f} "
+          f"and the NZ$4 shoulder with probability {math.exp(-bm * 4 / vref):.2f}. On days 21-30 "
+          f"{m_['end_wtt_no_car']:.1%} of all commuters have no car option left and {m_['end_wtt_limited']:.1%} have at "
+          f"least one removed (seeds 1-3); {m_['wtp_below_peak_share']:.1%} have a WTP below the peak charge, exempt "
+          "ones included.")
+        A("")
+    A("## Early start (2026-10-05)")
+    A("")
+    A("A commuter whose employer allows it (Layer A constraint `early_shift_ok`, probability by archetype "
       f"{ea.get('early_shift_prob')} for hybrid office, on-site office, shift/service, trades/work vehicle and "
       f"tertiary student [A]) may start work at {ea.get('early_start_min', 420) // 60:02d}:{ea.get('early_start_min', 420) % 60:02d} "
       "instead of the usual start t* (07:00 to 15:00 [A, author: employers encourage it]). Every car and PT option of "
@@ -779,23 +1169,22 @@ def write_report(res: dict) -> None:
       f"against the early start plus NZ${ea.get('early_shift_cost', 3):g} x phi(F) a day [A]. The car departures around "
       f"the reference departure of each start (+/- {max(ea.get('anchor_offsets_min', [0, 15]))} min) are added to the "
       "standing +/- 60 min set. Early and late minutes, lateness for T3 and the stored outcome use the start the "
-      "chosen option implies. The LLM prompt states the permission and shows the start time of every option. "
-      "Targets, seeds (1-3 search, 4-5 held out, 6-12 out of sample), loss, selection rule, grid and the two "
-      "searched scalars (PAP, k_WFH) are unchanged. The earlier state is archived in "
-      "`data/behaviour_calibration_skip25_noearly.json` with `docs/calibration_report_skip25_noearly.md`.")
+      "chosen option implies. The LLM prompt states the permission and shows the start time of every option. It is a "
+      "fixed assumption and is not searched.")
     A("")
     if es:
-        A("Early start, retiming, postponing and peak spreading at the chosen point (R-daily; 'no charge' is the run "
-          "without the charge at the same capacity and seed, which has the same day-to-day churn):")
+        A("Early start, retiming and peak spreading at the chosen point (R-daily; 'no charge' is the run without the "
+          "charge at the same capacity and seed, which has the same day-to-day churn):")
         A("")
-        A("| Seed | may start early | early start d6-10 | d11-13 | d21-30 | d21-30, no charge | SKIP d6-10 | SKIP d21-30 | "
+        A("| Seed | may start early | early start d6-10 | d11-13 | d21-30 | d21-30, no charge | "
           "retimed (of all commuters) | same, no charge | crossings d21-30 vs d6-10, all morning | 08:00-09:00 | "
           "before 07:30 | 08:00-09:00, no charge |")
-        A("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+        A("|---|---|---|---|---|---|---|---|---|---|---|---|")
+
         def es_row(lab, x):
             rt_, rt0 = x.get("retiming"), x.get("nofee_retiming")
             A(f"| {lab} | {x['early_ok_share']:.3f} | {x['base_early']:.3f} | {x['early_11_13']:.3f} | {x['end_early']:.3f} | "
-              f"{x['nofee_end_early']:.3f} | {x['base_skip']:.3f} | {x['end_skip']:.3f} | "
+              f"{x['nofee_end_early']:.3f} | "
               + (f"{rt_['retimed_of_all']:.3f} | {rt0['retimed_of_all']:.3f}" if rt_ else "- | -")
               + f" | {pct(x['change_21_30'])} | {pct(x['peak_cross_change'])} | {pct(x['pre0730_cross_change'])} | "
               f"{pct(x['nofee_peak_cross_change'])} |")
@@ -812,11 +1201,10 @@ def write_report(res: dict) -> None:
           f"run); as a share of car users {m_['base_early_of_cars']:.1%} and {m_['end_early_of_cars']:.1%}. "
           f"{m_['retiming']['retimed_of_all']:.1%} of commuters retime their drive "
           f"({m_['retiming']['retimed_earlier_of_all']:.1%} earlier, {m_['retiming']['retimed_later_of_all']:.1%} later), "
-          f"against {m_['nofee_retiming']['retimed_of_all']:.1%} without the charge. SKIP is {m_['base_skip']:.3f} before "
-          f"and {m_["end_skip"]:.3f} after. Car crossings change by {pct(m_["change_21_30"])} over the whole morning and by "
-          f"{pct(m_['peak_cross_change'])} in the 08:00 to 09:00 peak (NZ$6), against {pct(m_['pre0730_cross_change'])} "
-          f"before 07:30 (NZ$4); without the charge the peak changes by {pct(m_['nofee_peak_cross_change'])} over the "
-          "same days.")
+          f"against {m_['nofee_retiming']['retimed_of_all']:.1%} without the charge. Car crossings change by "
+          f"{pct(m_['change_21_30'])} over the whole morning and by {pct(m_['peak_cross_change'])} in the 08:00 to 09:00 "
+          f"peak (NZ$6), against {pct(m_['pre0730_cross_change'])} before 07:30 (NZ$4); without the charge the peak "
+          f"changes by {pct(m_['nofee_peak_cross_change'])} over the same days.")
         A("")
     A("## Parking and fuel fixed by the authors")
     A("")
@@ -832,63 +1220,117 @@ def write_report(res: dict) -> None:
       "carries parking and fuel, so WFH earns no credit for the avoided drive. The prompt of the LLM arms states "
       "both daily costs.")
     A("")
-    A("The search runs over two scalars only, PAP and k_WFH, with the same targets, seeds, loss and selection "
-      "rule. Earlier searches are archived: `data/behaviour_calibration_pre_fuel.json` with "
-      "`docs/calibration_report_pre_fuel.md` (no fuel, three scalars), "
-      "`data/behaviour_calibration_fuel023_park11.json` with `docs/calibration_report_fuel023_park11.md` (fuel "
-      "NZ$0.23/km, three scalars) and `data/behaviour_calibration_skip25_noearly.json` with "
-      "`docs/calibration_report_skip25_noearly.md` (SKIP cost NZ$25, no early start, two scalars).")
+    A("The search runs over three scalars, PAP, k_WFH and beta0, with the same targets (less the SKIP share), "
+      "seeds, loss and selection rule; the anchors and the prior gain beta0 0.5. Earlier searches are archived: "
+      "`data/behaviour_calibration_pre_fuel.json` with `docs/calibration_report_pre_fuel.md` (no fuel, three "
+      "scalars), `data/behaviour_calibration_fuel023_park11.json` with `docs/calibration_report_fuel023_park11.md` "
+      "(fuel NZ$0.23/km, three scalars), `data/behaviour_calibration_skip25_noearly.json` with "
+      "`docs/calibration_report_skip25_noearly.md` (SKIP cost NZ$25, no early start, two scalars)"
+      + (f", `{ff['source']}` with `{ff['report']}` (SKIP cost NZ${ff['skip_cost']:g} and early start, "
+         f"{state_words(ff)}, capacity calibrated to the {calib_delay_words(ff)}, two scalars)" if ff else "")
+      + (f" and `{lst['source']}` with `{lst['report']}` (SKIP cost NZ${lst['skip_cost']:g}, no willingness to travel, "
+         f"{state_words(lst)}, capacity calibrated to the {calib_delay_words(lst)}, two scalars), each with its "
+         "capacity calibration, figures and example prompt." if lst else "."))
     A("")
-    if pf and prv and lst:
+    if pf and prv and sk25 and ff and lst:
         c0, m0 = pf["chosen"], pf["chosen_mean"]
         c1, m1 = prv["chosen"], prv["chosen_mean"]
-        c2, m2 = lst["chosen"], lst["chosen_mean"]
+        c2, m2 = sk25["chosen"], sk25["chosen_mean"]
+        c3, m3 = ff["chosen"], ff["chosen_mean"]
+        c4, m4 = lst["chosen"], lst["chosen_mean"]
+        e3 = ff.get("on_grid_edge") or on_grid_edge(c3)
+        e4 = lst.get("on_grid_edge") or on_grid_edge(c4)
+        old = (pf, prv, sk25, ff, lst)   # the archived logs before road congestion record n_agents but no road / calib_delay
         A("| | Without fuel (archived) | Fuel NZ$0.23/km, parking searched (archived) | Fuel NZ$0.30/km, parking fixed, "
-          "SKIP NZ$25, no early start (archived) | SKIP NZ$30 and early start (this report) |")
-        A("|---|---|---|---|---|")
-        A(f"| Fuel cost | none | NZ$0.23/km, fixed | NZ$0.30/km, fixed | NZ${fu['fuel_cost_per_km']:.2f}/km, fixed |")
+          f"SKIP NZ$25, no early start (archived) | SKIP NZ${ff['skip_cost']:g} and early start, {state_words(ff)} "
+          f"(archived) | SKIP NZ${lst['skip_cost']:g}, {state_words(lst)} (archived) | no SKIP, willingness to travel, "
+          f"{state_words(res)} (this report) |")
+        A("|---|---|---|---|---|---|---|")
+        A("| Agents (n) | " + " | ".join(f"{int(x.get('n_agents', 300))}" for x in old) + f" | {N_AGENTS} |")
+        A("| Roads | " + " | ".join(road_words(x) for x in old) + f" | {road_words(res)} |")
+        A("| Capacity calibrated to (car-weighted peak 15-min delay) | " + " | ".join(calib_delay_words(x) for x in old)
+          + f" | {calib_delay_words(res)} |")
+        A(f"| Fuel cost | none | NZ$0.23/km, fixed | NZ$0.30/km, fixed | NZ${ff['fuel_cost_per_km']:.2f}/km, fixed | "
+          f"NZ${lst['fuel_cost_per_km']:.2f}/km, fixed | NZ${fu['fuel_cost_per_km']:.2f}/km, fixed |")
         A(f"| Paid parking, office (student) | NZ${c0['park']:g} (NZ${0.75 * c0['park']:g}), searched | "
           f"NZ${c1['park']:g} (NZ${0.75 * c1['park']:g}), searched | NZ${c2['park']:g} (NZ${0.75 * c2['park']:g}), fixed | "
+          f"NZ${c3['park']:g} (NZ${0.75 * c3['park']:g}), fixed | NZ${c4['park']:g} (NZ${0.75 * c4['park']:g}), fixed | "
           f"NZ${ch['park']:g} (NZ${0.75 * ch['park']:g}), fixed |")
-        A(f"| SKIP cost (plus 1 h of VoT) | NZ$25 | NZ$25 | NZ$25 | NZ${sk.get('skip_cost', 30):g} |")
-        A("| Early-start option | no | no | no | yes |")
-        A("| Searched scalars | PAP, parking, k_WFH | PAP, parking, k_WFH | PAP, k_WFH | PAP, k_WFH |")
-        e_ = on_grid_edge(ch)
+        A(f"| SKIP option (cost plus 1 h of VoT) | NZ$25 | NZ$25 | NZ$25 | NZ${ff['skip_cost']:g} | NZ${lst['skip_cost']:g} | "
+          "removed |")
+        A("| Early-start option | no | no | no | yes | yes | yes |")
+        A(f"| Willingness to travel (beta0) | no | no | no | no | no | {ch['beta0']:g}, searched |")
+        A("| Searched scalars | PAP, parking, k_WFH | PAP, parking, k_WFH | PAP, k_WFH | PAP, k_WFH | PAP, k_WFH | "
+          "PAP, k_WFH, beta0 |")
+        e_ = on_grid_edge(ch, res["search"].get("beta0_values"))
         A(f"| PAP (x omega(P)) | NZ${c0['pap']:g} | NZ${c1['pap']:g} (grid edge) | NZ${c2['pap']:g} (interior) | "
+          f"NZ${c3['pap']:g} ({'grid edge' if e3['pap'] else 'interior'}) | "
+          f"NZ${c4['pap']:g} ({'grid edge' if e4['pap'] else 'interior'}) | "
           f"NZ${ch['pap']:g} ({'grid edge' if e_['pap'] else 'interior'}) |")
         A(f"| k_WFH (x phi(F)) | NZ${c0['wfh']:g} (grid edge) | NZ${c1['wfh']:g} (grid edge) | NZ${c2['wfh']:g} (interior) | "
+          f"NZ${c3['wfh']:g} ({'grid edge' if e3['wfh'] else 'interior'}) | "
+          f"NZ${c4['wfh']:g} ({'grid edge' if e4['wfh'] else 'interior'}) | "
           f"NZ${ch['wfh']:g} ({'grid edge' if e_['wfh'] else 'interior'}) |")
+        cand_ = candidates(res["search"]["points"])
         A(f"| Feasible points | {pf['n_feasible']} of {pf['n_points']} (after rounding) | {prv['n_feasible']} of "
-          f"{prv['n_points']} | {lst['n_feasible']} of {lst['n_points']} | "
-          f"{sum(p['feasible'] for p in res['search']['points'])} of {len(res['search']['points'])} |")
+          f"{prv['n_points']} | {sk25['n_feasible']} of {sk25['n_points']} | {ff['n_feasible']} of {ff['n_points']} | "
+          f"{lst['n_feasible']} of {lst['n_points']} | {sum(p['feasible'] for p in cand_)} of {len(cand_)} |")
         for k, lab in (("base_car", "Car share d6-10 (0.75-0.85)"), ("base_pt", "PT share d6-10 (0.08-0.15)"),
-                       ("base_wfh", "WFH share d6-10 (at most 0.10)"), ("base_skip", "SKIP share d6-10 (at most 0.02)")):
-            A(f"| {lab} | {m0[k]:.3f} | {m1[k]:.3f} | {m2[k]:.3f} | {cm_[k]:.3f} |")
+                       ("base_wfh", "WFH share d6-10 (at most 0.10)")):
+            A(f"| {lab} | {m0[k]:.3f} | {m1[k]:.3f} | {m2[k]:.3f} | {m3[k]:.3f} | {m4[k]:.3f} | {cm_[k]:.3f} |")
+        A(f"| SKIP share d6-10 (at most 0.02 while SKIP existed) | {m0['base_skip']:.3f} | {m1['base_skip']:.3f} | "
+          f"{m2['base_skip']:.3f} | {m3['base_skip']:.3f} | {m4['base_skip']:.3f} | - |")
         for k, lab in (("change_11_13", "Crossings d11-13 vs d6-10 (to about -30%)"),
                        ("change_21_30", "Crossings d21-30 vs d6-10 (-12% to -22%)")):
-            A(f"| {lab} | {pct(m0[k])} | {pct(m1[k])} | {pct(m2[k])} | {pct(cm_[k])} |")
+            A(f"| {lab} | {pct(m0[k])} | {pct(m1[k])} | {pct(m2[k])} | {pct(m3[k])} | {pct(m4[k])} | {pct(cm_[k])} |")
         A(f"| Capacity scale (mean of seeds 1-3) | {m0['capacity_scale']:.3f} | {m1['capacity_scale']:.3f} | "
-          f"{m2['capacity_scale']:.3f} | {cm_['capacity_scale']:.3f} |")
+          f"{m2['capacity_scale']:.3f} | {m3['capacity_scale']:.3f} | {m4['capacity_scale']:.3f} | "
+          f"{cm_['capacity_scale']:.3f} |")
         A("")
         A("With parking at NZ$17 and fuel at NZ$0.30/km a paying driver's money cost is about NZ$"
           f"{ch['park'] + (np.mean(fm) if fm else 8.6):.0f} a day before any charge (parking plus fuel), against about "
           "NZ$18 in the two earliest states, so PAP is far higher than in those states: it is the one scalar that "
-          "holds the assumed pre-charge shares. In the third state postponing (NZ$25 plus one hour of VoT) was close "
-          f"to the cost of a day's driving and the SKIP share was {m2['base_skip']:.3f} before the charge; with the "
-          f"SKIP cost at NZ$30 and the early-start option it is {cm_['base_skip']:.3f}.")
+          "holds the assumed pre-charge shares. The last archived state and this report share the rule, the fixed "
+          "inputs, the number of agents, the roads, the capacity target, the grid of PAP and k_WFH, the seeds, the "
+          "loss and the selection rule; they differ in the choice set (SKIP at NZ$"
+          f"{lst['skip_cost']:g} there, removed here) and in the willingness to travel (none there, beta0 searched "
+          f"here). The SKIP share was {m4['base_skip']:.3f} before the charge in the last archived state, so the base "
+          "shares hardly move without it.")
         A("")
     A("## Search")
     A("")
     g = res["search"]
-    A(f"{len(g['points'])} grid points x {len(SEEDS)} seeds = {len(g['points']) * len(SEEDS)} evaluations, each "
-      f"with its own capacity calibration. Full grid in NZ$1 steps: PAP {GRID['pap'][0]:g} to {GRID['pap'][-1]:g}, "
-      f"k_WFH {GRID['wfh'][0]:g} to {GRID['wfh'][-1]:g}, paid parking fixed at NZ${PARK_FIXED:g}. The ranges were set "
-      "after a range-finding probe (PAP 12 to 40 in steps of 4 at k_WFH 8 and 12, seeds 1-3; logged as "
-      "`search.range_probe`) and before the search. "
-      f"Selection: {g['selection']} Loss: {g['loss_doc']} Paid parking is constant, so its terms in the anchor "
-      "distance (0) and in the prior (a constant) do not affect the ranking.")
+    cand = candidates(g["points"])
+    refs = [p for p in g["points"] if p.get("reference")]
+    stg = g.get("stages", {})
+    A(f"{len(cand)} points (PAP x k_WFH x beta0) and {len(refs)} beta0 = 0 references, seeds 1-3: "
+      f"{g.get('n_calibrations', 0):,} capacity calibrations and {g.get('n_runs', 0):,} charged 30-day runs, in "
+      f"{g.get('wall_seconds', 0) / 3600:.1f} hours on {g.get('workers', '?')} workers. "
+      + g["method"][:1].upper() + g["method"][1:])
     A("")
-    nf = sum(p["feasible"] for p in g["points"])
+    if stg:
+        A("| Stage | PAP | k_WFH | beta0 | (PAP, k_WFH) pairs | capacity calibrations | charged runs | hours |")
+        A("|---|---|---|---|---|---|---|---|")
+        for name, s_ in stg.items():
+            prs = s_["pairs"]
+            paps_ = sorted({p for p, _ in prs})
+            wfhs_ = sorted({w for _, w in prs})
+            A(f"| {name} | {', '.join(f'{x:g}' for x in paps_)} | "
+              + (f"{wfhs_[0]:g}-{wfhs_[-1]:g}" if len(wfhs_) == 15 else ", ".join(f"{x:g}" for x in wfhs_))
+              + f" | {', '.join(f'{x:g}' for x in s_['beta0'])} | {len(prs)} | {s_['n_calibrations']} | {s_['n_runs']} | "
+              f"{s_['seconds'] / 3600:.2f} |")
+        A("")
+        A("Stage 1 includes the four corners of the NZ$1 grid (PAP 10 and 36 x k_WFH 2 and 16). "
+          + (f"Stage 2 ran at PAP {', '.join(f'{x:g}' for x in stg['stage2'].get('paps', []))}. " if "stage2" in stg else "")
+          + (f"After stage 2 the rule chose {stg['stage3'].get('chosen_after_stage2')}; stage 3 added beta0 "
+             f"{', '.join(f'{x:g}' for x in stg['stage3']['beta0'])}." if "stage3" in stg else ""))
+        A("")
+    A(f"Selection: {g['selection']} Loss: {g['loss_doc']} Paid parking is constant, so its terms in the anchor "
+      "distance (0) and in the prior (a constant) do not affect the ranking. The PAP and k_WFH ranges are those of the "
+      "earlier searches (set after a range-finding probe with PAP 12 to 40 in steps of 4 at k_WFH 8 and 12; 300 "
+      "agents, free-flow roads, SKIP cost NZ$25, no early start; logged as `search.range_probe` and not rerun).")
+    A("")
+    nf = sum(p["feasible"] for p in cand)
     ss = res["selection_sensitivity"]
     cpt = next(p for p in g["points"] if p["label"] == res["chosen"]["label"])
     cmean = res["chosen"].get("mean") or cpt["mean"]
@@ -897,50 +1339,62 @@ def write_report(res: dict) -> None:
     fv = lambda k, v: pct(v) if k.startswith("change") else format(v, ".3f")
     seed_miss = [(r["seed"], k, r[k], band_excess(k, r[k], SEED_TOL[k])) for r in crow for k in TARGETS
                  if band_excess(k, r[k], SEED_TOL[k]) > 0]
-    edge = on_grid_edge(res["chosen"]["scalars"])
-    txt = (f"{nf} of {len(g['points'])} points are feasible at the stated precision (shares to 2 decimals, changes "
+    edge = on_grid_edge(res["chosen"]["scalars"], g.get("beta0_values"))
+    txt = (f"{nf} of {len(cand)} points are feasible at the stated precision (shares to 2 decimals, changes "
            f"to whole percent); strictly (unrounded 3-seed means) {len(ss['feasible_strict'])} are. ")
     if nf == 0:
-        txt += (f"With no feasible point the rule falls back to the lowest loss, which gives {ss['lowest_loss']}. "
+        txt += (f"NO POINT IS FEASIBLE. With no feasible point the rule falls back to the lowest loss, which gives "
+                f"{ss['lowest_loss']}. "
                 + ("At the stated precision the 3-seed means of the chosen point miss "
                    + ", ".join(f"`{k}` ({fv(k, cmean[k])})" for k in missed) + ". " if missed else
                    "Every 3-seed mean of the chosen point is inside its band. ")
                 + ("The point is not feasible because of the single-seed rule: "
                    + "; ".join(f"seed {sd} `{k}` {fv(k, v)} (beyond the band plus tolerance by "
                                + (f"{ex * 100:.1f} pp" if k.startswith("change") else f"{ex:.3f}") + ")"
-                               for sd, k, v, ex in seed_miss)
-                   + ". " + ("The single-seed tolerance for the SKIP share is 0, so a seed with a SKIP share above "
-                             "0.02 fails. " if any(k == "base_skip" for _, k, _, _ in seed_miss) else "")
-                   if seed_miss else ""))
+                               for sd, k, v, ex in seed_miss) + ". " if seed_miss else ""))
     else:
         txt += f"The chosen point is {res['chosen']['label']}; the lowest-loss point is {ss['lowest_loss']}. "
-    txt += ("Neither chosen value is on an edge of its searched range." if not any(edge.values()) else
-            "On a grid edge: " + ", ".join(k for k, v in edge.items() if v) + ".")
+    txt += ("No chosen value is on an edge of its searched range." if not any(edge.values()) else
+            "On an edge of the searched range: " + ", ".join(k for k, v in edge.items() if v) + ".")
     A(txt)
     A("")
     A("Sensitivity to the soft overshoot bound ('may reach about -30%', treated as a hard bound): "
       + "; ".join(f"bound {pct(x['lo'])}: {len(x['feasible'])} feasible, chosen {x['chosen']}" for x in ss["overshoot_bound"])
-      + ". The anchors (PAP 8, k_WFH 8) act only inside a feasible set.")
+      + ". The anchors (PAP 8, k_WFH 8, beta0 0.5) act only inside a feasible set.")
     A("")
     hist = g.get("selection_history", [])
     if hist:
         A("Selection history (append-only from this version; `search.selection_history`): "
           + " ".join(h.get("note") or f"{h['replaced_at']}: replaced rule choosing {h['chosen']}." for h in hist))
         A("")
-    A("Feasible points and the ten lowest-loss points (3-seed means):")
+    A("Feasible points and the ten lowest-loss other points (3-seed means; 'no car' is the share of commuters with every "
+      "car option removed by the willingness to pay, days 21-30):")
     A("")
-    A("| PAP | k_WFH | feasible | anchor dist. | loss | base car | base PT | base WFH | base SKIP | d11-13 | d21-30 |")
-    A("|---|---|---|---|---|---|---|---|---|---|---|")
-    show = [p for p in g["points"] if p["feasible"]]
-    show += [p for p in sorted(g["points"], key=lambda q: q["loss"]["total"])[:10] if not p["feasible"]]
-    for p in sorted(show, key=lambda q: (not q["feasible"], q["anchor_distance"], q["loss"]["total"])):
+    A("| PAP | k_WFH | beta0 | stage | feasible | anchor dist. | loss | base car | base PT | base WFH | no car d21-30 | "
+      "d11-13 | d21-30 |")
+    A("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    show = [p for p in cand if p["feasible"]]
+    show += [p for p in sorted(cand, key=lambda q: q["loss"]["total"])[:10] if not p["feasible"]]
+
+    def point_row(p):
         s, m = p["scalars"], p["mean"]
-        A(f"| {s['pap']:g} | {s['wfh']:g} | {'yes' if p['feasible'] else 'no'} | "
-          f"{p['anchor_distance']:.3f} | {p['loss']['total']:.2f} | {m['base_car']:.3f} | "
-          f"{m['base_pt']:.3f} | {m['base_wfh']:.3f} | {m['base_skip']:.3f} | {pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
+        return (f"| {s['pap']:g} | {s['wfh']:g} | {s['beta0']:g} | {str(p.get('stage', '-')).removeprefix('stage')} | "
+                f"{'yes' if p['feasible'] else 'no'} | {p['anchor_distance']:.3f} | {p['loss']['total']:.2f} | "
+                f"{m['base_car']:.3f} | {m['base_pt']:.3f} | {m['base_wfh']:.3f} | {m.get('end_wtt_no_car', 0.0):.3f} | "
+                f"{pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
+    for p in sorted(show, key=lambda q: (not q["feasible"], q["anchor_distance"], q["loss"]["total"])):
+        A(point_row(p))
     A("")
-    A(f"Chosen: **PAP NZ${ch['pap']:g} x omega(P), k_WFH NZ${ch['wfh']:g} x phi(F)**, with paid parking fixed at "
-      f"NZ${ch['park']:g}/day (student NZ${0.75 * ch['park']:g}) and fuel fixed at NZ${fu['fuel_cost_per_km']:.2f}/km.")
+    ref_here = sorted((p for p in refs if p["scalars"]["pap"] == ch["pap"]), key=lambda q: q["scalars"]["wfh"])
+    if ref_here:
+        A(f"References (beta0 = 0, no limit: SKIP removed and nothing else) at PAP {ch['pap']:g}, d21-30 response by "
+          "k_WFH: " + ", ".join(f"{p['scalars']['wfh']:g}: {pct(p['mean']['change_21_30'])} "
+                                 f"({pct(p['mean']['change_11_13'])} on d11-13)" for p in ref_here) + ".")
+        A("")
+    A(f"Chosen: **PAP NZ${ch['pap']:g} x omega(P), k_WFH NZ${ch['wfh']:g} x phi(F), beta0 {ch['beta0']:g}**, with paid "
+      f"parking fixed at NZ${ch['park']:g}/day (student NZ${0.75 * ch['park']:g}) and fuel fixed at "
+      f"NZ${fu['fuel_cost_per_km']:.2f}/km." + ("" if res["chosen"].get("feasible", cpt["feasible"]) else
+                                                 " **This point is not feasible** (see above)."))
     A("")
     A("How to read the chosen values. PAP enters in the specification form omega(P) x (VoT/60 x T_pt + PAP) + fare: "
       "omega also scales PT time, and v3's HTA/2 factor is absent. v3 6.2 uses omega(P) x PAP x HTA/2 (HTA 1 local, "
@@ -948,47 +1402,63 @@ def write_report(res: dict) -> None:
       f"(boundary homes) to {2 * ch['pap']:g} (local homes), far above v3's range; P = 1-2 agents also face doubled "
       "or 1.5 x PT time and practically never ride PT. PAP is the one scalar left to hold the assumed baseline "
       "split, so it absorbs the whole rise in the money cost of driving: it is a fitted residual, not an estimate "
-      f"of a PT attitude. k_WFH {ch['wfh']:g} is above v3's NZ$8; it is identified here by the response and overshoot "
-      "targets (a higher value weakens both), not by the WFH share, which stays near zero. Parking and fuel are no "
-      "longer fitted, so the earlier caveat that parking was in effect a fitted value no longer applies.")
+      f"of a PT attitude. k_WFH {ch['wfh']:g} is "
+      + ("above" if ch["wfh"] > V3_SCALARS["wfh"] else "equal to" if ch["wfh"] == V3_SCALARS["wfh"] else "below")
+      + f" v3's NZ${V3_SCALARS['wfh']:g}; it is identified here by the response and overshoot "
+      "targets (a higher value weakens both), not by the WFH share, which stays near zero. beta0 "
+      f"{ch['beta0']:g} is " + ("below" if ch["beta0"] < 0.5 else "equal to" if ch["beta0"] == 0.5 else "above")
+      + " SSC2026's base_beta 0.5. It does not move the base shares and is identified, together with k_WFH, by the "
+      "response and overshoot: both strengthen the response, so the targets fix a ridge in (k_WFH, beta0) and the "
+      "anchors pick the point on it. Parking and fuel are no longer fitted.")
     A("")
-    A(f"![search]({Path(res['figures']['search']).relative_to('docs')})")
+    A(f"![search]({Path(res['figures']['search']).relative_to('docs').as_posix()})")
     A("")
     A("## Before vs after (3-seed means)")
     A("")
     b, s_, a = res["before"]["mean"], res["structural_only"]["mean"], res["chosen"]["mean"]
-    A("| Metric | Target | Before | Structural fixes only (v3 values) | After (chosen) |")
+    A("| Metric | Target | Before | Structural fixes only (design values) | After (chosen) |")
     A("|---|---|---|---|---|")
     for k, lab in (("base_car", "car share d6-10"), ("base_pt", "PT share d6-10"), ("base_wfh", "WFH share d6-10"),
-                   ("base_skip", "SKIP share d6-10"), ("change_11_13", "crossings d11-13 vs d6-10"),
-                   ("change_21_30", "crossings d21-30 vs d6-10")):
+                   ("change_11_13", "crossings d11-13 vs d6-10"), ("change_21_30", "crossings d21-30 vs d6-10")):
         t = TARGETS[k]
         f = pct if k.startswith("change") else (lambda v: f"{v:.3f}")
         band = f"{pct(t['lo'])} to {pct(t['hi'])}" if k.startswith("change") else f"{t['lo']:g}-{t['hi']:g}"
         A(f"| {lab} | {band} | {f(b[k])} | {f(s_[k])} | {f(a[k])} |")
     for k, lab in (("end_car", "car share d21-30"), ("end_pt", "PT share d21-30"), ("end_wfh", "WFH share d21-30"),
+                   ("end_wtt_no_car", "no car option d21-30 (willingness to pay)"),
                    ("peak_band_share_21_30", "08:00-09:00 crossing share d21-30"),
-                   ("peak_delay_6_10", "peak delay d6-10 (min)"), ("peak_delay_21_30", "peak delay d21-30 (min)"),
+                   ("peak_delay_6_10", "peak queue delay d6-10 (min)"),
+                   ("peak_delay_21_30", "peak queue delay d21-30 (min)"),
+                   ("peak_total_delay_6_10", "peak queue + road delay d6-10 (min)"),
+                   ("peak_total_delay_21_30", "peak queue + road delay d21-30 (min)"),
+                   ("road_delay_6_10", "mean road delay of cars d6-10 (min)"),
+                   ("road_delay_21_30", "mean road delay of cars d21-30 (min)"),
                    ("capacity_scale", "capacity scale")):
+        if k not in b or k not in s_ or k not in a:   # older logs have no road delays
+            continue
         A(f"| {lab} | - | {b[k]:.3f} | {s_[k]:.3f} | {a[k]:.3f} |")
     A("")
-    A("'Before' is the pre-recalibration specification, which has no fuel cost and paid parking NZ$8. 'Structural "
-      f"fixes only' is the current model, with the fixed parking (NZ${PARK_FIXED:g}) and fuel "
-      f"(NZ${fu['fuel_cost_per_km']:.2f}/km), at the v3 scalars (PAP 8, k_WFH 8). It has base car {s_['base_car']:.3f} "
+    A(f"Capacity is calibrated to the {calib_delay_words(res)} (the 'peak queue + road delay' row when roads "
+      "are congested; the 'peak queue delay' row with free-flow roads).")
+    A("")
+    A("'Before' is the pre-recalibration specification, which has no fuel cost, paid parking NZ$8, no early start and "
+      "no willingness-to-pay limit (its SKIP option no longer exists in the model). 'Structural fixes only' is the "
+      f"current model, with the fixed parking (NZ${PARK_FIXED:g}) and fuel (NZ${fu['fuel_cost_per_km']:.2f}/km), at "
+      f"the design values (PAP 8, k_WFH 8, beta0 0.5). It has base car {s_['base_car']:.3f} "
       f"and PT {s_['base_pt']:.3f}, far outside the baseline bands, and responds by {pct(s_['change_21_30'])} on days "
       f"21-30 and {pct(s_['change_11_13'])} on days 11-13 (per seed "
       + ", ".join(pct(r["change_21_30"]) for r in res["structural_only"]["per_seed"]) + "). "
       + (f"Without fuel and with v3's NZ$8 parking the v3-valued model gave car {pf['structural_mean']['base_car']:.3f}, "
          f"PT {pf['structural_mean']['base_pt']:.3f} and a response of {pct(pf['structural_mean']['change_21_30'])} "
          f"(overshoot {pct(pf['structural_mean']['change_11_13'])}), the like-for-like v3 sensitivity. " if pf else "")
-      + f"In the search PAP moved to restore the assumed baseline shares (to {ch['pap']:g}) and k_WFH to "
-      f"{ch['wfh']:g}, and the response is {pct(a['change_21_30'])}. The closeness to Stockholm's -20% is partly a "
-      "by-product of fitting the baseline.")
+      + f"In the search PAP moved to restore the assumed baseline shares (to {ch['pap']:g}), k_WFH to {ch['wfh']:g} "
+      f"and beta0 to {ch['beta0']:g}, and the response is {pct(a['change_21_30'])}. The closeness to Stockholm's -20% "
+      "is partly a by-product of fitting the baseline.")
     A("")
     A("## Per-seed metrics against each target (chosen values)")
     A("")
     rows = res["chosen"]["per_seed"] + res["chosen"]["holdout"]
-    A("| Seed | capacity scale | base car | base PT | base WFH | base SKIP | d11-13 | d21-30 | within band / tolerance |")
+    A("| Seed | capacity scale | base car | base PT | base WFH | d11-13 | d21-30 | no car d21-30 | within band / tolerance |")
     A("|---|---|---|---|---|---|---|---|---|")
     for r in rows:
         flags = []
@@ -998,7 +1468,7 @@ def write_report(res: dict) -> None:
             flags.append(f"{k} {'within tol.' if band_excess(k, r[k], SEED_TOL[k]) == 0 else 'OUT'}")
         tag = " (held out)" if r["seed"] in HOLDOUT_SEEDS else ""
         A(f"| {r['seed']}{tag} | {r['capacity_scale']:.4f} | {r['base_car']:.3f} | {r['base_pt']:.3f} | "
-          f"{r['base_wfh']:.3f} | {r['base_skip']:.3f} | {pct(r['change_11_13'])} | {pct(r['change_21_30'])} | "
+          f"{r['base_wfh']:.3f} | {pct(r['change_11_13'])} | {pct(r['change_21_30'])} | {r['end_wtt_no_car']:.3f} | "
           f"{'all in band' if not flags else '; '.join(flags)} |")
     A("")
     A("Target status on the calibration seeds 1-3:")
@@ -1006,7 +1476,7 @@ def write_report(res: dict) -> None:
     for k, t in tst.items():
         rounded_ok = band_excess(k, round(t["mean"], 2)) == 0.0
         state = ("in band" if t["mean_in_band"] else
-                 "in band at the stated precision, above the bound unrounded" if rounded_ok else "OUT of band")
+                 "in band at the stated precision, outside the bound unrounded" if rounded_ok else "OUT of band")
         A(f"- `{k}`: mean {t['mean']:.3f} ({state}); seeds in band "
           f"{sum(t['seeds_in_band'])}/3, within tolerance {sum(t['seeds_within_tolerance'])}/3.")
     A("")
@@ -1016,7 +1486,7 @@ def write_report(res: dict) -> None:
         A("")
         A(oos["note"] + " Seeds 4-5 come from the final stage; seeds 6-12 were never run before the selection.")
         A("")
-        A("| Seed | capacity scale | base car | base PT | base WFH | base SKIP | d11-13 | d21-30 | outside band / tolerance |")
+        A("| Seed | capacity scale | base car | base PT | base WFH | d11-13 | d21-30 | no car d21-30 | outside band / tolerance |")
         A("|---|---|---|---|---|---|---|---|---|")
         for r in oos["chosen"]["per_seed"]:
             flags = []
@@ -1025,23 +1495,24 @@ def write_report(res: dict) -> None:
                     continue
                 flags.append(f"{k} {'within tol.' if band_excess(k, r[k], SEED_TOL[k]) == 0 else 'OUT of tol.'}")
             A(f"| {r['seed']} | {r['capacity_scale']:.4f} | {r['base_car']:.3f} | {r['base_pt']:.3f} | "
-              f"{r['base_wfh']:.3f} | {r['base_skip']:.3f} | {pct(r['change_11_13'])} | {pct(r['change_21_30'])} | "
+              f"{r['base_wfh']:.3f} | {pct(r['change_11_13'])} | {pct(r['change_21_30'])} | {r['end_wtt_no_car']:.3f} | "
               f"{'all in band' if not flags else '; '.join(flags)} |")
         A("")
-        A("| Point | seeds | base car | base PT | base SKIP | d11-13 | d21-30 |")
+        A("| Point | seeds | base car | base PT | base WFH | d11-13 | d21-30 |")
         A("|---|---|---|---|---|---|---|")
         cm = res["chosen"]["mean"]
-        A(f"| chosen PAP {ch['pap']:g} / k_WFH {ch['wfh']:g} | 1-3 (calibration) | {cm['base_car']:.3f} | "
-          f"{cm['base_pt']:.3f} | {cm['base_skip']:.3f} | {pct(cm['change_11_13'])} | {pct(cm['change_21_30'])} |")
+        nm = f"PAP {ch['pap']:g} / k_WFH {ch['wfh']:g} / beta0 {ch['beta0']:g}"
+        A(f"| chosen {nm} | 1-3 (calibration) | {cm['base_car']:.3f} | {cm['base_pt']:.3f} | {cm['base_wfh']:.3f} | "
+          f"{pct(cm['change_11_13'])} | {pct(cm['change_21_30'])} |")
         for lab, key in (("4-12", "mean_4_12"), ("6-12 (unseen)", "mean_6_12"), ("1-12", "mean_1_12")):
             m = oos["chosen"][key]
-            A(f"| chosen PAP {ch['pap']:g} / k_WFH {ch['wfh']:g} | {lab} | {m['base_car']:.3f} | {m['base_pt']:.3f} | "
-              f"{m['base_skip']:.3f} | {pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
+            A(f"| chosen {nm} | {lab} | {m['base_car']:.3f} | {m['base_pt']:.3f} | {m['base_wfh']:.3f} | "
+              f"{pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
         for alt in oos["alternatives"]:
             sc = alt["scalars"]
             for lab, m in (("1-3 (calibration)", alt["mean_1_3"]), ("4-12", alt["mean_4_12"])):
-                A(f"| PAP {sc['pap']:g} / k_WFH {sc['wfh']:g} | {lab} | {m['base_car']:.3f} | {m['base_pt']:.3f} | "
-                  f"{m['base_skip']:.3f} | {pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
+                A(f"| PAP {sc['pap']:g} / k_WFH {sc['wfh']:g} / beta0 {sc['beta0']:g} | {lab} | {m['base_car']:.3f} | "
+                  f"{m['base_pt']:.3f} | {m['base_wfh']:.3f} | {pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
         A("")
         m6, m12 = oos["chosen"]["mean_6_12"], oos["chosen"]["mean_1_12"]
         m4 = oos["chosen"]["mean_4_12"]
@@ -1052,15 +1523,15 @@ def write_report(res: dict) -> None:
         A(f"Out of sample the response is {pct(m6['change_21_30'])} on unseen seeds 6-12 "
           f"({inb('change_21_30', m6['change_21_30'])}; {pct(m12['change_21_30'])} over seeds 1-12), with an overshoot "
           f"of {pct(m6['change_11_13'])} ({inb('change_11_13', m6['change_11_13'])}; {pct(m12['change_11_13'])} over "
-          f"seeds 1-12). Over seeds 1-12 base car is {m12['base_car']:.3f} ({inb('base_car', m12['base_car'])}), base "
-          f"PT {m12['base_pt']:.3f} ({inb('base_pt', m12['base_pt'])}) and base SKIP {m12['base_skip']:.3f} "
-          f"({inb('base_skip', m12['base_skip'])}), all at the stated precision. On the unseen seeds 6-12 alone base "
-          f"car is {m6['base_car']:.3f} ({inb('base_car', m6['base_car'])}), base PT {m6['base_pt']:.3f} "
-          f"({inb('base_pt', m6['base_pt'])}) and base SKIP {m6['base_skip']:.3f} ({inb('base_skip', m6['base_skip'])}). "
+          f"seeds 1-12). Over seeds 1-12 base car is {m12['base_car']:.3f} ({inb('base_car', m12['base_car'])}) and base "
+          f"PT {m12['base_pt']:.3f} ({inb('base_pt', m12['base_pt'])}), at the stated precision. On the unseen seeds "
+          f"6-12 alone base car is {m6['base_car']:.3f} ({inb('base_car', m6['base_car'])}) and base PT "
+          f"{m6['base_pt']:.3f} ({inb('base_pt', m6['base_pt'])}). "
           "Single seeds outside the stated tolerance: "
           + ("; ".join(out_tol) if out_tol else "none outside tolerance") + ". "
           + "The ridge alternatives ("
-          + ", ".join(f"PAP {x['scalars']['pap']:g} / k_WFH {x['scalars']['wfh']:g}" for x in oos["alternatives"])
+          + ", ".join(f"PAP {x['scalars']['pap']:g} / k_WFH {x['scalars']['wfh']:g} / beta0 {x['scalars']['beta0']:g}"
+                      for x in oos["alternatives"])
           + ") give on seeds 4-12 ("
           + ", ".join(f"{pct(x['mean_4_12']['change_21_30'])}, overshoot {pct(x['mean_4_12']['change_11_13'])}"
                       for x in oos["alternatives"])
@@ -1073,42 +1544,40 @@ def write_report(res: dict) -> None:
         A("")
         A(gs["note"])
         A("")
-        A("| Variant (at the chosen PAP and k_WFH) | feasible | base car | base PT | base WFH | base SKIP (per seed) | "
-          "SKIP d21-30 | early start d6-10 | early start d21-30 | d11-13 | d21-30 | 08:00-09:00 crossings |")
-        A("|---|---|---|---|---|---|---|---|---|---|---|---|")
+        A("| Variant (at the chosen PAP, k_WFH and beta0) | feasible | base car | base PT | base WFH | no car d21-30 | "
+          "early start d6-10 | early start d21-30 | d11-13 | d21-30 | 08:00-09:00 crossings |")
+        A("|---|---|---|---|---|---|---|---|---|---|---|")
         cm0 = res["chosen"]["mean"]
         A(f"| chosen point, no change | {'yes' if res['chosen'].get('feasible') else 'no'} | {cm0['base_car']:.3f} | "
-          f"{cm0['base_pt']:.3f} | {cm0['base_wfh']:.3f} | {cm0['base_skip']:.3f} "
-          f"({', '.join(format(r['base_skip'], '.3f') for r in res['chosen']['per_seed'])}) | {cm0['end_skip']:.3f} | "
+          f"{cm0['base_pt']:.3f} | {cm0['base_wfh']:.3f} | {cm0['end_wtt_no_car']:.3f} | "
           f"{cm0['base_early']:.3f} | {cm0['end_early']:.3f} | {pct(cm0['change_11_13'])} | {pct(cm0['change_21_30'])} | "
           f"{pct(cm0['peak_cross_change'])} |")
         for v in gs["variants"]:
             m = v["mean"]
             A(f"| {v['what']} | {'yes' if v['feasible'] else 'no'} | {m['base_car']:.3f} | {m['base_pt']:.3f} | "
-              f"{m['base_wfh']:.3f} | {m['base_skip']:.3f} ({', '.join(format(r['base_skip'], '.3f') for r in v['per_seed'])}) | "
-              f"{m['end_skip']:.3f} | {m['base_early']:.3f} | {m['end_early']:.3f} | "
+              f"{m['base_wfh']:.3f} | {m['end_wtt_no_car']:.3f} | {m['base_early']:.3f} | {m['end_early']:.3f} | "
               f"{pct(m['change_11_13'])} | {pct(m['change_21_30'])} | {pct(m['peak_cross_change'])} |")
         A("")
         if gs.get("research"):
-            A("Local re-search under each changed assumption (PAP 17 to 24, k_WFH 7 to 11, seeds 1-3, same rule; optional stage `gap`; "
-              "logged as `gap_sensitivity.research`, never adopted):")
+            gg = gs["research"][0]["grid"]
+            A(f"Local re-search under each changed assumption (PAP {gg['pap'][0]:g} to {gg['pap'][-1]:g}, k_WFH "
+              f"{gg['wfh'][0]:g} to {gg['wfh'][-1]:g}, beta0 as in the variant or the chosen value, seeds 1-3, same "
+              "rule; optional stage `gap`; logged as `gap_sensitivity.research`, never adopted):")
             A("")
-            A("| Changed assumption | feasible points | the rule would choose | base car | base PT | base SKIP (per seed) | d11-13 | d21-30 |")
-            A("|---|---|---|---|---|---|---|---|")
+            A("| Changed assumption | feasible points | the rule would choose | base car | base PT | d11-13 | d21-30 |")
+            A("|---|---|---|---|---|---|---|")
             for v in gs["research"]:
                 w = v["would_choose"]
                 m = w["mean"]
                 A(f"| {v['what']} | {v['n_feasible']} of {v['n_points']} | PAP {w['scalars']['pap']:g} / k_WFH "
                   f"{w['scalars']['wfh']:g} ({'feasible' if w['feasible'] else 'not feasible, lowest loss'}) | "
-                  f"{m['base_car']:.3f} | {m['base_pt']:.3f} | {m['base_skip']:.3f} "
-                  f"({', '.join(format(r['base_skip'], '.3f') for r in w['per_seed'])}) | {pct(m['change_11_13'])} | "
-                  f"{pct(m['change_21_30'])} |")
+                  f"{m['base_car']:.3f} | {m['base_pt']:.3f} | {pct(m['change_11_13'])} | {pct(m['change_21_30'])} |")
             A("")
         A(gs["reading"])
         A("")
-    A(f"![mode shares]({Path(res['figures']['mode_shares']).relative_to('docs')})")
+    A(f"![mode shares]({Path(res['figures']['mode_shares']).relative_to('docs').as_posix()})")
     A("")
-    A(f"![crossing change]({Path(res['figures']['crossing_change']).relative_to('docs')})")
+    A(f"![crossing change]({Path(res['figures']['crossing_change']).relative_to('docs').as_posix()})")
     A("")
     A("## Retiming")
     A("")
@@ -1147,7 +1616,7 @@ def write_report(res: dict) -> None:
       + "; ".join(f"F{r['level']} {r['retimed']:.2f} [{r['ci_lo']:.2f}, {r['ci_hi']:.2f}] n={r['n']}" for r in pr["by_F"])
       + ".")
     A("")
-    A(f"![crossing times]({Path(res['figures']['crossing_times']).relative_to('docs')})")
+    A(f"![crossing times]({Path(res['figures']['crossing_times']).relative_to('docs').as_posix()})")
     A("")
     A("## Trait monotonicity")
     A("")
@@ -1205,11 +1674,21 @@ def write_report(res: dict) -> None:
               f"{f['end_wfh_minus_nofee']:+.3f} | {', '.join(f'{x:.3f}' for x in f['end_wfh_per_seed'])} | "
               f"{f['retimed_keepers']:.3f} | {f['retimed_keepers_nofee']:.3f} |")
         A("")
-        A("The F response gradient comes mainly from F = 4-5 hybrid workers switching to daily WFH, which is "
-          "unbounded without v3's WFH quota; PT gains barely vary with F. Retiming of car keepers against the "
-          "no-charge run is flat across F (the paired departure change rises with F, "
-          f"{res['retiming_paired']['by_F'][0]['retimed']:.2f} to {res['retiming_paired']['by_F'][-1]['retimed']:.2f}, "
-          "but retiming in the no-charge run rises with F too). The F response gradient is therefore not evidence for the 'high F retimes more' target.")
+        fd = oos["F_decomposition"]
+        rk = [f["retimed_keepers"] - f["retimed_keepers_nofee"] for f in fd]
+        rk_words = ("flat across F" if max(rk) - min(rk) < 0.05 else
+                    "larger at higher F" + ("" if bool(np.all(np.diff(rk) >= 0)) else ", though not monotone"))
+        pb = res["retiming_paired"]["by_F"]
+        A(f"Between F = 1 and F = 5 the charge's effect on the car share (charge minus no-charge run) goes from "
+          f"{fd[0]['end_car_minus_nofee']:+.3f} to {fd[-1]['end_car_minus_nofee']:+.3f} and on the WFH share from "
+          f"{fd[0]['end_wfh_minus_nofee']:+.3f} to {fd[-1]['end_wfh_minus_nofee']:+.3f}, while the PT gain stays between "
+          f"{min(f['end_pt_minus_nofee'] for f in fd):+.3f} and {max(f['end_pt_minus_nofee'] for f in fd):+.3f}: the F "
+          "response gradient comes mainly from F = 4-5 hybrid workers switching to daily WFH, which is unbounded "
+          "without v3's WFH quota. It is a mode effect and is no evidence on retiming, which moves a crossing in time "
+          "rather than removing it. Retiming is checked separately: against the no-charge run, retiming of car keepers "
+          "changes by " + ", ".join(f"{x:+.3f}" for x in rk) + f" at F = 1-5 ({rk_words}); the paired departure "
+          f"change goes from {pb[0]['retimed']:.2f} at F = 1 to {pb[-1]['retimed']:.2f} at F = 5, and retiming in the "
+          "no-charge run itself is " + ", ".join(f"{f['retimed_keepers_nofee']:.3f}" for f in fd) + ".")
         A("")
     A("## Limits")
     A("")
@@ -1223,92 +1702,127 @@ def write_report(res: dict) -> None:
 # ----------------------------------------------------------------------------- main
 
 
+# Hand-written prose: every number below is taken from data/behaviour_calibration.json of the three-scalar search of
+# 2026-10-09 (SKIP removed, willingness to travel added, 950 agents, congested roads with the motorway breakdown rule,
+# capacity calibrated to the peak queue + road delay), except the single-agent counts, which come from
+# tests/test_rules.py. Rewrite it after every new search.
 LIMITS = [
     "The targets are stated assumptions, and the response anchors are not like-for-like: Stockholm and Gothenburg "
     "measured total cordon traffic in charged hours over months to years, while the band here applies to AM car "
     "commuters over days 21-30. v3 10.5 asks for a qualitative comparison only; the private-car commuter response "
     "is likely larger than the total-traffic one.",
-    "Six of 405 grid points are feasible, and the rule picks PAP 20 / k_WFH 10, the feasible point nearest the "
-    "anchors, the same values as before the SKIP cost and the early start changed. Feasibility is judged at the "
-    "precision the targets are stated in. Unrounded, the 3-seed mean PT share is 0.154 (0.0036 above the 0.15 "
-    "bound; 0.15 at two decimals), and no grid point is feasible on unrounded means. Three single-seed values lie "
-    "outside their band but inside the stated tolerance: base car 0.866 on seed 1 (0.016 above 0.85) and base PT "
-    "0.155 and 0.175 on seeds 2 and 3 (0.005 and 0.025 above 0.15). Every other value is in band (days 21-30: "
-    "-15.2%, -17.8%, -15.0%; days 11-13: -23.8%, -28.0%, -23.8%; SKIP 0.001, 0.001, 0.006). The targets were not "
-    "relaxed.",
-    "The response sits in the weaker half of the band: -16.0% on seeds 1-3 against a centre of -20%, and -15.0% on "
-    "unseen seeds 6-12 (single seeds -12.0% to -18.3%; seed 6 is at the edge of the band). The lowest-loss point "
-    "(PAP 21 / k_WFH 8: -19.2%, overshoot -27.8%) is also feasible, but the rule ranks distance to the anchors "
-    "before the loss. Out of sample nothing is outside the stated tolerance. Base PT is above 0.15 on held-out "
-    "seed 5 and unseen seeds 7, 8 and 11 (0.165 to 0.195) and base car above 0.85 on seeds 6 and 10 (0.883, 0.853), "
-    "all within tolerance; over seeds 1-12 base PT is 0.155 (0.15 at the stated precision).",
-    "Postponing is rare again. With the SKIP cost at NZ$30 plus one hour of VoT the SKIP share is 0.003 before the "
-    "charge and 0.010 on days 21-30 (seeds 1-3: 0.002, 0.007, 0.020; unseen seeds 6-12: 0.014). The sensitivity "
-    "runs show that this comes from the SKIP cost and not from the early start: without the early-start option "
-    "the SKIP share is the same (0.004 and 0.010), and with the SKIP cost back at NZ$25 it is 0.022 before the "
-    "charge and 0.047 after, even with the early start available.",
-    "The early start is used mainly to avoid the queue, not the charge. About 47% of commuters may start early. "
-    "6.1% of all commuters do so on days 6-10 (7.3% of car users), when the peak queue delay is about 15 minutes. "
-    "Under the charge the share is 6.4% on days 11-13 and falls to 4.2% on days 21-30 (6.1% in the no-charge run), "
-    "because the queues almost disappear (peak delay about 3 minutes) and the remaining saving of about NZ$2 in "
-    "charge (NZ$4 before 07:30 against NZ$6 from 08:00 to 09:00, plus the loss term) is smaller than the assumed "
-    "inconvenience of NZ$3 x phi(F). Only seed 3 shows a small rise (0.049 to 0.054). The result depends on that "
-    "assumed cost: at NZ$1.5 x phi(F) the share rises under the charge (0.100 to 0.115) and the 08:00 to 09:00 "
-    "crossings fall by 33%; at NZ$6 x phi(F) almost nobody starts early (0.016, then 0.006). The cost and the "
-    "permission probabilities are assumptions with no empirical source.",
-    "Peak spreading is present but uneven across seeds. Car crossings in the 08:00 to 09:00 peak (NZ$6) fall by "
-    "18.6% from days 6-10 to days 21-30 against 16.0% over the whole morning (seeds 1-3: 13.7%, 16.8%, 25.4% "
-    "against 15.2%, 17.8%, 15.0%), and by 24.8% against 15.0% on unseen seeds 6-12 (23.9% against 15.6% over "
-    "seeds 1-12). Crossings before 07:30 fall by 11.2% on seeds 1-3 and by 2.2% over seeds 1-12, and those after "
-    "09:30 rise by about a quarter. Against the no-charge run the 08:00 to 09:00 share of crossings falls only in "
-    "seed 3 (-0.069; +0.007 and +0.013 in seeds 1 and 2). In the paired check 43.8% of commuters who drive in both "
-    "runs have a different modal departure with the charge, 15.1% earlier and 28.7% later (mean shift +4 minutes): "
-    "most of the change is later departures enabled by the congestion relief, not earlier ones.",
-    "Day-to-day churn in the daily rule arm is large: 32% of commuters have a different modal car departure on "
-    "days 26-30 than on days 6-10 with the charge, and 37% without it. A before-and-after count of retimers "
+    "Behaviour is calibrated at the NZ$6 peak of the SSC2026 schedule only. Runs at other peaks (fees.peak_fee 0, 3, "
+    "12, 18, 30) extrapolate the fitted model, and the willingness to travel makes the extrapolation steep by "
+    "construction: the share willing to pay falls as exp(-beta F / VoT), so a higher peak removes the car for more "
+    "commuters whatever the rest of the cost model says.",
+    "15 of 489 points are feasible, all at PAP 22, on a ridge in k_WFH and beta0: k_WFH 10 with beta0 0.05, 11 with "
+    "0.05-0.1, 12 with 0.05-0.15, 13 with 0.05-0.2 and 14 with 0.05-0.25. At the stated precision base PT is 0.16 at "
+    "PAP 21 for every k_WFH; base car is 0.86 or more at PAP 22 from k_WFH 15, at PAP 23 from k_WFH 7 and at PAP 24 "
+    "from k_WFH 6, and the lower k_WFH that keep the base shares in band at PAP 23-24 respond by -27.7% or more on "
+    "days 21-30 even without the willingness to travel. The rule picks PAP 22 / k_WFH 12 / beta0 0.15, the feasible point nearest "
+    "the anchors. The next ones are k_WFH 13 / beta0 0.2 (anchor distance 3.813 against 3.802), k_WFH 11 / beta0 0.1 "
+    "(3.843) and k_WFH 14 / beta0 0.25 (3.875): the targets fix the ridge and the anchors choose the point on it. The "
+    "lowest-loss point is k_WFH 10 / beta0 0.05 (loss 2.03 against 2.18). On unrounded 3-seed means no point is "
+    "feasible, because base car is 0.853-0.855 at every feasible point. On the calibration seeds base car is above 0.85 "
+    "on seeds 1 and 2 (0.853, 0.859) and the days 21-30 response is beyond -22% on seed 2 (-23.1%), all within the "
+    "stated tolerance. The targets were not relaxed.",
+    "The response is close to the centre of the band: -21.4% on seeds 1-3 (-20.9%, -23.1%, -20.4%), -21.1% on unseen "
+    "seeds 6-12 (single seeds -19.2% to -23.1%) and -21.3% over seeds 1-12, with an overshoot of -25.2%, -25.4% and "
+    "-25.3%. Base car runs high out of sample: 0.863 on the unseen seeds 6-12 and 0.859 over seeds 1-12, both above "
+    "the band at the stated precision. It is above 0.85 on held-out seed 4 and on every unseen seed except 11 (0.859 "
+    "to 0.875), all within the tolerance; base PT is 0.136 and 0.140, above 0.15 only on seeds 5 and 11 (0.153, "
+    "0.151). The chosen point sits at the top of the base car band because base car rises as k_WFH removes the last "
+    "WFH days (0.849 at k_WFH 9, 0.854 at 12), and the 0.2% who skipped before the charge now choose among car, PT "
+    "and WFH.",
+    "The willingness to travel does much of the work. At the chosen point 14.2% of commuters have a WTP below the NZ$6 "
+    "peak (exempt company cars and trades included); on charged days 8.3% have no car option left, the same share on "
+    "days 11-13 and 21-30 because the threshold is fixed, 11.6% have at least one car option removed, and 5.6% of "
+    "all commuters are left with PT only (decider 'forced'). Without it (beta0 = 0, same PAP and k_WFH) the days "
+    "21-30 response is -14.5% and the overshoot -18.7%; with SSC2026's beta0 0.5 they are -32.3% and -35.5%, and "
+    "21.9% of commuters have no car option. Because beta is clipped below at 0.1, any positive beta0 removes some "
+    "car options: beta0 0.05 already leaves 4.3% of commuters without a car and strengthens the response by 3.7 pp "
+    "(-14.5% to -18.2% at k_WFH 12). The limit cannot be made weaker than that floor except by switching it off. "
+    "VoT_ref from the simulated commuters' median VoT instead of exp(vot_mu) leaves the response practically "
+    "unchanged (-21.4%).",
+    "With the charge more commuters start early. About 48% may start early; 7.6% of all commuters do so on days 6-10 "
+    "(8.8% of car users), 9.4% on days 11-13 and 9.5% on days 21-30, against 6.9% in the no-charge run; as a share of "
+    "the fewer remaining car users it is 14.1%. The money saved by crossing early (NZ$4 before 07:30 against NZ$6 "
+    "from 08:00 to 09:00, plus the loss term, and for some commuters the only charge they are willing to pay) is "
+    "weighed against the assumed inconvenience of NZ$3 x phi(F), and the result depends on that assumed cost: at "
+    "NZ$1.5 x phi(F) the share is 14.0% before and 17.0% after the charge and the 08:00 to 09:00 crossings fall by "
+    "46.3%; at NZ$6 x phi(F) almost nobody starts early (0.018, then 0.014). Without the early start the days 21-30 "
+    "response is -22.8% and seed 2 reaches -24.3%, beyond the tolerance. The cost and the permission probabilities "
+    "are assumptions with no empirical source.",
+    "Peak spreading is clear in every seed. Car crossings in the 08:00 to 09:00 peak (NZ$6) fall by 42.2% from days "
+    "6-10 to days 21-30 against 21.4% over the whole morning (seeds 1-3: 44.1%, 39.9%, 42.5% against 20.9%, 23.1%, "
+    "20.4%), and by 43.4% on unseen seeds 6-12 (43.0% over seeds 1-12). Crossings before 07:30 rise by 14.0% on "
+    "seeds 1-3 (+18.4%, +5.2%, +18.3%) and by 13.5% over seeds 1-12. Against the no-charge run the 08:00 to 09:00 "
+    "share of crossings falls in every seed (-0.129, -0.098, -0.132) and the 07:00 to 08:00 share rises (+0.065, "
+    "+0.051, +0.081). In the paired check 32.8% of commuters who drive in both runs have a different modal departure "
+    "with the charge, 20.9% earlier and 11.8% later (mean shift -9.8 minutes).",
+    "Day-to-day churn in the daily rule arm is large: 25% of commuters have a different modal car departure on "
+    "days 26-30 than on days 6-10 with the charge, and 23% without it. A before-and-after count of retimers "
     "therefore says little, and retiming is reported against the no-charge run.",
     "PAP is a fitted residual. With parking and fuel fixed, PAP is the only scalar that can hold the assumed "
-    "pre-charge split, and it stays at 20 (v3 PAP 20-40 in v3's form, against v3's NZ$8 swept 4-12). At PAP 20 "
-    "commuters with P = 1-2 never ride PT (PT share 0.000 in the population manipulation), so PT use is confined "
-    "to P = 3-5. The baseline shares react sharply to PAP (base PT 0.170 at PAP 19, 0.154 at 20, 0.146 at 21, "
-    "k_WFH 10), while the response depends on it less (-16.8% to -14.0% for PAP 19-22).",
-    "k_WFH is identified by the response and overshoot, not by the WFH share: at PAP 20 the days 21-30 response is "
-    "-19.7% at k_WFH 8, -16.0% at 10 and -12.7% at 12, and the overshoot -30.4%, -25.2% and -22.0%, while base WFH "
-    "stays at 0.00. A realistic hybrid-work baseline is not reproduced: k_WFH 4 gives about 4% WFH before the "
-    "charge but a response of -32.4%. v3's WFH quota (1-3 days per 5-day block) would bound this margin; it is not "
-    "implemented.",
+    "pre-charge split, and the willingness to travel does not move that split; it is 22 again (v3 PAP 22-44 in v3's "
+    "form, against v3's NZ$8 swept 4-12). At PAP 22 commuters with P = 1-2 practically never ride PT before the charge "
+    "(PT share 0.002 and 0.003 in the population manipulation); after it 5.6% and 5.8% do (+0.055 and +0.058 "
+    "against the no-charge run; 0.000 in the two-scalar search without the willingness to travel). "
+    "The baseline shares react sharply to PAP (at k_WFH 12: base PT 0.160, 0.145, 0.128 and 0.116 at PAP 21-24), the "
+    "response much less (-21.4%, -20.9% and -20.0% at PAP 22-24 with beta0 0.15).",
+    "k_WFH and beta0 are identified together, by the response and the overshoot, not by the WFH share (base WFH 0.001 "
+    "at k_WFH 12). At PAP 22 and beta0 0.15 the days 21-30 response is -24.3%, -22.4%, -21.4%, -20.0% and -19.4% at "
+    "k_WFH 10-14 (overshoot -28.5% to -23.1%); at k_WFH 12 it is -14.5%, -18.2%, -19.5%, -21.4%, -22.9%, -24.2%, "
+    "-26.4% and -32.3% at beta0 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 and 0.5. Along the ridge one NZ$ of k_WFH offsets "
+    "about 0.05 of beta0. A realistic hybrid-work baseline is not reproduced: k_WFH 4 gives 7.4% WFH before the "
+    "charge but a response of -36.5% at beta0 0.15. With k_WFH 12 WFH is a small margin (0.1% before the charge, 4.2% "
+    "on days 21-30). v3's WFH quota (1-3 days per 5-day block) would bound it; it is not implemented.",
     "The fixed inputs carry their own uncertainty. The petrol price (NZ$3.30/L) is author-supplied for October 2026 "
     "and was not verified here; the last published figure we read was NZ$2.97/L for September 2026. Consumption is "
     "9.0 L/100 km for every paying driver; electric vehicles, fuel cards and other running costs are not "
     "represented. Paid parking NZ$17 is a 2014 casual all-day rate, applied to half of office commuters (the other "
-    "half park free). The SKIP cost (NZ$30), the early start time (07:00), its cost (NZ$3 x phi(F)) and the "
-    "permission probabilities (0.8, 0.5, 0, 0.5, 0) are author assumptions. Base years are mixed (2026 fuel, 2025 "
-    "fare and charge, 2014 parking).",
-    "The v3-valued model (PAP 8, k_WFH 8) with the fixed parking and fuel has base car 0.575 and PT 0.421, far "
-    "outside the baseline bands, and responds by -25.5% (overshoot -38.4%). Without fuel and with v3's NZ$8 parking "
-    "it gave -15.4% (overshoot -25.0%). The scalars were moved to meet the assumed baseline.",
-    "The choice does not depend on the soft overshoot bound (the same point is chosen for bounds of -30% to -33%). "
-    "It does depend on the anchors: the neighbours PAP 20 / k_WFH 8 and 9, which miss feasibility on the rounded PT "
-    "share (0.157) and, for k_WFH 8, on the seed-2 overshoot (-34.0%), give -19.9% and -17.0% on seeds 4-12, "
-    "against -15.4% for the chosen point.",
-    "Capacity is a further calibrated quantity, recalibrated per point and seed; its discrete jumps add noise of a "
-    "few points to the base shares (seeds 2 to 4 share the scale 0.3961).",
-    "Single-agent example (tests/test_rules.py): for the shared Layer A with paid parking NZ$17 and the fuel cost "
-    "of a 20 km path, 250 of the 625 trait combinations ride PT before the charge. Of the other 375, without the "
-    "early-start permission 276 keep the car at the usual time on the charge morning, 93 switch to PT, 4 retime "
-    "by 15 minutes (H = 1) and 2 postpone. With the permission 260 keep, 93 switch to PT, 20 leave at 06:30 for "
-    "the 07:00 start and 2 postpone. The v3 worked example (identical A: pay / PT / retime) still separates only "
-    "with the v3 settings or with free parking.",
-    "H damps the charge wake only at level 5 (days 11-13: -26.4%, -27.4%, -28.8%, -25.6% at H = 1-4, -19.3% at "
-    "H = 5), and not in the long run (-14.7% to -16.5%): habit re-forms on the new mode immediately.",
-    "The charge-induced switch to PT is largest at P = 3 (+0.139 against the no-charge run; +0.101 and +0.099 at "
-    "P = 4-5, 0 at P = 1-2): at P = 4-5 most agents for whom PT is viable already ride PT before the charge "
-    "(ceiling). The PT share after the charge rises with P (0.00, 0.00, 0.25, 0.46, 0.55).",
-    "The F response gradient (-11.2% at F = 1 to -33.7% at F = 5) still comes mainly from daily WFH of F = 4-5 "
-    "hybrid workers (no quota; WFH share about 0.20 at F = 5). With the early start the 08:00 to 09:00 share of "
-    "crossings now falls with F against the no-charge run (+0.050 at F = 1 to -0.148 at F = 5), partly because "
-    "phi(F) scales the cost of the early day, but retiming of car keepers against the no-charge run stays small "
-    "(-0.05 to +0.05).",
+    "half park free). The early start time (07:00), its cost (NZ$3 x phi(F)) and the permission probabilities (0.8, "
+    "0.5, 0, 0.5, 0) are author assumptions, and so is the form of the willingness to travel: a threshold fixed per "
+    "commuter (SSC2026 draws entry every day), beta clipped to 0.1-2.0, VoT_ref the median of the VoT distribution, "
+    "no base trip rate and no 0.05-0.95 clip. Base years are mixed (2026 fuel, 2025 fare and charge, 2014 parking). "
+    "The road layer is fixed as well and is not searched: section capacity k = 0.076999 x directional ADT, BPR alpha "
+    "0.15 and beta 4 with a speed floor of 0.18, and the motorway breakdown rule (breakdown at V/C 1.0, recovery below "
+    "0.95, discharge capacity 10% lower, speed at most 0.45 of free flow).",
+    "The design-valued model (PAP 8, k_WFH 8, beta0 0.5) with the fixed parking and fuel has base car 0.556 and PT "
+    "0.441, far outside the baseline bands, and responds by -40.0% (overshoot -45.2%). Without fuel, with v3's NZ$8 "
+    "parking and without the willingness to travel (300 agents, free-flow roads) the v3-valued model gave -15.4% "
+    "(overshoot -25.0%). The scalars were moved to meet the assumed baseline.",
+    "The choice does not depend on the soft overshoot bound (the same 15 points are feasible, and the same point is "
+    "chosen, for bounds of -30% to -33%), but where it lies on the ridge depends on the anchors (see above). No "
+    "other point becomes feasible with the relaxed bound, so the two ridge alternatives checked out of sample are "
+    "the points nearest the anchors among the ten lowest-loss other points, PAP 22 / k_WFH 11 / beta0 0.1 and PAP "
+    "22 / k_WFH 10 / beta0 0.05. On seeds 4-12 they give -20.7% and -21.0% (base car 0.860 and 0.858), against "
+    "-21.2% (base car 0.861) for the chosen point: out of sample the ridge points are hard to tell apart.",
+    "Capacity is a further calibrated quantity, recalibrated per (PAP, k_WFH) pair and seed against the peak queue + "
+    "road delay; it does not depend on beta0. Its discrete steps add noise to the base shares: at the chosen point "
+    "the scale is 0.4303 on seed 1 and 0.3961 on seeds 2-3 (0.3961 on all three at k_WFH 9), and 0.3646 to 0.4303 on "
+    "seeds 4-12. The gate queue is the smaller part of the 15-minute target: at the chosen point (seeds 1-3, days "
+    "6-10) the car-weighted peak 15-min queue + road delay is 14.9 minutes, the peak of the queue delay alone 4.6 "
+    "minutes and the mean road delay of a car 7.3 minutes. On days 21-30 the charge brings the peak queue delay down "
+    "to 1.2 minutes, the peak queue + road delay to 9.8 minutes and the mean road delay to 5.9 minutes.",
+    "Single-agent example (tests/test_rules.py; no willingness-to-pay limit in the example): for the shared Layer A "
+    "with paid parking NZ$17 and the fuel cost of a 20 km path, 250 of the 625 trait combinations ride PT before the "
+    "charge. Of the other 375, without the early-start permission 317 keep the car at the usual time on the charge "
+    "morning, 54 switch to PT and 4 retime by 15 minutes (H = 1); the two that postponed the day until SKIP was "
+    "removed now keep driving. With the permission 300 keep, 53 switch to PT and 22 leave at 06:30 for the 07:00 "
+    "start. The v3 worked example (identical A: pay / PT / retime) still separates only with the v3 settings or with "
+    "free parking.",
+    "H damps the charge wake only at levels 4-5 (days 11-13: -26.5%, -27.4%, -27.0% at H = 1-3, -25.2% and -23.0% "
+    "at H = 4-5), and not in the long run (-20.0% to -21.6%): habit re-forms on the new mode immediately.",
+    "The charge-induced switch to PT is largest at P = 3 (+0.197 against the no-charge run; +0.156 and +0.142 at "
+    "P = 4-5, +0.055 and +0.058 at P = 1-2): at P = 4-5 many PT-feasible agents already ride PT without the charge "
+    "(0.40 and 0.58 of them at days 26-30 in the no-charge run, who-adapts tables). The PT share after the charge rises "
+    "with P (0.06, 0.06, 0.27, 0.50, 0.60).",
+    "The F response gradient (-17.8% at F = 1 to -33.9% at F = 5) still comes mainly from daily WFH of F = 4-5 hybrid "
+    "workers (no quota; WFH share 0.17 at F = 5 on days 21-30 with the charge). The 08:00 to 09:00 share of crossings "
+    "falls with F against the no-charge run (+0.010 at F = 1 to -0.218 at F = 5), partly because phi(F) scales the "
+    "cost of the early day, and retiming of car keepers against the no-charge run is larger at F = 3-5 (+0.120, "
+    "+0.158, +0.133) than at F = 1-2 (-0.010, +0.066).",
     "Who-adapts tables conditional on being a day-10 driver are biased by selection; the population manipulation "
     "is the unbiased check.",
     "The reference fee follows the fee faced, but on car days it uses the fee actually paid (after retiming; v3 uses "
@@ -1318,27 +1832,30 @@ LIMITS = [
     "and is kept for the outcome: a commuter who planned the 07:00 start and is held up counts as late for 07:00 "
     "(and can be woken by T3), not as early for the usual start. For an agent on a standing plan the start is "
     "re-read from that morning's expected arrival.",
-    "Clock arms keep more of the day-11 response than R-daily (R-clock -19.5%, -22.5%, -20.8% against -15.2%, "
-    "-17.8%, -15.0%, seeds 1-3). With few postponed trips the event-only clock makes only 12 to 123 decisions "
-    "after day 12 outside the disruption days. The LLM deciders are not calibrated, but the shared Layer A inputs "
-    "(parking, fuel and the early-start permission) reach the LLM prompt. The rule's WFH earns no parking, fuel or "
+    "Only the R-daily arm is calibrated, and the clock arms are not run for this report. The LLM deciders are not "
+    "calibrated, but the shared Layer A inputs (parking, fuel, the early-start permission and the willingness to pay, "
+    "which removes the same car options in every arm) reach the LLM arms. The rule's WFH earns no parking, fuel or "
     "commute credit while the prompt states both daily costs, so live-LLM WFH shares are not comparable with the "
     "rule arm on this margin, and a live LLM is not told the rule's NZ$3 x phi(F) cost of the early day (it reads "
-    "the flexibility sentence instead). MockLLM re-weights the same GC parts and responds more strongly.",
+    "the flexibility sentence instead). MockLLM re-weights the same GC parts; its response at the chosen values is "
+    "not measured here.",
 ]
 
 
 GAP_READING = (
-    "The two decisions of 2026-10-05 do different jobs. The SKIP cost removes the postponed trips: with NZ$25 the "
-    "SKIP share is back at 0.022 before the charge (0.025 on seeds 2 and 3, above the bound) and 0.047 after it, "
-    "although the early start is available. The early start does not replace postponing in the rule; without it "
-    "the SKIP share is unchanged, base PT is 0.161 (above the band at the stated precision) and the 08:00 to 09:00 "
-    "crossings fall by 14.4%, slightly less than the whole morning (14.5%), against 18.6% with it. How much the "
-    "early start is used depends on its assumed cost: at NZ$1.5 x phi(F) one commuter in ten starts early before "
-    "the charge and more do so after it (0.100 to 0.115), and the peak crossings fall by a third; at NZ$6 x phi(F) "
-    "the option is almost unused. Giving the permission to every employee of the three eligible groups raises the "
-    "share to 0.084 before and 0.065 after the charge and stays feasible. None of the variants was searched or "
-    "adopted; 'feasible' is judged at the chosen PAP and k_WFH only.")
+    "The willingness to travel and the early start do different jobs. Without the willingness to travel (beta0 = 0) "
+    "the chosen PAP and k_WFH give -14.5% on days 21-30 (overshoot -18.7%), inside the band but well short of its "
+    "centre, and no commuter loses the car; with SSC2026's beta0 0.5 the response is -32.3% (overshoot -35.5%) and "
+    "21.9% of commuters have no car option, beyond the band on every seed. Taking VoT_ref from the simulated "
+    "commuters' median VoT instead of exp(vot_mu) leaves the response practically unchanged (-21.4%). The early start keeps the chosen "
+    "point feasible: without it the response is -22.8% and seed 2 reaches -24.3%, beyond the tolerance, and the "
+    "08:00 to 09:00 crossings fall by 38.7% against 42.2% with it. How much the early start is used depends on its "
+    "assumed cost: at NZ$1.5 x phi(F) 14.0% of commuters start early before the charge and 17.0% after it, and the "
+    "peak crossings fall by 46.3%; at NZ$6 x phi(F) the option is almost unused (0.018, then 0.014). Giving the "
+    "permission to every employee of the three eligible groups raises the share to 0.102 before and 0.124 after the "
+    "charge. These three variants raise base car to 0.856-0.858, above the band at the stated precision (and at "
+    "NZ$6 x phi(F) seed 2 responds by -24.6%, beyond the tolerance). None of the variants was searched or adopted; 'feasible' is judged at "
+    "the chosen PAP, k_WFH and beta0 only.")
 
 
 STRUCTURAL_FIXES_DOC = [
@@ -1366,11 +1883,24 @@ STRUCTURAL_FIXES_DOC = [
      "why": "[A, Verplanken et al. 2008]: habit discontinuity is a change of the performance context; a price "
             "change leaves route, time and cues intact, so kappa_H is no longer halved at the charge wake."},
     {"param": "costs.pt_attitude_penalty", "from": "0", "to": "PAP x omega(P), searched in 10-36",
-     "why": "[v3 6.2 PAP NZ$8, swept {4, 8, 12}, in v3's form omega(P) x PAP x HTA/2]; free scalar 1 of 2 (the other is k_WFH, searched in 2-16), entered in the "
+     "why": "[v3 6.2 PAP NZ$8, swept {4, 8, 12}, in v3's form omega(P) x PAP x HTA/2]; free scalar 1 of 3 (the others are "
+            "k_WFH, searched in 2-16, and wtt.beta0), entered in the "
             "specification form omega(P) x (VoT/60 x T_pt + PAP), so the value is not comparable with v3's."},
+    {"param": "SKIP option", "from": "SKIP (postpone or cancel the day) at NZ$25, later NZ$30, plus one hour of VoT",
+     "to": "removed: every commuter chooses among CAR (a departure time), PT and WFH where allowed",
+     "why": "[author decision 2026-10-09] SKIP had become a permanent choice rather than a one-day postponement (at a "
+            "NZ$30 peak 97 of R-clock's 102 skippers skipped all of days 21-30; at NZ$6, 8 commuters skipped every "
+            "day), and in the rule arms every skipper could have taken PT. The SKIP-share target goes with it."},
+    {"param": "wtt.beta0 (willingness to travel)", "from": "none (any charge could be paid)",
+     "to": "WTP = -ln(u) x VoT / beta, beta = clip(beta0 x VoT_ref / VoT, 0.1, 2.0), u ~ U(0,1) fixed per commuter; "
+           "a CAR option charged above WTP is not offered; beta0 searched (free scalar 3 of 3)",
+     "why": "[author decision 2026-10-09; SSC2026 akl_pricing.nls exponential decay, base_beta 0.5] The share willing "
+            "to pay a charge F falls as exp(-beta F / VoT). Company cars and commuters with neither PT nor WFH are "
+            "exempt. It applies in every arm as a choice-set constraint, and not on uncharged days."},
     {"param": "engine capacity", "from": "seed-1 scale used for every seed",
-     "to": "recalibrated per seed and per evaluated point; data/calibration.json holds by_seed records",
-     "why": "Pre-charge congestion feeds back on the response."},
+     "to": "recalibrated per seed and per evaluated (PAP, k_WFH) pair; data/calibration.json holds by_seed records",
+     "why": "Pre-charge congestion feeds back on the response. The calibration has no charge, so it does not depend "
+            "on beta0."},
 ]
 
 
@@ -1384,34 +1914,54 @@ def main(argv: list[str] | None = None) -> int:
     t0 = time.perf_counter()
     res: dict[str, Any] = json.loads(OUT_JSON.read_text()) if (args.stage in ("select", "final", "oos", "gap", "report")
                                                                and OUT_JSON.exists()) else {}
+    use_logged_n(res, args.stage)
 
     if args.stage in ("all", "search"):
         # append-only selection history: carry the archived history forward and record the selection
-        # that this search replaces
+        # that this search replaces. The note below describes the change of the search of 2026-10-09 (SKIP
+        # removed, willingness to travel added, beta0 searched as a third scalar); before the next search,
+        # archive the current log as LAST_JSON and rewrite the note for that search's change.
         prev = json.loads(LAST_JSON.read_text()) if LAST_JSON.exists() else {}
         history = list(prev.get("search", {}).get("selection_history", []))
-        if prev:
-            history.append({
-                "replaced_at": time.strftime("%Y-%m-%d %H:%M:%S"), "selection": prev["search"].get("selection"),
-                "anchors": prev["search"].get("anchors"), "chosen": prev.get("chosen", {}).get("label"),
-                "note": (f"{time.strftime('%Y-%m-%d')}: the authors raised the cost of postponing (costs.skip_cost) "
-                         "from NZ$25 to NZ$30 and added the early-start option (employer permission by archetype, "
-                         "07:00 start, NZ$3 x phi(F) a day); both are fixed assumptions and are not searched. The "
-                         "search was rerun over PAP and k_WFH on the same grid with the same targets, seeds, loss "
-                         f"and rule. This replaces the search with SKIP cost NZ$25 and no early start, which chose "
-                         f"{prev.get('chosen', {}).get('label')} (no feasible point, lowest loss); its full log is "
-                         "kept in data/behaviour_calibration_skip25_noearly.json and its report in "
-                         "docs/calibration_report_skip25_noearly.md.")})
         from cordonlite.config import load_config as _lc
+        from cordonlite.roads import road_settings
         fuel_km = float(_lc().costs.fuel_cost_per_km)
         _c = _lc()
+        if prev:
+            pch = prev.get("chosen", {})
+            p_how = ("the feasible point nearest the anchors" if pch.get("feasible")
+                     else "no feasible point, lowest loss")
+            arc = archive_paths(LAST_JSON)
+            history.append({
+                "replaced_at": time.strftime("%Y-%m-%d %H:%M:%S"), "selection": prev["search"].get("selection"),
+                "anchors": prev["search"].get("anchors"), "chosen": pch.get("label"),
+                "note": (f"{time.strftime('%Y-%m-%d')}: SKIP (postpone the day, NZ$"
+                         f"{float(prev.get('skip', {}).get('skip_cost', 30.0)):g} plus one hour of VoT) was removed "
+                         "from the model and the willingness to travel was added (config.toml [wtt]: a fixed most "
+                         "each commuter would pay to drive in, WTP = -ln(u) x VoT / beta, beta = clip(beta0 x VoT_ref "
+                         "/ VoT, 0.1, 2.0), after SSC2026's exponential decay; a car option charged above it is not "
+                         "offered) [author decisions 2026-10-09]. beta0 is searched as a third scalar next to PAP and "
+                         "k_WFH in a staged grid with the same targets (less the SKIP share), seeds, loss and rule; the "
+                         "anchors gain beta0 0.5 (SSC2026 base_beta). This replaces the two-scalar search with "
+                         f"{state_words(prev)} and SKIP, which chose {pch.get('label')} ({p_how}); its full log is kept "
+                         f"in {arc['log']}, its capacity calibration in {arc['capacity']} and its report in "
+                         f"{arc['report']}.")})
         res = {"early_start": {"early_start_min": int(_c.costs.early_start_min),
                                "early_shift_cost": float(_c.costs.early_shift_cost),
                                "early_shift_prob": list(_c.persona.early_shift_prob),
                                "anchor_offsets_min": list(_c.time.anchor_offsets_min),
                                "status": "fixed assumptions [A, author decision 2026-10-05]; not searched"},
-               "skip": {"skip_cost": float(_c.costs.skip_cost), "skip_vot_hours": float(_c.costs.skip_vot_hours),
-                        "status": "fixed assumption [A, author decision 2026-10-05; raised with the driving cost]; not searched"},
+               "skip_removed": {"date": "2026-10-09",
+                                "status": ("SKIP removed from the model [author decision 2026-10-09]; the archived "
+                                           "logs hold base_skip and end_skip"),
+                                "last_skip_cost": float(prev.get("skip", {}).get("skip_cost", 30.0)) if prev else None},
+               "wtt": {"beta_clip": [float(x) for x in _c.wtt.beta_clip], "vot_ref": _c.wtt.vot_ref,
+                       "vot_ref_value": round(math.exp(float(_c.persona.vot_mu)), 4),
+                       "peak_fee": float(_c.fees.peak_fee),
+                       "form": ("WTP = -ln(u) x VoT / beta, beta = clip(beta0 x VoT_ref / VoT, beta_clip), u ~ U(0,1) "
+                                "once per commuter (Layer A); a CAR option whose charge is above WTP is not offered; "
+                                "company cars and commuters with neither PT nor WFH are exempt"),
+                       "status": "beta0 searched; beta_clip [SSC] and vot_ref [A] fixed, not searched"},
                "fuel": {"fuel_cost_per_km": fuel_km, "status": "fixed input (config.toml: author-supplied petrol price, Oct 2026, x 9.0 L/100 km); not searched",
                         "form": "car fuel = round(2 x path_km x fuel_cost_per_km, 2); 0 for company cars; "
                                 "v3_relative WFH carries it like parking",
@@ -1423,45 +1973,127 @@ def main(argv: list[str] | None = None) -> int:
                "arm": "R-daily", "decider": "rule", "engine": "py",
                "before_overrides": BEFORE, "structural_overrides": STRUCTURAL,
                "structural_fixes": STRUCTURAL_FIXES_DOC, "grid": GRID, "v3_scalars": V3_SCALARS,
-               "capacity_procedure": ("nested: for every evaluated point and seed, cordonlite.run.calibrate "
-                                      "(default bracket and tolerance) is run with that point's behaviour "
-                                      "parameters, then the 30-day charged run uses the resulting scale")}
-        jobs = [{"label": "before", "overrides": BEFORE, "seed": s, "scale": "calibrate", "nofee": True}
-                for s in SEEDS]
-        jobs += [{"label": "structural", "overrides": point_overrides(**{"pap": 8.0, "park_paid": PARK_FIXED, "wfh": 8.0}),
-                  "seed": s, "scale": "calibrate"} for s in SEEDS]
-        pts = list(itertools.product(GRID["pap"], [PARK_FIXED], GRID["wfh"]))
-        jobs += [{"label": f"pap{p:g}_park{k:g}_wfh{w:g}", "overrides": point_overrides(p, k, w), "seed": s,
-                  "scale": "calibrate", "meta": {"scalars": {"pap": p, "park": k, "wfh": w}}}
-                 for (p, k, w) in pts for s in SEEDS]
-        print(f"search: {len(jobs)} evaluations on {args.workers} workers", flush=True)
-        rows = run_jobs(jobs, args.workers, "search")
-        res["before"] = {"per_seed": [r for r in rows if r["label"] == "before"]}
+               "capacity_procedure": ("nested: for every (PAP, k_WFH) pair and seed, cordonlite.run.calibrate "
+                                      "(default bracket and tolerance) is run with that pair's behaviour "
+                                      "parameters, then the 30-day charged runs of every beta0 of the pair use the "
+                                      "resulting scale (the calibration has no charge, so the willingness to pay "
+                                      "removes nothing and the scale does not depend on beta0); it "
+                                      f"targets the car-weighted peak 15-min "
+                                      f"{'queue + road' if _c.engine.calib_delay == 'total' else 'queue'} delay "
+                                      f"(engine.calib_delay = {_c.engine.calib_delay!r}) of "
+                                      f"{_c.engine.calib_target_peak_delay_min:g} min"),
+               "calib_delay": _c.engine.calib_delay,
+               "calib_target_peak_delay_min": float(_c.engine.calib_target_peak_delay_min),
+               "road": {**road_settings(_c),
+                        "status": "fixed inputs (config.toml [road], k from data/road_meta.json); not searched"}}
+        ck = Checkpoint()
+        stages: dict[str, Any] = {}
+
+        def run_stage(name: str, pairs: list[tuple[float, float]], betas: list[float], extra: list[dict] = ()) -> None:
+            """Calibrate the (PAP, k_WFH, seed) not yet calibrated (with the extra evaluations in the same pool),
+            then run every (pair, beta0, seed) not yet run."""
+            t_ = time.perf_counter()
+            todo = [(p, w, s) for (p, w) in pairs for s in SEEDS if cal_key(p, w, s) not in ck.cal]
+            jobs = [{"kind": "capacity", "key": cal_key(p, w, s), "overrides": point_overrides(p, PARK_FIXED, w, 0.0),
+                     "seed": s} for (p, w, s) in todo]
+            jobs = [j for j in extra if ck.row(j["label"], j["seed"]) is None] + jobs
+            print(f"{name}: {len(todo)} capacity calibrations (+{len(jobs) - len(todo)} other evaluations) on "
+                  f"{args.workers} workers", flush=True)
+            done = [0]
+
+            def keep(r: dict) -> None:   # into the checkpoint as results arrive; saved every 25
+                if "key" in r:
+                    ck.cal[r["key"]] = r["calibration"]
+                else:
+                    ck.add_row(r)
+                done[0] += 1
+                if done[0] % 25 == 0:
+                    ck.save()
+
+            if jobs:
+                run_jobs(jobs, args.workers, f"{name} capacity", fn=task, on_result=keep)
+            ck.save()
+            jobs = []
+            for (p, w) in pairs:
+                for b in betas:
+                    sc = {"pap": p, "park": PARK_FIXED, "wfh": w, "beta0": b}
+                    for s in SEEDS:
+                        if ck.row(point_label(sc), s) is None:
+                            c_ = ck.cal[cal_key(p, w, s)]
+                            jobs.append({"label": point_label(sc), "overrides": point_overrides(p, PARK_FIXED, w, b),
+                                         "seed": s, "scale": c_["capacity_scale"], "calibration": c_,
+                                         "meta": {"scalars": sc, "stage": name}})
+            print(f"{name}: {len(jobs)} charged runs ({len(pairs)} pairs x {len(betas)} beta0 x {len(SEEDS)} seeds, "
+                  "less those already run)", flush=True)
+            if jobs:
+                run_jobs(jobs, args.workers, f"{name} runs", on_result=keep)
+            ck.save()
+            stages[name] = {"pairs": [list(x) for x in pairs], "beta0": list(betas),
+                            "n_calibrations": len(todo), "n_runs": len(jobs),
+                            "seconds": round(time.perf_counter() - t_, 1)}
+
+        def build_points() -> list[dict]:
+            by_label: dict[str, list[dict]] = {}
+            for r in ck.rows.values():
+                if "scalars" in r:
+                    by_label.setdefault(r["label"], []).append(r)
+            pts_ = []
+            for label, pr in by_label.items():
+                pr = sorted(pr, key=lambda r: r["seed"])
+                if [r["seed"] for r in pr] != list(SEEDS):
+                    continue
+                sc = dict(pr[0]["scalars"])
+                pts_.append({"label": label, "scalars": sc, "reference": sc["beta0"] == BETA0_REFERENCE,
+                             "stage": pr[0].get("stage"), "loss": loss(pr, sc), "mean": summarise(pr),
+                             "feasible": feasible(pr), "anchor_distance": anchor_distance(sc),
+                             "per_seed": [{kk: r[kk] for kk in ("seed", "capacity_scale", "calibration", *TARGETS,
+                                                                "end_car", "end_pt", "end_wfh", "wtt_no_car_11_13",
+                                                                "end_wtt_no_car", "end_wtt_limited", "end_forced",
+                                                                "wtp_below_peak_share", "base_early", "end_early",
+                                                                "peak_cross_change", "peak_band_share_21_30")}
+                                          for r in pr]})
+            return sorted(pts_, key=lambda q: (q["scalars"]["pap"], q["scalars"]["wfh"], q["scalars"]["beta0"]))
+
+        t_search = time.perf_counter()
+        extra = [{"label": "before", "overrides": BEFORE, "seed": s, "scale": "calibrate", "nofee": True}
+                 for s in SEEDS]
+        extra += [{"label": "structural", "overrides": point_overrides(V3_SCALARS["pap"], PARK_FIXED,
+                                                                       V3_SCALARS["wfh"], V3_SCALARS["beta0"]),
+                   "seed": s, "scale": "calibrate"} for s in SEEDS]
+        pairs1 = list(itertools.product(STAGE1["pap"], STAGE1["wfh"])) + STAGE1_CORNERS
+        run_stage("stage1", pairs1, [BETA0_REFERENCE] + BETA0_STAGE1, extra)
+        paps2 = stage2_paps(candidates(build_points()))
+        pairs2 = list(itertools.product(paps2, GRID["wfh"]))
+        run_stage("stage2", pairs2, [BETA0_REFERENCE] + BETA0_STAGE1)
+        stages["stage2"]["paps"] = paps2
+        best2 = select(build_points())
+        betas3 = stage3_betas(best2["scalars"]["beta0"])
+        run_stage("stage3", pairs2, betas3)
+        stages["stage3"]["chosen_after_stage2"] = best2["label"]
+        points = build_points()
+        beta0_values = sorted({p["scalars"]["beta0"] for p in candidates(points)})
+        res["before"] = {"per_seed": sorted(ck.rows_labelled("before"), key=lambda r: r["seed"])}
         res["before"]["mean"] = summarise(res["before"]["per_seed"])
-        res["structural_only"] = {"per_seed": [r for r in rows if r["label"] == "structural"]}
+        res["structural_only"] = {"per_seed": sorted(ck.rows_labelled("structural"), key=lambda r: r["seed"]),
+                                  "scalars": {"pap": V3_SCALARS["pap"], "park": PARK_FIXED, "wfh": V3_SCALARS["wfh"],
+                                              "beta0": V3_SCALARS["beta0"]}}
         res["structural_only"]["mean"] = summarise(res["structural_only"]["per_seed"])
-        points = []
-        for (p, k, w) in pts:
-            label = f"pap{p:g}_park{k:g}_wfh{w:g}"
-            pr = [r for r in rows if r["label"] == label]
-            sc = {"pap": p, "park": k, "wfh": w}
-            points.append({"label": label, "scalars": sc, "loss": loss(pr, sc), "mean": summarise(pr),
-                           "feasible": feasible(pr), "anchor_distance": anchor_distance(sc),
-                           "per_seed": [{kk: r[kk] for kk in ("seed", "capacity_scale", "calibration", *TARGETS,
-                                                              "end_car", "end_pt", "end_wfh", "end_skip",
-                                                              "base_early", "end_early", "peak_cross_change",
-                                                              "peak_band_share_21_30")} for r in pr]})
-        res["search"] = {"method": ("full factorial grid over PAP and k_WFH in NZ$1 steps, paid parking fixed at "
-                                    "NZ$17; nested capacity calibration at every point and seed"),
-                         "free_scalars": ["pap", "wfh"], "range_probe": RANGE_PROBE,
+        res["search"] = {"method": SEARCH_DESIGN, "free_scalars": ["pap", "wfh", "beta0"],
+                         "range_probe": RANGE_PROBE, "stages": stages, "beta0_values": beta0_values,
+                         "beta0_reference": BETA0_REFERENCE,
+                         "n_calibrations": sum(s_["n_calibrations"] for s_ in stages.values()),
+                         "n_runs": sum(s_["n_runs"] for s_ in stages.values()),
+                         "wall_seconds": round(time.perf_counter() - t_search, 1), "workers": args.workers,
                          "anchors": ANCHORS, "selection": SELECTION_DOC,
                          "points": points, "loss_doc": " ".join(loss.__doc__.split()),
                          "selection_history": history}
         best = select(points)
         res["chosen"] = {"scalars": best["scalars"], "label": best["label"], "loss": best["loss"],
-                         "on_grid_edge": on_grid_edge(best["scalars"])}
+                         "on_grid_edge": on_grid_edge(best["scalars"], beta0_values)}
         OUT_JSON.write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
-        print(f"chosen {best['label']} loss {best['loss']['total']:.3f} mean {best['mean']}", flush=True)
+        ck.clear()
+        print(f"chosen {best['label']} feasible {best['feasible']} loss {best['loss']['total']:.3f} "
+              f"mean {best['mean']}", flush=True)
 
     if args.stage == "select":   # re-apply the selection rule to the logged search (no new runs)
         # append-only history: keep the rule, anchors and choice being replaced
@@ -1475,13 +2107,13 @@ def main(argv: list[str] | None = None) -> int:
         res["search"]["anchors"] = ANCHORS
         best = select(res["search"]["points"])
         res["chosen"] = {"scalars": best["scalars"], "label": best["label"], "loss": best["loss"],
-                         "on_grid_edge": on_grid_edge(best["scalars"])}
+                         "on_grid_edge": on_grid_edge(best["scalars"], res["search"].get("beta0_values"))}
         OUT_JSON.write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
         print(f"chosen {best['label']} feasible {best['feasible']} mean {best['mean']}", flush=True)
 
     if args.stage in ("all", "final"):
         ch = res["chosen"]["scalars"]
-        ov = point_overrides(ch["pap"], ch["park"], ch["wfh"])
+        ov = point_overrides(ch["pap"], ch["park"], ch["wfh"], ch["beta0"])
         rows = run_jobs([{"label": "chosen", "overrides": ov, "seed": s, "scale": "calibrate", "nofee": True,
                           "agents": True} for s in SEEDS + HOLDOUT_SEEDS], args.workers, "final")
         main_rows = [r for r in rows if r["seed"] in SEEDS]
@@ -1514,7 +2146,7 @@ def main(argv: list[str] | None = None) -> int:
                                        + ("Peak spreading is visible in every seed."
                                           if all(x < 0 for x in d_peak) else
                                           "Peak spreading is NOT visible in every seed."))}
-        # early start, retiming, postponing and peak spreading, per seed (charged run and no-charge run)
+        # early start, retiming, the willingness to pay and peak spreading, per seed (charged run and no-charge run)
         def _keepers(rows_, seed):
             d = pd.DataFrame([a for a in rows_ if a["seed"] == seed])
             k = d[d["modal_6_10"].str.startswith("CAR") & d["modal_26_30"].str.startswith("CAR")]
@@ -1529,11 +2161,12 @@ def main(argv: list[str] | None = None) -> int:
         es_rows = []
         for r in main_rows + hold:
             row = {"seed": r["seed"], "early_ok_share": r["early_ok_share"]}
-            for k in ("base_early", "end_early", "early_11_13", "base_early_of_cars", "end_early_of_cars", "base_skip",
-                      "end_skip", "change_21_30", "peak_cross_change", "pre0730_cross_change", "peak_cross_6_10",
-                      "peak_cross_21_30"):
+            for k in ("base_early", "end_early", "early_11_13", "base_early_of_cars", "end_early_of_cars",
+                      "wtt_no_car_11_13", "end_wtt_no_car", "end_wtt_limited", "end_forced", "wtp_below_peak_share",
+                      "wtt_limitable_share", "wtp_below_peak_limitable_share", "change_21_30", "peak_cross_change",
+                      "pre0730_cross_change", "peak_cross_6_10", "peak_cross_21_30"):
                 row[k] = r[k]
-            for k in ("base_early", "end_early", "end_skip", "change_21_30", "peak_cross_change", "pre0730_cross_change"):
+            for k in ("base_early", "end_early", "change_21_30", "peak_cross_change", "pre0730_cross_change"):
                 row[f"nofee_{k}"] = r["nofee"][k]
             if r["seed"] in SEEDS:
                 row["retiming"] = _keepers(agents, r["seed"])
@@ -1550,6 +2183,12 @@ def main(argv: list[str] | None = None) -> int:
                 "retimed": ("commuters whose modal option is a car departure on days 6-10 and on days 26-30 and whose "
                             "modal departure differs; an early-start departure counts as a retimed departure"),
                 "peak_cross_change": "car crossings with a gate exit 08:00-09:00, mean per day days 21-30 vs days 6-10",
+                "end_wtt_no_car": ("share of all commuters with every car option removed by the willingness to pay, "
+                                   "mean of days 21-30 (wtt_no_car_11_13: days 11-13)"),
+                "end_wtt_limited": "share of all commuters with at least one car option removed, days 21-30",
+                "end_forced": "share of all commuters whose decision was forced (PT the only option left), days 21-30",
+                "wtp_below_peak_share": "share of all commuters whose WTP is below the peak charge (exempt ones included)",
+                "wtt_limitable_share": "share of commuters the limit can apply to (no company car; PT or WFH allowed)",
                 "nofee_*": "the same quantity in the no-charge run at the same capacity and seed (churn baseline)"},
             "per_seed": es_rows, "mean_1_3": es_mean}
         # population trait manipulation at fixed capacity
@@ -1642,13 +2281,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.stage in ("all", "oos"):   # out-of-sample checks; never used in the selection
         ch = res["chosen"]["scalars"]
-        ov = point_overrides(ch["pap"], ch["park"], ch["wfh"])
+        ov = point_overrides(ch["pap"], ch["park"], ch["wfh"], ch["beta0"])
         jobs = [{"label": "chosen", "overrides": ov, "seed": s, "scale": "calibrate",
                  "meta": {"scalars": dict(ch)}} for s in OOS_SEEDS]
         ridge = ridge_alternatives(res["search"]["points"], res["chosen"]["label"])
-        for (p_, k_, w_) in ridge:
-            jobs += [{"label": f"pap{p_:g}_park{k_:g}_wfh{w_:g}", "overrides": point_overrides(p_, k_, w_), "seed": s,
-                      "scale": "calibrate", "meta": {"scalars": {"pap": p_, "park": k_, "wfh": w_}}}
+        for sc in ridge:
+            jobs += [{"label": point_label(sc), "overrides": point_overrides(sc["pap"], sc["park"], sc["wfh"], sc["beta0"]),
+                      "seed": s, "scale": "calibrate", "meta": {"scalars": dict(sc)}}
                      for s in HOLDOUT_SEEDS + OOS_SEEDS]
         scale_by_seed = {r["seed"]: r["capacity_scale"] for r in res["chosen"]["per_seed"]}
         for lv in (1, 2, 3, 4, 5):
@@ -1656,9 +2295,12 @@ def main(argv: list[str] | None = None) -> int:
             jobs += [{"label": f"F{lv}", "overrides": {**ov, "traits.shares_F": one}, "seed": s,
                       "scale": scale_by_seed[s], "nofee": True, "agents": True, "meta": {"level": lv}}
                      for s in SEEDS]
-        # sensitivities to the fixed assumptions at the chosen point (never adopted, no new search)
-        GAP = [("skip25", "postponing costs NZ$25 + 1 h of VoT (costs.skip_cost 30 -> 25, the value until 2026-10-05)",
-                {"costs.skip_cost": 25.0}),
+        # sensitivities to the fixed assumptions at the chosen point (never adopted, no new search). The SKIP cost
+        # variant (NZ$25) went with SKIP on 2026-10-09; the willingness-to-pay variants took its place.
+        GAP = [("nowtt", "no willingness-to-pay limit (wtt.beta0 = 0; SKIP stays removed)", {"wtt.beta0": 0.0}),
+               ("ssc", "SSC2026's price sensitivity (wtt.beta0 = 0.5, the anchor)", {"wtt.beta0": 0.5}),
+               ("samplemedian", "VoT_ref = median VoT of the simulated commuters, as SSC2026 (wtt.vot_ref = "
+                                "\"sample_median\")", {"wtt.vot_ref": "sample_median"}),
                ("noearly", "no early-start option (persona.early_shift_prob all 0)",
                 {"persona.early_shift_prob": [0.0, 0.0, 0.0, 0.0, 0.0]}),
                ("early1.5", "early day costs NZ$1.5 x phi(F) (costs.early_shift_cost 3 -> 1.5)",
@@ -1667,6 +2309,7 @@ def main(argv: list[str] | None = None) -> int:
                 {"costs.early_shift_cost": 6.0}),
                ("earlyall", "every employer of archetypes 1, 2 and 4 allows the early day (probabilities 1, 1, 0, 1, 0)",
                 {"persona.early_shift_prob": [1.0, 1.0, 0.0, 1.0, 0.0]})]
+        GAP = [g for g in GAP if not (g[0] == "ssc" and ch["beta0"] == 0.5)]   # no variant equal to the chosen point
         jobs += [{"label": f"gap_{g_}", "overrides": {**ov, **o_}, "seed": s, "scale": "calibrate"}
                  for (g_, _, o_) in GAP for s in SEEDS]
         rows = run_jobs(jobs, args.workers, "oos")
@@ -1674,14 +2317,16 @@ def main(argv: list[str] | None = None) -> int:
         for (g_, what, o_) in GAP:
             pr = [r for r in rows if r["label"] == f"gap_{g_}"]
             gap.append({"label": g_, "what": what, "overrides": o_, "mean": summarise(pr), "feasible": feasible(pr),
-                        "per_seed": [{kk: r[kk] for kk in ("seed", "capacity_scale", *TARGETS, "end_skip", "base_early",
-                                                           "end_early", "peak_cross_change")} for r in pr]})
+                        "per_seed": [{kk: r[kk] for kk in ("seed", "capacity_scale", *TARGETS, "end_wtt_no_car",
+                                                           "end_wtt_limited", "base_early", "end_early",
+                                                           "peak_cross_change")} for r in pr]})
         res["gap_sensitivity"] = {
             "note": ("Run after the selection and not adopted. Each variant changes one of the fixed assumptions "
-                     "(cost of postponing, early-start option) at the chosen PAP and k_WFH (no new search), on seeds "
-                     "1-3 with nested capacity calibration, to show how much the result depends on it."),
+                     "(the willingness-to-pay form, early-start option) or sets beta0 to 0 or 0.5 at the chosen PAP, "
+                     "k_WFH and (otherwise) beta0 (no new search), on seeds 1-3 with nested capacity calibration, to "
+                     "show how much the result depends on it."),
             "variants": gap, "reading": ""}
-        keep = ("seed", "capacity_scale", *TARGETS, "end_car", "end_pt", "end_wfh", "end_skip", "base_early",
+        keep = ("seed", "capacity_scale", *TARGETS, "end_car", "end_pt", "end_wfh", "end_wtt_no_car", "base_early",
                 "end_early", "peak_cross_change", "pre0730_cross_change")
         held = [{k: r[k] for k in keep} for r in res["chosen"]["holdout"]]
         unseen = [{k: r[k] for k in keep} for r in rows if r["label"] == "chosen"]
@@ -1695,11 +2340,11 @@ def main(argv: list[str] | None = None) -> int:
                                                    + held + unseen, keep[2:])},
             "alternatives": [],
         }
-        for (p_, k_, w_) in ridge:
-            lab = f"pap{p_:g}_park{k_:g}_wfh{w_:g}"
+        for sc in ridge:
+            lab = point_label(sc)
             rr = [{k: r[k] for k in keep} for r in rows if r["label"] == lab]
             calib = next(p for p in res["search"]["points"] if p["label"] == lab)
-            oos["alternatives"].append({"label": lab, "scalars": {"pap": p_, "park": k_, "wfh": w_}, "per_seed": rr,
+            oos["alternatives"].append({"label": lab, "scalars": dict(sc), "per_seed": rr,
                                         "mean_4_12": summarise_keys(rr, keep[2:]),
                                         "mean_1_3": {k: calib["mean"][k] for k in keep[2:]}})
         fdec = []
@@ -1721,20 +2366,24 @@ def main(argv: list[str] | None = None) -> int:
                          "end_wfh": float(np.mean([r["end_wfh"] for r in rr])),
                          "end_wfh_per_seed": [r["end_wfh"] for r in rr],
                          "nofee_end_wfh": float(np.mean([r["nofee"]["end_wfh"] for r in rr])),
+                         "end_wtt_no_car": float(np.mean([r["end_wtt_no_car"] for r in rr])),
                          "retimed_keepers": float(np.mean(ret)), "retimed_keepers_nofee": float(np.mean(ret0))})
         oos["F_decomposition"] = fdec
         res["out_of_sample"] = oos
         OUT_JSON.write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
 
     if args.stage == "gap":   # optional local re-search under one changed assumption; logged, never adopted; not part of "all"
-        GAP_GRID = {"pap": [float(x) for x in range(17, 25)], "wfh": [7.0, 8.0, 9.0, 10.0, 11.0]}
+        # PAP and k_WFH around the chosen point, beta0 held at the chosen value (a variant may set it)
+        ch = res["chosen"]["scalars"]
+        GAP_GRID = {"pap": [float(x) for x in range(int(ch["pap"]) - 5, int(ch["pap"]) + 3)],
+                    "wfh": [float(x) for x in range(int(ch["wfh"]) - 2, int(ch["wfh"]) + 3)]}
         research = []
         jobs = []
         for v in res["gap_sensitivity"]["variants"]:
             for p_ in GAP_GRID["pap"]:
                 for w_ in GAP_GRID["wfh"]:
                     jobs += [{"label": f"{v['label']}|{p_:g}|{w_:g}",
-                              "overrides": {**point_overrides(p_, PARK_FIXED, w_), **v["overrides"]},
+                              "overrides": {**point_overrides(p_, PARK_FIXED, w_, ch["beta0"]), **v["overrides"]},
                               "seed": s, "scale": "calibrate"} for s in SEEDS]
         rows = run_jobs(jobs, args.workers, "gap")
         for v in res["gap_sensitivity"]["variants"]:
@@ -1742,8 +2391,9 @@ def main(argv: list[str] | None = None) -> int:
             for p_ in GAP_GRID["pap"]:
                 for w_ in GAP_GRID["wfh"]:
                     pr = [r for r in rows if r["label"] == f"{v['label']}|{p_:g}|{w_:g}"]
-                    sc = {"pap": p_, "park": PARK_FIXED, "wfh": w_}
-                    pts_.append({"label": f"pap{p_:g}_park{PARK_FIXED:g}_wfh{w_:g}", "scalars": sc,
+                    sc = {"pap": p_, "park": PARK_FIXED, "wfh": w_,
+                          "beta0": float(v["overrides"].get("wtt.beta0", ch["beta0"]))}
+                    pts_.append({"label": point_label(sc), "scalars": sc,
                                  "loss": loss(pr, sc), "mean": summarise(pr), "feasible": feasible(pr),
                                  "anchor_distance": anchor_distance(sc),
                                  "per_seed": [{kk: r[kk] for kk in ("seed", "capacity_scale", *TARGETS)} for r in pr]})
@@ -1767,27 +2417,35 @@ def main(argv: list[str] | None = None) -> int:
         if PRE_FUEL_JSON.exists():   # summary of the archived calibration without fuel (before/after table)
             old = json.loads(PRE_FUEL_JSON.read_text())
             res["pre_fuel"] = {
-                "source": str(PRE_FUEL_JSON.relative_to(ROOT)), "chosen": old["chosen"]["scalars"],
+                "source": PRE_FUEL_JSON.relative_to(ROOT).as_posix(), "chosen": old["chosen"]["scalars"],
                 "chosen_mean": old["chosen"]["mean"], "structural_mean": old["structural_only"]["mean"],
                 "grid": old["grid"], "grid_fine": old["search"]["grid_fine"],
                 "n_points": len(old["search"]["points"]),
                 "n_feasible": sum(bool(p["feasible"]) for p in old["search"]["points"]),
+                "n_agents": int(old.get("n_agents", 300)),
                 "oos_mean_6_12": old.get("out_of_sample", {}).get("chosen", {}).get("mean_6_12")}
-        if LAST_JSON.exists():   # summary of the archived two-scalar calibration with SKIP 25 and no early start
-            old = json.loads(LAST_JSON.read_text())
-            res["last"] = {
-                "source": str(LAST_JSON.relative_to(ROOT)), "chosen": old["chosen"]["scalars"],
+        if SKIP25_JSON.exists():   # summary of the archived two-scalar calibration with SKIP 25 and no early start
+            old = json.loads(SKIP25_JSON.read_text())
+            res["skip25"] = {
+                "source": SKIP25_JSON.relative_to(ROOT).as_posix(), "chosen": old["chosen"]["scalars"],
                 "chosen_mean": old["chosen"]["mean"], "n_points": len(old["search"]["points"]),
                 "n_feasible": sum(bool(p["feasible"]) for p in old["search"]["points"]),
+                "n_agents": int(old.get("n_agents", 300)),
                 "oos_mean_6_12": old.get("out_of_sample", {}).get("chosen", {}).get("mean_6_12")}
+        res.pop("freeflow300", None)
+        if FREEFLOW_JSON.exists():   # the archived state with 300 agents and free-flow roads
+            res["freeflow300"] = archive_summary(FREEFLOW_JSON)
+        if LAST_JSON.exists():   # the latest archived state (950 agents, congested roads, SKIP, no WTT)
+            res["last"] = archive_summary(LAST_JSON)
         if PREV_JSON.exists():   # summary of the archived three-scalar calibration with fuel NZ$0.23/km
             old = json.loads(PREV_JSON.read_text())
             res["previous"] = {
-                "source": str(PREV_JSON.relative_to(ROOT)), "chosen": old["chosen"]["scalars"],
+                "source": PREV_JSON.relative_to(ROOT).as_posix(), "chosen": old["chosen"]["scalars"],
                 "chosen_mean": old["chosen"]["mean"], "n_points": len(old["search"]["points"]),
                 "n_feasible": sum(bool(p["feasible"]) for p in old["search"]["points"]),
+                "n_agents": int(old.get("n_agents", 300)),
                 "oos_mean_6_12": old.get("out_of_sample", {}).get("chosen", {}).get("mean_6_12")}
-        res["chosen"]["on_grid_edge"] = on_grid_edge(ch)
+        res["chosen"]["on_grid_edge"] = on_grid_edge(ch, res["search"].get("beta0_values"))
         if res.get("gap_sensitivity"):
             res["gap_sensitivity"]["reading"] = GAP_READING
         res["selection_sensitivity"] = selection_sensitivity(res["search"]["points"])

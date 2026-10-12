@@ -1,30 +1,32 @@
 {
   "created_by": "prep.build_roads",
-  "k": 0.076904,
+  "k": 0.076999,
   "k_bounds": [
     0.02,
     0.3
   ],
   "k_iterations": 30,
+  "road_adt_floor_pct": 5.0,
   "tti_target": 1.714,
-  "tti_achieved": 1.714015,
+  "tti_achieved": 1.713983,
   "tti_window": [
     480,
     540
   ],
+  "tti_match": "non_motorway",
   "tti_by_hour": {
-    "06-07": 1.043525,
-    "07-08": 1.424357,
-    "08-09": 1.714015,
-    "09-10": 1.203356
+    "06-07": 1.238698,
+    "07-08": 1.747342,
+    "08-09": 1.926788,
+    "09-10": 1.529473
   },
-  "tti_0730": 1.420638,
+  "tti_0730": 1.76977,
   "tti_by_corridor": {
-    "0": 1.872176,
-    "1": 1.719286,
-    "2": 1.678302,
-    "3": 1.721585,
-    "4": 1.729659
+    "0": 1.779824,
+    "1": 1.875311,
+    "2": 1.945783,
+    "3": 1.868369,
+    "4": 2.072818
   },
   "bpr_alpha": 0.15,
   "bpr_beta": 4,
@@ -66,9 +68,10 @@
   "n_origin_section_rows": 142470,
   "n_section_segments": 19517,
   "sections_by_source": {
-    "count": 2085,
-    "propagated": 3552,
-    "default": 266
+    "count": 1953,
+    "propagated": 3460,
+    "default": 258,
+    "nzta": 232
   },
   "pregate_edges_by_source": {
     "count": 2087,
@@ -134,6 +137,2201 @@
     "sections_from_count": 1446,
     "minutes_share_from_count": 0.084535
   },
+  "capacity_floor": {
+    "pct": 5.0,
+    "rule": "cap_vph = k x max(adt_dir, adt_floor[frc]); adt_floor = the pct-th percentile of adt_dir over the sections of the frc (unweighted); not on NZTA sections; flows keep adt_dir",
+    "by_frc": {
+      "0": {
+        "adt_floor": 15989.75,
+        "cap_floor_vph": 1231.195,
+        "n_sections": 296,
+        "n_raised": 12,
+        "minutes_share_raised": 0.006896,
+        "minutes_share_of_class_raised": 0.012439,
+        "n_nzta_below_floor": 3
+      },
+      "1": {
+        "adt_floor": 6432.0,
+        "cap_floor_vph": 495.258,
+        "n_sections": 181,
+        "n_raised": 8,
+        "minutes_share_raised": 3.6e-05,
+        "minutes_share_of_class_raised": 0.003008,
+        "n_nzta_below_floor": 0
+      },
+      "2": {
+        "adt_floor": 4627.5,
+        "cap_floor_vph": 356.313,
+        "n_sections": 1189,
+        "n_raised": 60,
+        "minutes_share_raised": 0.003779,
+        "minutes_share_of_class_raised": 0.018723,
+        "n_nzta_below_floor": 0
+      },
+      "3": {
+        "adt_floor": 2566.5,
+        "cap_floor_vph": 197.618,
+        "n_sections": 2076,
+        "n_raised": 92,
+        "minutes_share_raised": 0.001507,
+        "minutes_share_of_class_raised": 0.010159,
+        "n_nzta_below_floor": 0
+      },
+      "4": {
+        "adt_floor": 1851.0,
+        "cap_floor_vph": 142.525,
+        "n_sections": 2161,
+        "n_raised": 108,
+        "minutes_share_raised": 0.001664,
+        "minutes_share_of_class_raised": 0.019954,
+        "n_nzta_below_floor": 0
+      }
+    },
+    "n_raised": 280,
+    "minutes_share_raised": 0.013883,
+    "n_nzta_below_floor": 3
+  },
+  "motorway": {
+    "rule": {
+      "mwy_breakdown": true,
+      "mwy_breakdown_vc": 1.0,
+      "mwy_recover_vc": 0.95,
+      "mwy_capacity_drop": 0.1,
+      "mwy_jam_speed": 0.45,
+      "min_speed_kmh": 70,
+      "mainline": "frc 0 or a street name holding the word Motorway; not a ramp by name; signed at least min_speed_kmh"
+    },
+    "n_sections": 285,
+    "km": 147.05,
+    "ff_min": 91.659,
+    "minutes_share": 0.561923,
+    "names": {
+      "20": 2,
+      "Airport Motorway": 2,
+      "George Bolt Memorial Drive": 5,
+      "Northern Motorway": 60,
+      "Northwestern Motorway": 40,
+      "Southern Motorway": 88,
+      "Southwestern Motorway": 42,
+      "Upper Harbour Motorway": 46
+    },
+    "frc0_ramps_excluded": {
+      "Entry 1 Southern Motorway": 2,
+      "Entry 449 Southwestern Motorway": 1,
+      "Exit 1 Southern Motorway": 2,
+      "Exit 424D Helensville": 2,
+      "Exit 449 Southwestern Motorway": 5,
+      "Exit 4A Northern Motorway": 1
+    },
+    "frc0_slow_excluded": {
+      "George Bolt Memorial Drive (60 km/h)": 2,
+      "Stanley Street (50 km/h)": 2
+    },
+    "by_name_not_frc0": [
+      {
+        "section_id": 189,
+        "street_name": "Northern Motorway",
+        "frc": 2,
+        "speed_limit": 80,
+        "km": 0.08,
+        "ff_min": 0.06,
+        "n_origins": 394,
+        "window": "06:15-09:30"
+      },
+      {
+        "section_id": 190,
+        "street_name": "Northern Motorway",
+        "frc": 2,
+        "speed_limit": 80,
+        "km": 0.8949,
+        "ff_min": 0.6712,
+        "n_origins": 394,
+        "window": "06:15-09:30"
+      },
+      {
+        "section_id": 191,
+        "street_name": "Northern Motorway",
+        "frc": 2,
+        "speed_limit": 80,
+        "km": 0.9556,
+        "ff_min": 0.7167,
+        "n_origins": 394,
+        "window": "06:15-09:30"
+      },
+      {
+        "section_id": 192,
+        "street_name": "Northern Motorway",
+        "frc": 2,
+        "speed_limit": 80,
+        "km": 0.0724,
+        "ff_min": 0.0543,
+        "n_origins": 395,
+        "window": "06:15-09:30"
+      },
+      {
+        "section_id": 193,
+        "street_name": "Northern Motorway",
+        "frc": 2,
+        "speed_limit": 80,
+        "km": 0.1135,
+        "ff_min": 0.0851,
+        "n_origins": 396,
+        "window": "06:15-09:30"
+      },
+      {
+        "section_id": 743,
+        "street_name": "Northern Motorway",
+        "frc": 1,
+        "speed_limit": 80,
+        "km": 0.069,
+        "ff_min": 0.0517,
+        "n_origins": 177,
+        "window": "06:15-09:30"
+      }
+    ],
+    "named_excluded_not_frc0": {
+      "Entry 448 Southwestern Motorway (frc 3, 100 km/h)": 1,
+      "Exit 2 Southern Motorway (frc 2, 80 km/h)": 1
+    },
+    "numbered_names": {
+      "19 (frc 1, 50 km/h, mwy 0)": 4,
+      "19A (frc 3, 50 km/h, mwy 0)": 2,
+      "20 (frc 0, 100 km/h, mwy 1)": 2,
+      "32 (frc 2, 27 km/h, mwy 0)": 1,
+      "32 (frc 2, 28 km/h, mwy 0)": 1
+    },
+    "sections_with_ramp_edges": {
+      "1024": [
+        "Entry 9 Airport Motorway"
+      ]
+    },
+    "n_peak_ratio_from_count": 0,
+    "n_with_window": 230,
+    "bd_on_min_median_max": [
+      "06:15",
+      "07:08",
+      "07:26"
+    ],
+    "bd_off_min_median_max": [
+      "09:19",
+      "09:45",
+      "11:00"
+    ],
+    "broken_share": {
+      "07:00": {
+        "network": 0.360203,
+        "weighted": 0.59237
+      },
+      "07:30": {
+        "network": 0.81033,
+        "weighted": 0.9354
+      },
+      "08:00": {
+        "network": 0.81033,
+        "weighted": 0.9354
+      },
+      "08:30": {
+        "network": 0.81033,
+        "weighted": 0.9354
+      },
+      "09:00": {
+        "network": 0.81033,
+        "weighted": 0.9354
+      },
+      "09:30": {
+        "network": 0.595317,
+        "weighted": 0.729258
+      },
+      "10:00": {
+        "network": 0.305951,
+        "weighted": 0.479569
+      }
+    },
+    "tti": {
+      "motorway": {
+        "06-07": 1.409977,
+        "07-08": 1.997011,
+        "08-09": 2.031861,
+        "09-10": 1.773558,
+        "07:30-08:29": 2.035685,
+        "07:30": 2.033338
+      },
+      "non_motorway": {
+        "06-07": 1.041967,
+        "07-08": 1.410446,
+        "08-09": 1.713983,
+        "09-10": 1.204959,
+        "07:30-08:29": 1.700593,
+        "07:30": 1.406516
+      },
+      "all": {
+        "06-07": 1.238698,
+        "07-08": 1.747342,
+        "08-09": 1.926788,
+        "09-10": 1.529473,
+        "07:30-08:29": 1.91736,
+        "07:30": 1.76977
+      }
+    },
+    "tti_without_breakdown": {
+      "motorway": {
+        "06-07": 1.106746,
+        "07-08": 1.097962,
+        "08-09": 1.090405,
+        "09-10": 1.075303,
+        "07:30-08:29": 1.097827,
+        "07:30": 1.09883
+      },
+      "non_motorway": {
+        "06-07": 1.040568,
+        "07-08": 1.396886,
+        "08-09": 1.728233,
+        "09-10": 1.208182,
+        "07:30-08:29": 1.698489,
+        "07:30": 1.392225
+      },
+      "all": {
+        "06-07": 1.07781,
+        "07-08": 1.241816,
+        "08-09": 1.398598,
+        "09-10": 1.140064,
+        "07:30-08:29": 1.387655,
+        "07:30": 1.239744
+      }
+    }
+  },
+  "nzta": {
+    "source": "data/nzta (prep/fetch_nzta.py; NZTA Traffic Monitoring System, CC BY 4.0)",
+    "attribution": "Traffic counts sourced from the New Zealand Transport Agency (NZTA Waka Kotahi) Traffic Monitoring System via the NZTA Open Data portal, licensed for re-use under CC BY 4.0.",
+    "rule": {
+      "min_valid_days": 20,
+      "low_lane": 0.3,
+      "level_band": [
+        0.67,
+        1.5
+      ],
+      "plateau": "median of the quarter hours from t_max + 30 min to 09:30",
+      "breakdown_delta": 0.05,
+      "saturated": ">= 0.95 q_max for >= 60 min",
+      "recovery": "< 0.95 x plateau or > plateau + 0.5 x (q_max - plateau) for 2 quarter hours",
+      "recover_rise": 0.5,
+      "no_recovery_min": 660,
+      "onset_latest": "07:00",
+      "recovery_from": "09:30",
+      "map_m": null
+    },
+    "n_sites": 36,
+    "n_valid": 19,
+    "n_breakdown": 12,
+    "sites": [
+      {
+        "site_ref": "01N10417",
+        "corridor": "SH1_north",
+        "direction": "SB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 44832.5,
+        "median_2025_26": 45341.5,
+        "valid_2025_26": 168,
+        "scale": 1.011353,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 435,
+          "cap_drop": 0.263447
+        },
+        "profile_id": 1,
+        "q_max": 3535.636,
+        "t_max": "06:00",
+        "q_plateau": 2604.182,
+        "plateau_bins": [
+          "06:30",
+          "09:15"
+        ],
+        "delta": 0.263447,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 405,
+        "bd_off": 570,
+        "window": "06:45-09:30",
+        "recovered_by_1045": true,
+        "recovery_by": "rise",
+        "rise_level": 3069.909,
+        "window_fall_only": "06:45-11:00",
+        "cap_drop": 0.263447,
+        "cap_vph": 3575.776,
+        "obs_peak_vph": 3368.295,
+        "peak_hour": "05:45-06:45",
+        "r_max": 1.061598,
+        "n_sections": 27,
+        "ff_min": 8.289,
+        "old_cap_vph_min_median_max": [
+          2045.709,
+          2941.285,
+          5032.886
+        ],
+        "old_obs_peak_vph_median": 4400.525
+      },
+      {
+        "site_ref": "01N10419",
+        "corridor": "SH1_north",
+        "direction": "SB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 50388.5,
+        "median_2025_26": 51368.5,
+        "valid_2025_26": 164,
+        "scale": 1.019449,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 660,
+          "cap_drop": 0.227991
+        },
+        "profile_id": 2,
+        "q_max": 4464.545,
+        "t_max": "06:15",
+        "q_plateau": 3446.667,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.227991,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 405,
+        "bd_off": 660,
+        "window": "06:45-11:00",
+        "recovered_by_1045": false,
+        "recovery_by": null,
+        "rise_level": 3955.606,
+        "window_fall_only": "06:45-11:00",
+        "cap_drop": 0.227991,
+        "cap_vph": 4551.376,
+        "obs_peak_vph": 4268.68,
+        "peak_hour": "05:45-06:45",
+        "r_max": 1.066226,
+        "n_sections": 12,
+        "ff_min": 4.171,
+        "old_cap_vph_min_median_max": [
+          3941.579,
+          4261.741,
+          5835.754
+        ],
+        "old_obs_peak_vph_median": 6376.09
+      },
+      {
+        "site_ref": "01N10420",
+        "corridor": "SH1_north",
+        "direction": "SB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": false,
+        "reason": "19 valid 2024 weekdays (< 20)",
+        "days_2024": 43,
+        "valid_2024": 19,
+        "level_flagged": "2024-05 (x1.95); 2024-08 (x1.90)",
+        "median_2024": 57527.0,
+        "median_2025_26": 56375.0,
+        "valid_2025_26": 129,
+        "scale": 0.979975,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 585,
+          "cap_drop": 0.150229
+        }
+      },
+      {
+        "site_ref": "01N10425",
+        "corridor": "SH1_north",
+        "direction": "SB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 77905.0,
+        "median_2025_26": 78824.0,
+        "valid_2025_26": 189,
+        "scale": 1.011796,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 375,
+          "bd_off": 555,
+          "cap_drop": 0.1
+        },
+        "profile_id": 3,
+        "q_max": 6551.455,
+        "t_max": "06:30",
+        "q_plateau": 6409.454,
+        "plateau_bins": [
+          "07:00",
+          "09:15"
+        ],
+        "delta": 0.021675,
+        "saturated_min": 165,
+        "saturated_from": "06:15",
+        "breakdown": true,
+        "bd_on": 375,
+        "bd_off": 570,
+        "window": "06:15-09:30",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 6480.455,
+        "window_fall_only": "06:15-09:30",
+        "cap_drop": 0.1,
+        "cap_vph": 6628.736,
+        "obs_peak_vph": 6579.403,
+        "peak_hour": "06:30-07:30",
+        "r_max": 1.007498,
+        "n_sections": 10,
+        "ff_min": 2.835,
+        "old_cap_vph_min_median_max": [
+          3284.392,
+          4324.495,
+          6042.728
+        ],
+        "old_obs_peak_vph_median": 6469.978
+      },
+      {
+        "site_ref": "01N19424",
+        "corridor": "SH1_north",
+        "direction": "SB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 41,
+        "level_flagged": "2024-05 (x1.94)",
+        "median_2024": 84265.0,
+        "median_2025_26": 84489.5,
+        "valid_2025_26": 188,
+        "scale": 1.002664,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 375,
+          "bd_off": 570,
+          "cap_drop": 0.1
+        },
+        "profile_id": 4,
+        "q_max": 7007.707,
+        "t_max": "08:00",
+        "q_plateau": 6736.439,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.03871,
+        "saturated_min": 180,
+        "saturated_from": "06:15",
+        "breakdown": true,
+        "bd_on": 375,
+        "bd_off": 570,
+        "window": "06:15-09:30",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 6872.073,
+        "window_fall_only": "06:15-09:30",
+        "cap_drop": 0.1,
+        "cap_vph": 7026.376,
+        "obs_peak_vph": 7004.684,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.003097,
+        "n_sections": 11,
+        "ff_min": 3.464,
+        "old_cap_vph_min_median_max": [
+          3462.337,
+          6472.998,
+          6679.74
+        ],
+        "old_obs_peak_vph_median": 9684.403
+      },
+      {
+        "site_ref": "01N20429",
+        "corridor": "SH1_south",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "mixed",
+        "valid": false,
+        "reason": "not CBD-bound (mixed)",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 71725.5,
+        "median_2025_26": 72814.0,
+        "valid_2025_26": 163,
+        "scale": 1.015176,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 495,
+          "cap_drop": 0.1
+        }
+      },
+      {
+        "site_ref": "01N20431",
+        "corridor": "SH1_south",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 78530.0,
+        "median_2025_26": 78859.0,
+        "valid_2025_26": 168,
+        "scale": 1.004189,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 660,
+          "cap_drop": 0.058386
+        },
+        "profile_id": 5,
+        "q_max": 5289.212,
+        "t_max": "06:30",
+        "q_plateau": 4980.394,
+        "plateau_bins": [
+          "07:00",
+          "09:15"
+        ],
+        "delta": 0.058386,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 405,
+        "bd_off": 660,
+        "window": "06:45-11:00",
+        "recovered_by_1045": false,
+        "recovery_by": null,
+        "rise_level": 5134.803,
+        "window_fall_only": "06:45-11:00",
+        "cap_drop": 0.058386,
+        "cap_vph": 5311.369,
+        "obs_peak_vph": 5162.003,
+        "peak_hour": "06:15-07:15",
+        "r_max": 1.028936,
+        "n_sections": 17,
+        "ff_min": 4.043,
+        "old_cap_vph_min_median_max": [
+          5054.368,
+          7086.372,
+          8421.073
+        ],
+        "old_obs_peak_vph_median": 10602.086
+      },
+      {
+        "site_ref": "01N20433",
+        "corridor": "SH1_south",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 40,
+        "valid_2024": 40,
+        "level_flagged": "",
+        "median_2024": 67234.5,
+        "median_2025_26": 66857.5,
+        "valid_2025_26": 132,
+        "scale": 0.994393,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 420,
+          "bd_off": 660,
+          "cap_drop": 0.160483
+        },
+        "profile_id": 6,
+        "q_max": 5002.4,
+        "t_max": "06:15",
+        "q_plateau": 4199.6,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.160483,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 420,
+        "bd_off": 660,
+        "window": "07:00-11:00",
+        "recovered_by_1045": false,
+        "recovery_by": null,
+        "rise_level": 4601.0,
+        "window_fall_only": "07:00-11:00",
+        "cap_drop": 0.160483,
+        "cap_vph": 4974.352,
+        "obs_peak_vph": 4724.287,
+        "peak_hour": "06:15-07:15",
+        "r_max": 1.052932,
+        "n_sections": 13,
+        "ff_min": 4.144,
+        "old_cap_vph_min_median_max": [
+          4815.055,
+          5726.878,
+          6664.263
+        ],
+        "old_obs_peak_vph_median": 8568.115
+      },
+      {
+        "site_ref": "01N20439",
+        "corridor": "SH1_south",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 42401.0,
+        "median_2025_26": 41695.5,
+        "valid_2025_26": 186,
+        "scale": 0.983361,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 435,
+          "bd_off": 480,
+          "cap_drop": 0.261282
+        },
+        "profile_id": 7,
+        "q_max": 3373.576,
+        "t_max": "06:15",
+        "q_plateau": 2492.121,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.261282,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 435,
+        "bd_off": 660,
+        "window": "07:15-11:00",
+        "recovered_by_1045": false,
+        "recovery_by": null,
+        "rise_level": 2932.849,
+        "window_fall_only": "07:15-11:00",
+        "cap_drop": 0.261282,
+        "cap_vph": 3317.443,
+        "obs_peak_vph": 3236.152,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.02512,
+        "n_sections": 11,
+        "ff_min": 4.636,
+        "old_cap_vph_min_median_max": [
+          3011.739,
+          4343.052,
+          5742.893
+        ],
+        "old_obs_peak_vph_median": 6497.741
+      },
+      {
+        "site_ref": "01N20440",
+        "corridor": "SH1_south",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 21,
+        "valid_2024": 21,
+        "level_flagged": "",
+        "median_2024": 65003.0,
+        "median_2025_26": 63781.0,
+        "valid_2025_26": 174,
+        "scale": 0.981201,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 435,
+          "bd_off": 480,
+          "cap_drop": 0.18412
+        },
+        "profile_id": 8,
+        "q_max": 5092.952,
+        "t_max": "06:00",
+        "q_plateau": 4155.238,
+        "plateau_bins": [
+          "06:30",
+          "09:15"
+        ],
+        "delta": 0.18412,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 435,
+        "bd_off": 585,
+        "window": "07:15-09:45",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 4624.095,
+        "window_fall_only": "07:15-09:45",
+        "cap_drop": 0.18412,
+        "cap_vph": 4997.21,
+        "obs_peak_vph": 4842.741,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.031897,
+        "n_sections": 47,
+        "ff_min": 16.408,
+        "old_cap_vph_min_median_max": [
+          2594.404,
+          4085.49,
+          5168.712
+        ],
+        "old_obs_peak_vph_median": 6112.397
+      },
+      {
+        "site_ref": "01620002",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 25,
+        "valid_2024": 25,
+        "level_flagged": "",
+        "median_2024": 15838.0,
+        "median_2025_26": 14339.0,
+        "valid_2025_26": 83,
+        "scale": 0.905354,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 450,
+          "bd_off": 570,
+          "cap_drop": 0.139329
+        },
+        "profile_id": 9,
+        "q_max": 1483.68,
+        "t_max": "07:45",
+        "q_plateau": 1276.96,
+        "plateau_bins": [
+          "08:15",
+          "09:15"
+        ],
+        "delta": 0.139329,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 1343.256,
+        "obs_peak_vph": 1313.596,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.022579,
+        "n_sections": 11,
+        "ff_min": 1.782,
+        "old_cap_vph_min_median_max": [
+          1231.195,
+          1358.878,
+          1701.601
+        ],
+        "old_obs_peak_vph_median": 2033.05
+      },
+      {
+        "site_ref": "01620006",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 62734.5,
+        "median_2025_26": 62351.0,
+        "valid_2025_26": 135,
+        "scale": 0.993887,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 390,
+          "bd_off": 570,
+          "cap_drop": 0.144306
+        },
+        "profile_id": 10,
+        "q_max": 5689.091,
+        "t_max": "06:15",
+        "q_plateau": 4868.121,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.144306,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 390,
+        "bd_off": 570,
+        "window": "06:30-09:30",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 5278.606,
+        "window_fall_only": "06:30-09:30",
+        "cap_drop": 0.144306,
+        "cap_vph": 5654.314,
+        "obs_peak_vph": 5190.997,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.089254,
+        "n_sections": 9,
+        "ff_min": 3.637,
+        "old_cap_vph_min_median_max": [
+          3497.911,
+          3566.671,
+          4929.938
+        ],
+        "old_obs_peak_vph_median": 5336.179
+      },
+      {
+        "site_ref": "01620008",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 37949.5,
+        "median_2025_26": 37676.0,
+        "valid_2025_26": 185,
+        "scale": 0.992793,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 405,
+          "bd_off": 480,
+          "cap_drop": 0.261172
+        },
+        "profile_id": 11,
+        "q_max": 3995.515,
+        "t_max": "06:15",
+        "q_plateau": 2952.0,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.261172,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 405,
+        "bd_off": 585,
+        "window": "06:45-09:45",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 3473.757,
+        "window_fall_only": "06:45-09:45",
+        "cap_drop": 0.261172,
+        "cap_vph": 3966.719,
+        "obs_peak_vph": 3709.21,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.069424,
+        "n_sections": 3,
+        "ff_min": 2.432,
+        "old_cap_vph_min_median_max": [
+          2822.167,
+          3967.604,
+          4167.109
+        ],
+        "old_obs_peak_vph_median": 5936.026
+      },
+      {
+        "site_ref": "01620009",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 64,
+        "valid_2024": 64,
+        "level_flagged": "",
+        "median_2024": 65362.0,
+        "median_2025_26": 65606.0,
+        "valid_2025_26": 182,
+        "scale": 1.003733,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 435,
+          "bd_off": 585,
+          "cap_drop": 0.264479
+        },
+        "profile_id": 12,
+        "q_max": 6532.188,
+        "t_max": "06:15",
+        "q_plateau": 4804.562,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.264479,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 435,
+        "bd_off": 585,
+        "window": "07:15-09:45",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 5668.375,
+        "window_fall_only": "07:15-09:45",
+        "cap_drop": 0.264479,
+        "cap_vph": 6556.573,
+        "obs_peak_vph": 6276.876,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.04456,
+        "n_sections": 3,
+        "ff_min": 1.593,
+        "old_cap_vph_min_median_max": [
+          3279.464,
+          6731.253,
+          6731.253
+        ],
+        "old_obs_peak_vph_median": 10070.784
+      },
+      {
+        "site_ref": "01620011",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 66856.5,
+        "median_2025_26": 66765.0,
+        "valid_2025_26": 168,
+        "scale": 0.998631,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 435,
+          "bd_off": 510,
+          "cap_drop": 0.264433
+        },
+        "profile_id": 13,
+        "q_max": 6445.576,
+        "t_max": "06:15",
+        "q_plateau": 4741.152,
+        "plateau_bins": [
+          "06:45",
+          "09:15"
+        ],
+        "delta": 0.264433,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": true,
+        "bd_on": 435,
+        "bd_off": 585,
+        "window": "07:15-09:45",
+        "recovered_by_1045": true,
+        "recovery_by": "fall",
+        "rise_level": 5593.364,
+        "window_fall_only": "07:15-09:45",
+        "cap_drop": 0.264433,
+        "cap_vph": 6436.752,
+        "obs_peak_vph": 6193.509,
+        "peak_hour": "06:00-07:00",
+        "r_max": 1.039274,
+        "n_sections": 14,
+        "ff_min": 5.725,
+        "old_cap_vph_min_median_max": [
+          1710.302,
+          2828.866,
+          3867.198
+        ],
+        "old_obs_peak_vph_median": 4232.333
+      },
+      {
+        "site_ref": "01620013",
+        "corridor": "SH16",
+        "direction": "EB",
+        "kind": "mainline",
+        "cbd_role": "CBD-bound",
+        "valid": false,
+        "reason": "0 valid 2024 weekdays (< 20)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 41920.0,
+        "valid_2025_26": 164,
+        "scale": 0.993887,
+        "scale_source": "corridor"
+      },
+      {
+        "site_ref": "02010015",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 76260.5,
+        "median_2025_26": 75210.0,
+        "valid_2025_26": 185,
+        "scale": 0.986225,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 450,
+          "bd_off": 555,
+          "cap_drop": 0.13151
+        },
+        "profile_id": 14,
+        "q_max": 5160.121,
+        "t_max": "08:00",
+        "q_plateau": 4481.515,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.13151,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 5089.04,
+        "obs_peak_vph": 5007.393,
+        "peak_hour": "07:45-08:45",
+        "r_max": 1.016305,
+        "n_sections": 37,
+        "ff_min": 12.051,
+        "old_cap_vph_min_median_max": [
+          1346.559,
+          2767.498,
+          4871.419
+        ],
+        "old_obs_peak_vph_median": 4140.518
+      },
+      {
+        "site_ref": "02010017",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 64447.0,
+        "median_2025_26": 64221.5,
+        "valid_2025_26": 152,
+        "scale": 0.996501,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 450,
+          "bd_off": 555,
+          "cap_drop": 0.1
+        },
+        "profile_id": 15,
+        "q_max": 4082.0,
+        "t_max": "08:00",
+        "q_plateau": 3688.091,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.096499,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 4067.717,
+        "obs_peak_vph": 3993.735,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.018525,
+        "n_sections": 2,
+        "ff_min": 0.116,
+        "old_cap_vph_min_median_max": [
+          2458.732,
+          2622.624,
+          2786.517
+        ],
+        "old_obs_peak_vph_median": 3923.769
+      },
+      {
+        "site_ref": "02010018",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 55176.5,
+        "median_2025_26": 54531.5,
+        "valid_2025_26": 164,
+        "scale": 0.98831,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 450,
+          "bd_off": 555,
+          "cap_drop": 0.1
+        },
+        "profile_id": 16,
+        "q_max": 3498.303,
+        "t_max": "08:00",
+        "q_plateau": 3182.091,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.09039,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 3457.408,
+        "obs_peak_vph": 3413.174,
+        "peak_hour": "07:45-08:45",
+        "r_max": 1.01296,
+        "n_sections": 0,
+        "ff_min": 0.0,
+        "old_cap_vph_min_median_max": [],
+        "old_obs_peak_vph_median": null
+      },
+      {
+        "site_ref": "02010020",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 37812.0,
+        "median_2025_26": 37546.5,
+        "valid_2025_26": 162,
+        "scale": 0.992978,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 510,
+          "bd_off": 555,
+          "cap_drop": 0.14805
+        },
+        "profile_id": 17,
+        "q_max": 2761.758,
+        "t_max": "08:00",
+        "q_plateau": 2352.878,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.14805,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 2742.365,
+        "obs_peak_vph": 2647.189,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.035954,
+        "n_sections": 0,
+        "ff_min": 0.0,
+        "old_cap_vph_min_median_max": [],
+        "old_obs_peak_vph_median": null
+      },
+      {
+        "site_ref": "02010021",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 48159.0,
+        "median_2025_26": 47516.0,
+        "valid_2025_26": 189,
+        "scale": 0.986648,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 510,
+          "bd_off": 555,
+          "cap_drop": 0.197089
+        },
+        "profile_id": 18,
+        "q_max": 3941.455,
+        "t_max": "08:00",
+        "q_plateau": 3164.637,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.197089,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 3888.829,
+        "obs_peak_vph": 3759.637,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.034363,
+        "n_sections": 5,
+        "ff_min": 3.436,
+        "old_cap_vph_min_median_max": [
+          2851.735,
+          2851.735,
+          2851.735
+        ],
+        "old_obs_peak_vph_median": 4266.547
+      },
+      {
+        "site_ref": "02019015",
+        "corridor": "SH20",
+        "direction": "NB",
+        "kind": "mainline",
+        "cbd_role": "partly CBD-bound",
+        "valid": true,
+        "reason": "",
+        "days_2024": 66,
+        "valid_2024": 66,
+        "level_flagged": "",
+        "median_2024": 64511.5,
+        "median_2025_26": 64395.0,
+        "valid_2025_26": 168,
+        "scale": 0.998194,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 450,
+          "bd_off": 555,
+          "cap_drop": 0.112914
+        },
+        "profile_id": 19,
+        "q_max": 4078.182,
+        "t_max": "08:00",
+        "q_plateau": 3617.697,
+        "plateau_bins": [
+          "08:30",
+          "09:15"
+        ],
+        "delta": 0.112914,
+        "saturated_min": 0,
+        "saturated_from": null,
+        "breakdown": false,
+        "bd_on": -1,
+        "bd_off": -1,
+        "window": "none",
+        "recovered_by_1045": null,
+        "recovery_by": null,
+        "rise_level": null,
+        "window_fall_only": "none",
+        "cap_drop": 0.1,
+        "cap_vph": 4070.817,
+        "obs_peak_vph": 3994.606,
+        "peak_hour": "07:30-08:30",
+        "r_max": 1.019078,
+        "n_sections": 0,
+        "ff_min": 0.0,
+        "old_cap_vph_min_median_max": [],
+        "old_obs_peak_vph_median": null
+      },
+      {
+        "site_ref": "01639008",
+        "corridor": "SH20_to_SH16",
+        "direction": "WB",
+        "kind": "link",
+        "cbd_role": "not CBD-bound",
+        "valid": false,
+        "reason": "not a through-lane site (link)",
+        "days_2024": 65,
+        "valid_2024": 65,
+        "level_flagged": "",
+        "median_2024": 25819.0,
+        "median_2025_26": 25652.0,
+        "valid_2025_26": 165,
+        "scale": 0.993532,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 480,
+          "bd_off": 540,
+          "cap_drop": 0.059804
+        }
+      },
+      {
+        "site_ref": "01659008",
+        "corridor": "SH20_to_SH16",
+        "direction": "EB",
+        "kind": "link",
+        "cbd_role": "CBD-bound",
+        "valid": false,
+        "reason": "not a through-lane site (link)",
+        "days_2024": 43,
+        "valid_2024": 43,
+        "level_flagged": "",
+        "median_2024": 21377.0,
+        "median_2025_26": 21389.0,
+        "valid_2025_26": 131,
+        "scale": 1.000561,
+        "scale_source": "site",
+        "literal_rule": {
+          "breakdown": true,
+          "bd_on": 525,
+          "bd_off": 555,
+          "cap_drop": 0.294916
+        }
+      },
+      {
+        "site_ref": "01N40427",
+        "corridor": "CBD_exit_SH1N",
+        "direction": "NB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": null,
+        "valid_2025_26": 0,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N40430",
+        "corridor": "CBD_exit_SH1N",
+        "direction": "NB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 11127.0,
+        "valid_2025_26": 148,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N45429",
+        "corridor": "CBD_exit_SH1N",
+        "direction": "NB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": null,
+        "valid_2025_26": 0,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N46429",
+        "corridor": "CBD_exit_SH1N",
+        "direction": "NB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 6200.0,
+        "valid_2025_26": 16,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N47429",
+        "corridor": "CBD_exit_SH1N",
+        "direction": "NB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 4664.0,
+        "valid_2025_26": 20,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N60425",
+        "corridor": "CBD_exit_SH1S",
+        "direction": "SB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 7245.5,
+        "valid_2025_26": 40,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N60426",
+        "corridor": "CBD_exit_SH1S",
+        "direction": "SB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": null,
+        "valid_2025_26": 0,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N60427",
+        "corridor": "CBD_exit_SH1S",
+        "direction": "SB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 7260.0,
+        "valid_2025_26": 72,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01N69427",
+        "corridor": "CBD_exit_SH1S",
+        "direction": "SB",
+        "kind": "ramp",
+        "cbd_role": "mixed",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 26533.0,
+        "valid_2025_26": 87,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01640002",
+        "corridor": "CBD_exit_SH16",
+        "direction": "EB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 11643.0,
+        "valid_2025_26": 22,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01646004",
+        "corridor": "CBD_exit_SH16",
+        "direction": "EB",
+        "kind": "ramp",
+        "cbd_role": "mixed",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 27495.0,
+        "valid_2025_26": 47,
+        "scale": 1.0,
+        "scale_source": "none"
+      },
+      {
+        "site_ref": "01649004",
+        "corridor": "CBD_exit_SH16",
+        "direction": "EB",
+        "kind": "ramp",
+        "cbd_role": "CBD exit",
+        "valid": false,
+        "reason": "not a through-lane site (ramp)",
+        "days_2024": 0,
+        "valid_2024": 0,
+        "level_flagged": "",
+        "median_2024": null,
+        "median_2025_26": 10461.0,
+        "valid_2025_26": 42,
+        "scale": 1.0,
+        "scale_source": "none"
+      }
+    ],
+    "mapping": {
+      "20": {
+        "corridor": "SH20",
+        "sections": 2,
+        "mapped": 2,
+        "ff_min": 0.446,
+        "ff_min_mapped": 0.446,
+        "sites": {
+          "02010021": 2
+        },
+        "max_dist_m": 3311.5
+      },
+      "Airport Motorway": {
+        "corridor": null,
+        "sections": 2,
+        "mapped": 0,
+        "ff_min": 0.985,
+        "ff_min_mapped": 0.0,
+        "sites": {},
+        "max_dist_m": null
+      },
+      "George Bolt Memorial Drive": {
+        "corridor": null,
+        "sections": 5,
+        "mapped": 0,
+        "ff_min": 1.352,
+        "ff_min_mapped": 0.0,
+        "sites": {},
+        "max_dist_m": null
+      },
+      "Northern Motorway": {
+        "corridor": "SH1_north",
+        "sections": 60,
+        "mapped": 60,
+        "ff_min": 18.759,
+        "ff_min_mapped": 18.759,
+        "sites": {
+          "01N10417": 27,
+          "01N10419": 12,
+          "01N10425": 10,
+          "01N19424": 11
+        },
+        "max_dist_m": 6069.5
+      },
+      "Northwestern Motorway": {
+        "corridor": "SH16",
+        "sections": 40,
+        "mapped": 40,
+        "ff_min": 15.168,
+        "ff_min_mapped": 15.168,
+        "sites": {
+          "01620002": 11,
+          "01620006": 9,
+          "01620008": 3,
+          "01620009": 3,
+          "01620011": 14
+        },
+        "max_dist_m": 5375.2
+      },
+      "Southern Motorway": {
+        "corridor": "SH1_south",
+        "sections": 88,
+        "mapped": 88,
+        "ff_min": 29.23,
+        "ff_min_mapped": 29.23,
+        "sites": {
+          "01N20431": 17,
+          "01N20433": 13,
+          "01N20439": 11,
+          "01N20440": 47
+        },
+        "max_dist_m": 12572.2
+      },
+      "Southwestern Motorway": {
+        "corridor": "SH20",
+        "sections": 42,
+        "mapped": 42,
+        "ff_min": 15.157,
+        "ff_min_mapped": 15.157,
+        "sites": {
+          "02010015": 37,
+          "02010017": 2,
+          "02010021": 3
+        },
+        "max_dist_m": 12140.7
+      },
+      "Upper Harbour Motorway": {
+        "corridor": null,
+        "sections": 46,
+        "mapped": 0,
+        "ff_min": 10.561,
+        "ff_min_mapped": 0.0,
+        "sites": {},
+        "max_dist_m": null
+      }
+    },
+    "mapping_dist_m": {
+      "all": {
+        "n": 232,
+        "min": 19.4,
+        "p10": 241.0,
+        "median": 1485.4,
+        "p90": 8822.6,
+        "max": 12572.2,
+        "n_beyond_6km": 40,
+        "minutes_share_beyond_6km": 0.037474
+      },
+      "SH16": {
+        "n": 40,
+        "min": 23.3,
+        "p10": 163.8,
+        "median": 669.7,
+        "p90": 3442.5,
+        "max": 5375.2,
+        "n_beyond_6km": 0,
+        "minutes_share_beyond_6km": 0.0
+      },
+      "SH1_north": {
+        "n": 60,
+        "min": 19.4,
+        "p10": 210.1,
+        "median": 1047.2,
+        "p90": 4880.8,
+        "max": 6069.5,
+        "n_beyond_6km": 1,
+        "minutes_share_beyond_6km": 8.8e-05
+      },
+      "SH1_south": {
+        "n": 88,
+        "min": 35.7,
+        "p10": 251.8,
+        "median": 1866.5,
+        "p90": 10039.4,
+        "max": 12572.2,
+        "n_beyond_6km": 26,
+        "minutes_share_beyond_6km": 0.056762
+      },
+      "SH20": {
+        "n": 44,
+        "min": 30.7,
+        "p10": 483.6,
+        "median": 3653.9,
+        "p90": 10945.0,
+        "max": 12140.7,
+        "n_beyond_6km": 13,
+        "minutes_share_beyond_6km": 0.086514
+      }
+    },
+    "farthest_sections": [
+      {
+        "section_id": 4736,
+        "street_name": "Southern Motorway",
+        "site_ref": "01N20440",
+        "dist_m": 12572.2,
+        "km": 0.1856,
+        "ff_min": 0.1113,
+        "n_origins": 1,
+        "window": "07:15-09:45"
+      },
+      {
+        "section_id": 2250,
+        "street_name": "Southwestern Motorway",
+        "site_ref": "02010015",
+        "dist_m": 12140.7,
+        "km": 0.4178,
+        "ff_min": 0.2507,
+        "n_origins": 21,
+        "window": "none"
+      },
+      {
+        "section_id": 636,
+        "street_name": "Southwestern Motorway",
+        "site_ref": "02010015",
+        "dist_m": 11999.3,
+        "km": 0.4126,
+        "ff_min": 0.2476,
+        "n_origins": 44,
+        "window": "none"
+      },
+      {
+        "section_id": 2187,
+        "street_name": "Southern Motorway",
+        "site_ref": "01N20440",
+        "dist_m": 11926.7,
+        "km": 1.2043,
+        "ff_min": 0.7226,
+        "n_origins": 44,
+        "window": "07:15-09:45"
+      },
+      {
+        "section_id": 4737,
+        "street_name": "Southern Motorway",
+        "site_ref": "01N20440",
+        "dist_m": 11802.1,
+        "km": 1.5256,
+        "ff_min": 0.9154,
+        "n_origins": 1,
+        "window": "07:15-09:45"
+      },
+      {
+        "section_id": 635,
+        "street_name": "Southwestern Motorway",
+        "site_ref": "02010015",
+        "dist_m": 11796.4,
+        "km": 0.1686,
+        "ff_min": 0.1012,
+        "n_origins": 44,
+        "window": "none"
+      },
+      {
+        "section_id": 634,
+        "street_name": "Southwestern Motorway",
+        "site_ref": "02010015",
+        "dist_m": 11560.5,
+        "km": 0.5768,
+        "ff_min": 0.346,
+        "n_origins": 32,
+        "window": "none"
+      },
+      {
+        "section_id": 2061,
+        "street_name": "Southern Motorway",
+        "site_ref": "01N20440",
+        "dist_m": 11061.1,
+        "km": 0.6282,
+        "ff_min": 0.3769,
+        "n_origins": 102,
+        "window": "07:15-09:45"
+      },
+      {
+        "section_id": 633,
+        "street_name": "Southwestern Motorway",
+        "site_ref": "02010015",
+        "dist_m": 11053.8,
+        "km": 1.0523,
+        "ff_min": 0.6314,
+        "n_origins": 32,
+        "window": "none"
+      },
+      {
+        "section_id": 4738,
+        "street_name": "Southern Motorway",
+        "site_ref": "01N20440",
+        "dist_m": 10760.1,
+        "km": 0.6303,
+        "ff_min": 0.3782,
+        "n_origins": 1,
+        "window": "07:15-09:45"
+      }
+    ],
+    "dist_m_by_section": {
+      "11": 9249.1,
+      "12": 8843.3,
+      "13": 8358.4,
+      "14": 7840.8,
+      "15": 7631.3,
+      "16": 7101.9,
+      "17": 6510.0,
+      "18": 5370.1,
+      "19": 4151.1,
+      "20": 3788.8,
+      "21": 3434.6,
+      "22": 2912.0,
+      "23": 2533.8,
+      "24": 2322.6,
+      "25": 1896.9,
+      "26": 1163.5,
+      "27": 701.6,
+      "28": 155.1,
+      "29": 526.6,
+      "30": 559.5,
+      "31": 83.7,
+      "32": 341.1,
+      "33": 905.4,
+      "34": 1917.9,
+      "35": 2200.6,
+      "36": 1765.3,
+      "37": 1154.5,
+      "38": 164.2,
+      "39": 253.6,
+      "40": 697.5,
+      "41": 546.5,
+      "42": 35.7,
+      "43": 593.2,
+      "44": 1093.0,
+      "45": 1280.1,
+      "46": 1564.3,
+      "47": 1798.3,
+      "97": 2159.4,
+      "98": 3311.5,
+      "99": 3261.9,
+      "100": 1220.8,
+      "101": 1061.4,
+      "102": 678.9,
+      "103": 446.4,
+      "104": 161.7,
+      "105": 978.7,
+      "120": 6446.9,
+      "121": 5465.8,
+      "122": 4265.8,
+      "123": 3537.8,
+      "124": 2745.0,
+      "125": 2256.5,
+      "126": 1851.5,
+      "127": 1066.9,
+      "128": 158.1,
+      "129": 526.9,
+      "130": 416.8,
+      "131": 247.7,
+      "132": 461.9,
+      "133": 641.4,
+      "134": 1326.0,
+      "135": 2472.0,
+      "136": 1881.6,
+      "137": 1583.4,
+      "138": 1150.2,
+      "139": 691.4,
+      "140": 80.9,
+      "141": 310.8,
+      "142": 712.2,
+      "143": 616.2,
+      "144": 351.3,
+      "145": 224.7,
+      "146": 61.0,
+      "147": 367.9,
+      "148": 864.7,
+      "149": 1044.8,
+      "150": 1241.4,
+      "151": 1668.9,
+      "157": 247.2,
+      "158": 443.7,
+      "167": 4351.4,
+      "168": 4297.0,
+      "169": 3872.9,
+      "170": 3326.6,
+      "171": 2977.9,
+      "172": 2669.3,
+      "173": 2390.4,
+      "174": 1481.2,
+      "175": 306.5,
+      "176": 252.7,
+      "177": 823.1,
+      "178": 206.4,
+      "179": 290.9,
+      "180": 687.3,
+      "181": 1326.0,
+      "182": 1619.3,
+      "183": 1951.1,
+      "184": 1554.7,
+      "185": 1176.9,
+      "186": 1000.5,
+      "187": 761.6,
+      "188": 632.2,
+      "189": 566.1,
+      "190": 97.4,
+      "191": 768.4,
+      "192": 271.6,
+      "193": 190.7,
+      "194": 64.8,
+      "195": 19.4,
+      "196": 337.8,
+      "239": 164.0,
+      "240": 757.8,
+      "241": 129.7,
+      "242": 660.5,
+      "243": 1427.0,
+      "244": 219.1,
+      "376": 4858.2,
+      "377": 4605.0,
+      "386": 520.5,
+      "387": 205.7,
+      "453": 1810.2,
+      "454": 1164.1,
+      "455": 679.3,
+      "456": 301.6,
+      "631": 10520.3,
+      "632": 10691.1,
+      "633": 11053.8,
+      "634": 11560.5,
+      "635": 11796.4,
+      "636": 11999.3,
+      "715": 5989.8,
+      "716": 5521.0,
+      "717": 5083.9,
+      "718": 4686.4,
+      "719": 4444.5,
+      "720": 3942.2,
+      "721": 3358.9,
+      "729": 634.1,
+      "730": 944.9,
+      "731": 268.2,
+      "732": 318.3,
+      "733": 882.6,
+      "734": 1425.4,
+      "735": 1901.3,
+      "736": 1489.6,
+      "737": 1093.9,
+      "738": 685.9,
+      "739": 210.5,
+      "740": 343.6,
+      "741": 338.0,
+      "742": 685.3,
+      "743": 886.7,
+      "849": 459.8,
+      "872": 3375.7,
+      "873": 2375.2,
+      "882": 1292.3,
+      "883": 388.2,
+      "884": 399.7,
+      "955": 1257.0,
+      "956": 903.1,
+      "957": 536.2,
+      "958": 30.7,
+      "1025": 3752.4,
+      "1026": 3217.3,
+      "1027": 2826.9,
+      "1028": 2253.5,
+      "1029": 1673.2,
+      "1286": 552.1,
+      "1287": 377.0,
+      "1288": 23.3,
+      "1289": 265.3,
+      "1290": 440.4,
+      "1291": 564.4,
+      "1337": 5375.2,
+      "1338": 4460.6,
+      "1519": 1381.3,
+      "1520": 1003.5,
+      "1549": 535.7,
+      "1598": 4131.8,
+      "1599": 3950.6,
+      "1600": 3386.0,
+      "1601": 2537.6,
+      "1628": 10384.6,
+      "1641": 7573.6,
+      "1642": 7392.1,
+      "1643": 6927.7,
+      "1688": 1463.1,
+      "1689": 638.8,
+      "1690": 64.4,
+      "2061": 11061.1,
+      "2062": 10741.9,
+      "2063": 10592.9,
+      "2064": 10392.5,
+      "2065": 9958.7,
+      "2097": 3070.4,
+      "2098": 2458.8,
+      "2099": 1799.6,
+      "2187": 11926.7,
+      "2250": 12140.7,
+      "2988": 5977.1,
+      "2989": 5570.8,
+      "2990": 4858.7,
+      "2991": 4238.6,
+      "2992": 3555.4,
+      "3488": 6310.6,
+      "3489": 5909.6,
+      "3490": 5506.2,
+      "3491": 4760.6,
+      "3492": 4131.2,
+      "3621": 9735.7,
+      "3622": 10170.4,
+      "3895": 495.9,
+      "4076": 240.3,
+      "4077": 51.3,
+      "4148": 398.7,
+      "4300": 7277.6,
+      "4301": 6403.4,
+      "4418": 2501.2,
+      "4736": 12572.2,
+      "4737": 11802.1,
+      "4738": 10760.1,
+      "4739": 10227.8,
+      "4740": 9807.9,
+      "4741": 9293.2,
+      "4742": 8636.3,
+      "4743": 8033.5,
+      "4744": 7713.2,
+      "4972": 478.3,
+      "5337": 6069.5,
+      "5338": 5591.7,
+      "5339": 5096.7,
+      "5759": 1256.7
+    },
+    "n_sections_nzta": 232,
+    "minutes_share_nzta": 0.555553,
+    "minutes_share_mwy_nzta": 0.988663,
+    "mwy_tti_by_corridor": {
+      "SH1_north": {
+        "06-07": 1.809656,
+        "07-08": 2.222222,
+        "08-09": 2.222222,
+        "09-10": 1.651921,
+        "07:30-08:29": 2.222222,
+        "07:30": 2.222222
+      },
+      "SH1_south": {
+        "06-07": 1.3553,
+        "07-08": 2.168539,
+        "08-09": 2.222222,
+        "09-10": 2.150535,
+        "07:30-08:29": 2.222222,
+        "07:30": 2.222222
+      },
+      "SH16": {
+        "06-07": 1.23589,
+        "07-08": 1.498126,
+        "08-09": 1.490111,
+        "09-10": 1.242957,
+        "07:30-08:29": 1.509247,
+        "07:30": 1.518613
+      },
+      "SH20": {
+        "06-07": 1.040851,
+        "07-08": 1.108029,
+        "08-09": 1.116567,
+        "09-10": 1.055763,
+        "07:30-08:29": 1.133655,
+        "07:30": 1.112744
+      },
+      "other": {
+        "06-07": 1.042167,
+        "07-08": 2.122149,
+        "08-09": 2.252304,
+        "09-10": 2.156481,
+        "07:30-08:29": 2.252076,
+        "07:30": 2.222222
+      }
+    },
+    "rows": {
+      "sites": 36,
+      "daily": 32451,
+      "am": 179863,
+      "qh_daily": 7526
+    }
+  },
+  "profiles": {
+    "default": 0,
+    "n": 20,
+    "site_of": {
+      "1": "01N10417",
+      "2": "01N10419",
+      "3": "01N10425",
+      "4": "01N19424",
+      "5": "01N20431",
+      "6": "01N20433",
+      "7": "01N20439",
+      "8": "01N20440",
+      "9": "01620002",
+      "10": "01620006",
+      "11": "01620008",
+      "12": "01620009",
+      "13": "01620011",
+      "14": "02010015",
+      "15": "02010017",
+      "16": "02010018",
+      "17": "02010020",
+      "18": "02010021",
+      "19": "02019015"
+    }
+  },
   "checks": {
     "origins_reproduced": true,
     "max_abs_ffsum_minus_fftt_to_gate": 2.6645352591003757e-14,
@@ -165,140 +2363,160 @@
       "path": "data/origins.csv",
       "bytes": 171828,
       "modified_utc": "2026-10-05T21:58:43Z"
+    },
+    "nzta_tms_sites": {
+      "path": "data/nzta/tms_sites.csv",
+      "bytes": 5963,
+      "modified_utc": "2026-10-08T02:46:38Z"
+    },
+    "nzta_tms_daily_weekday": {
+      "path": "data/nzta/tms_daily_weekday.csv",
+      "bytes": 1170530,
+      "modified_utc": "2026-10-08T02:46:38Z"
+    },
+    "nzta_tms_15min_am_2024": {
+      "path": "data/nzta/tms_15min_am_2024.csv",
+      "bytes": 7224220,
+      "modified_utc": "2026-10-08T02:46:39Z"
+    },
+    "nzta_tms_15min_daily_2024": {
+      "path": "data/nzta/tms_15min_daily_2024.csv",
+      "bytes": 294213,
+      "modified_utc": "2026-10-08T02:46:39Z"
     }
   },
   "k_probes": [
     [
       0.02,
-      5.555556
+      5.553502
     ],
     [
       0.3,
-      1.003211
+      1.003153
     ],
     [
       0.16,
-      1.039626
+      1.038944
     ],
     [
       0.09,
-      1.388877
+      1.386058
     ],
     [
       0.055,
-      3.350732
+      3.501469
     ],
     [
       0.0725,
-      1.892766
+      1.902959
     ],
     [
       0.08125,
-      1.578266
+      1.578114
     ],
     [
       0.076875,
-      1.715043
+      1.718505
     ],
     [
       0.0790625,
-      1.642251
+      1.643613
     ],
     [
       0.07796875,
-      1.67746
+      1.67979
     ],
     [
       0.077421875,
-      1.695947
+      1.69882
     ],
     [
       0.077148438,
-      1.705417
+      1.708579
     ],
     [
       0.077011719,
-      1.710211
+      1.713521
     ],
     [
       0.076943359,
-      1.712622
+      1.716007
     ],
     [
-      0.07690918,
-      1.713832
+      0.076977539,
+      1.714762
     ],
     [
-      0.07689209,
-      1.714437
+      0.076994629,
+      1.714141
     ],
     [
-      0.076900635,
-      1.714135
+      0.077003174,
+      1.713831
     ],
     [
-      0.076904907,
+      0.076998901,
+      1.713986
+    ],
+    [
+      0.076996765,
+      1.714064
+    ],
+    [
+      0.076997833,
+      1.714025
+    ],
+    [
+      0.076998367,
+      1.714005
+    ],
+    [
+      0.076998634,
+      1.713996
+    ],
+    [
+      0.076998501,
+      1.714001
+    ],
+    [
+      0.076998568,
+      1.713998
+    ],
+    [
+      0.076998534,
+      1.713999
+    ],
+    [
+      0.076998518,
+      1.714
+    ],
+    [
+      0.076998526,
+      1.714
+    ],
+    [
+      0.076998522,
+      1.714
+    ],
+    [
+      0.07699852,
+      1.714
+    ],
+    [
+      0.076998519,
+      1.714
+    ],
+    [
+      0.076998518,
+      1.714
+    ],
+    [
+      0.076998518,
+      1.714
+    ],
+    [
+      0.076999,
       1.713983
-    ],
-    [
-      0.076902771,
-      1.714059
-    ],
-    [
-      0.076903839,
-      1.714021
-    ],
-    [
-      0.076904373,
-      1.714002
-    ],
-    [
-      0.07690464,
-      1.713993
-    ],
-    [
-      0.076904507,
-      1.713997
-    ],
-    [
-      0.07690444,
-      1.714
-    ],
-    [
-      0.076904407,
-      1.714001
-    ],
-    [
-      0.076904423,
-      1.714001
-    ],
-    [
-      0.076904432,
-      1.714
-    ],
-    [
-      0.076904436,
-      1.714
-    ],
-    [
-      0.076904438,
-      1.714
-    ],
-    [
-      0.076904437,
-      1.714
-    ],
-    [
-      0.076904437,
-      1.714
-    ],
-    [
-      0.076904437,
-      1.714
-    ],
-    [
-      0.076904,
-      1.714015
     ]
   ]
 }

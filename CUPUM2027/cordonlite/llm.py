@@ -1,9 +1,9 @@
-"""LLM deciders: prompt rendering (template cl-v1), schema, MockLLM and AnthropicLLM backends.
+"""LLM deciders: prompt rendering (template cl-v3), schema, MockLLM and AnthropicLLM backends.
 
 Owner: llm builder. See INTERFACES.md. Never call the live API in tests.
 
 Public API:
-    TEMPLATE_ID = "cl-v1"
+    TEMPLATE_ID = "cl-v3"
     SYSTEM_PROMPT: str
     system_prompt(cfg) -> str                                           # SYSTEM_PROMPT with cfg word limit
     render_user_prompt(ctx: DecisionContext, cfg: Config) -> str       # byte-stable, no GC, no archetype code/label
@@ -20,6 +20,18 @@ Design notes
 - The prompt never shows the generalised cost (GC) or its parts, the archetype code or label,
   or trait names. It shows constraints, disposition sentences, the memory table, today's
   information and the options with their attributes.
+- Template cl-v2 (2026-10-07) adds road traffic: the situation sentence on the drive, a TODAY line
+  with the road delay on the agent's route by departure time (usual traffic on day 1, yesterday's
+  traffic with yesterday's queue later), and a "traffic delay" column in the options and memory
+  tables. The traffic parts are shown when TodayInfo.public_road holds information (road.enabled);
+  with roads off the user message is exactly the cl-v1 text. Road delays are shown in whole minutes
+  rounded half up, floor(R + 0.5) (_road_mins), the rounding build_options uses for the expected
+  gate arrival, so the traffic delay shown is the one built into the row's crossing time and arrival.
+- Template cl-v3 (2026-10-09) drops the SKIP option (no "do not go into the city centre today" row or
+  choice) and, only on a day when the commuter's willingness to pay removed a car option
+  (DecisionContext.wtt_removed > 0), states the limit in the TODAY section. The options table and the
+  schema list the offered options only, the ones the rule chooses from. With roads off the user
+  message is the cl-v2 text without traffic (cl-v1 without the SKIP row).
 - MockLLM is a deterministic stand-in, NOT an LLM. Its outputs carry backend="mock".
 - AnthropicLLM uses the official SDK (anthropic 1.x) with structured outputs
   (output_config.format = json_schema) and, by default, the server-side refusal fallback
@@ -56,7 +68,7 @@ from cordonlite.types import (
     clock_str,
 )
 
-TEMPLATE_ID = "cl-v1"
+TEMPLATE_ID = "cl-v3"
 
 # Models that accept the server-side refusal fallback ("default" form). Claude Haiku 4.5 does
 # not run the classifiers that trigger it, so the fallback beta is not sent for it.
@@ -78,7 +90,7 @@ _SYSTEM_TEMPLATE = (
 
 
 def system_prompt(cfg: Config | None = None) -> str:
-    """System prompt of template cl-v1 with the configured reason word limit."""
+    """System prompt of template cl-v3 (unchanged from cl-v1) with the configured reason word limit."""
     words = cfg.llm.reason_max_words if cfg is not None else 30
     return _SYSTEM_TEMPLATE.format(words=words)
 
@@ -98,6 +110,14 @@ def _mins(x: float | None) -> str:
     if x is None:
         return "-"
     return f"{int(round(x))} min"
+
+
+def _road_mins(x: float | None) -> str:
+    """Road delay in whole minutes, rounded half up as in the expected gate arrival
+    (options.build_options: g = d + fftt_to_gate + floor(R + 0.5)); _mins rounds half to even."""
+    if x is None:
+        return "-"
+    return f"{math.floor(x + 0.5)} min"
 
 
 def _clock(m: int | float | None) -> str:
@@ -124,7 +144,6 @@ def _mode_phrase(mode: str, activity: str) -> str:
         "CAR": "drove",
         "PT": "bus or train",
         "WFH": "worked from home",
-        "SKIP": "did not go into the city centre",
     }.get(mode, mode.lower())
 
 
@@ -134,13 +153,30 @@ def _dispositions(persona: Persona) -> tuple[str, ...]:
     return tuple(persona_mod.disposition_sentences(persona))
 
 
+def _roads_on(ctx: DecisionContext) -> bool:
+    """True when today's information includes road traffic (road.enabled); False leaves out every traffic part."""
+    return bool(ctx.today.public_road)
+
+
+def _road_delay_at(ctx: DecisionContext, o: Option, cfg: Config) -> float:
+    """Public road delay on the agent's route (usual or yesterday's traffic) for a car option."""
+    r = getattr(o, "expected_road_delay_min", None)
+    if r is not None:  # set by options.build_options
+        return float(r)
+    from cordonlite.roads import road_delay_at
+
+    return road_delay_at(ctx.today.public_road, ctx.persona.agent_id, int(o.depart_min or 0),
+                         cfg.time.sim_start_min)
+
+
 def _public_delay_at(ctx: DecisionContext, o: Option, cfg: Config) -> float:
     """Yesterday's public corridor delay (before the personal ratio) for a car option."""
     pub = getattr(o, "expected_public_delay_min", None)
     if pub is not None:  # set by options.build_options
         return float(pub)
     gate_arrive_min = o.expected_gate_arrive_min if o.expected_gate_arrive_min is not None \
-        else int(o.depart_min or 0) + ctx.persona.fftt_to_gate_min
+        else (int(o.depart_min or 0) + ctx.persona.fftt_to_gate_min
+              + math.floor(_road_delay_at(ctx, o, cfg) + 0.5))
     try:
         from cordonlite.options import expected_public_delay
     except ImportError:
@@ -201,10 +237,16 @@ def _situation(ctx: DecisionContext, cfg: Config) -> list[str]:
                          f"{_mins(p.pt_time_min)} door to door, {_money(p.pt_fare)} for the day.")
         else:
             lines.append("- There is no practical bus or train from your area.")
-    lines.append(f"- With no queues the drive takes about {_mins(p.fftt_total_min)}: "
-                 f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
-                 f"{_mins(p.fftt_gate_to_dest_min)} from there. Queues can form at the entry "
-                 f"point you use in the morning.")
+    if _roads_on(ctx):
+        lines.append(f"- With no traffic the drive takes about {_mins(p.fftt_total_min)}: "
+                     f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
+                     f"{_mins(p.fftt_gate_to_dest_min)} from there. In the morning, traffic on the "
+                     f"way and a queue at your entry point can make it longer.")
+    else:
+        lines.append(f"- With no queues the drive takes about {_mins(p.fftt_total_min)}: "
+                     f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
+                     f"{_mins(p.fftt_gate_to_dest_min)} from there. Queues can form at the entry "
+                     f"point you use in the morning.")
     if p.parking_cost > 0:
         lines.append(f"- Parking at your destination costs you {_money(p.parking_cost)} a day.")
     else:
@@ -235,7 +277,6 @@ def _standing_phrase(ctx: DecisionContext) -> str:
     return {
         "PT": "bus or train (option PT)",
         "WFH": "work from home (option WFH)",
-        "SKIP": "not going into the city centre (option SKIP)",
     }.get(sid, f"option {sid}")
 
 
@@ -243,6 +284,7 @@ def _memory(ctx: DecisionContext) -> list[str]:
     recs: Sequence[MemoryRecord] = ctx.recent
     if not recs:
         return ["No trips recorded yet."]
+    roads = _roads_on(ctx)
     rows = []
     for r in recs:
         travel = r.travel_min if r.mode in ("CAR", "PT") else None
@@ -264,15 +306,17 @@ def _memory(ctx: DecisionContext) -> list[str]:
         if r.mode == "CAR":
             fee = _money(r.fee_paid) + (" (employer)" if ctx.persona.company_car and r.fee_paid > 0 else "")
             queue = _mins(r.queue_delay_min)
+            traffic = _road_mins(r.road_delay_min)
         else:
-            fee, queue = "-", "-"
+            fee, queue, traffic = "-", "-", "-"
         rows.append([
             str(r.day), _mode_phrase(r.mode, ctx.persona.activity),
             _clock(r.depart_min) if r.mode in ("CAR", "PT") else "-",
+            *([traffic] if roads else []),
             queue, _mins(travel), start, arrived, fee, "; ".join(note),
         ])
-    return _table(["day", "what you did", "left home", "queue at entry", "door to door",
-                   "start time", "arrived", "charge paid", "note"], rows)
+    return _table(["day", "what you did", "left home", *(["traffic delay"] if roads else []),
+                   "queue at entry", "door to door", "start time", "arrived", "charge paid", "note"], rows)
 
 
 def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
@@ -302,6 +346,16 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
                          "to the next.")
         if p.company_car:
             lines.append("  Your employer pays this charge for your vehicle.")
+        if ctx.wtt_removed > 0:
+            # willingness to pay (2026-10-09): stated only on a day it removed a car option
+            limit = _money(p.wtp_fee)
+            if any(o.mode == "CAR" for o in ctx.options):
+                lines.append(f"- You would not pay more than {limit} a day to drive into the city centre, so "
+                             f"driving at times when the charge is higher than that is not offered today.")
+            else:
+                lines.append(f"- You would not pay more than {limit} a day to drive into the city centre, and "
+                             f"every time you could drive today is charged more than that, so driving is not "
+                             f"offered today.")
     elif t.fee_changed_today:
         lines.append("- The congestion charge for driving into the city centre ends today; "
                      "there is no charge.")
@@ -310,15 +364,29 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
     cars = [o for o in ctx.options if o.mode == "CAR" and o.depart_min is not None]
     if cars:
         prof = t.public_delay.get(p.corridor_id, ())
-        if not prof:
-            lines.append("- No information on yesterday's queues at your entry point is available.")
+        roads = _roads_on(ctx)
+        yesterday_roads = roads and t.public_road_source == "yesterday"
+        if yesterday_roads and prof:
+            # yesterday's traffic and queue together, for the same departures
+            parts = [f"leaving {clock_str(o.depart_min)}: {_road_mins(_road_delay_at(ctx, o, cfg))} traffic + "
+                     f"{_mins(_public_delay_at(ctx, o, cfg))} queue" for o in cars]
+            lines.append("- Yesterday's traffic on your route and queue at your entry point, by time of "
+                         "leaving home: " + ", ".join(parts) + ".")
         else:
-            parts = []
-            for o in cars:
-                parts.append(f"leaving {clock_str(o.depart_min)}: "
-                             f"{_mins(_public_delay_at(ctx, o, cfg))}")
-            lines.append("- Yesterday's queue at your entry point, by time of leaving home: "
-                         + ", ".join(parts) + ".")
+            if roads:   # usual traffic (day 1), or yesterday's traffic with no queue information
+                lead = "Yesterday's traffic on your route" if yesterday_roads else "Usual traffic on your route"
+                parts = [f"leaving {clock_str(o.depart_min)}: {_road_mins(_road_delay_at(ctx, o, cfg))}"
+                         for o in cars]
+                lines.append(f"- {lead}, by time of leaving home: " + ", ".join(parts) + ".")
+            if not prof:
+                lines.append("- No information on yesterday's queues at your entry point is available.")
+            else:
+                parts = []
+                for o in cars:
+                    parts.append(f"leaving {clock_str(o.depart_min)}: "
+                                 f"{_mins(_public_delay_at(ctx, o, cfg))}")
+                lines.append("- Yesterday's queue at your entry point, by time of leaving home: "
+                             + ", ".join(parts) + ".")
     if p.corridor_id in t.pt_disrupted_corridors and t.pt_disruption_announced \
             and any(o.mode == "PT" for o in ctx.options):
         lines.append(f"- Announcement: buses and trains from your area are disrupted today; "
@@ -329,28 +397,30 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
     return lines
 
 
-def _options(ctx: DecisionContext) -> list[str]:
+def _options(ctx: DecisionContext, cfg: Config) -> list[str]:
     p = ctx.persona
+    roads = _roads_on(ctx)
     rows = []
     for o in ctx.options:
         what = {
             "CAR": "drive",
             "PT": "bus or train",
             "WFH": "work from home",
-            "SKIP": "do not go into the city centre today",
         }.get(o.mode, o.mode.lower())
         trip = o.mode in ("CAR", "PT")
         if o.mode == "CAR":
             fee = _money(o.fee) + (" (employer pays)" if p.company_car and o.fee > 0 else "")
             cross = _clock(o.expected_gate_exit_min)
             queue = _mins(o.expected_delay_min)
+            traffic = _road_mins(_road_delay_at(ctx, o, cfg)) if roads else "-"
             park = _money(o.parking)
             fuel = _money(o.fuel)
         else:
-            fee, cross, queue, park, fuel = "-", "-", "-", "-", "-"
+            fee, cross, queue, traffic, park, fuel = "-", "-", "-", "-", "-", "-"
         rows.append([
             o.option_id, what,
             _clock(o.depart_min) if trip else "-",
+            *([traffic] if roads else []),
             queue, cross,
             _mins(o.expected_travel_min) if trip else "-",
             _clock(o.start_used_min if o.start_used_min is not None else p.tstar_min) if trip else "-",
@@ -359,13 +429,15 @@ def _options(ctx: DecisionContext) -> list[str]:
             _money(o.pt_fare) if (o.mode == "PT" and o.pt_fare is not None) else "-",
             "yes" if o.is_standing else "",
         ])
-    return _table(["option id", "what", "leave home", "expected queue", "cross into centre",
-                   "door to door", "start time", "expected arrival", "road charge", "parking", "fuel", "fare", "usual"],
+    return _table(["option id", "what", "leave home", *(["traffic delay"] if roads else []),
+                   "expected queue", "cross into centre", "door to door", "start time", "expected arrival",
+                   "road charge", "parking", "fuel", "fare", "usual"],
                   rows)
 
 
 def render_user_prompt(ctx: DecisionContext, cfg: Config) -> str:
-    """User message of template cl-v1. Deterministic; shows no GC and no archetype."""
+    """User message of template cl-v3 (without the traffic parts when roads are off). Deterministic;
+    shows no GC and no archetype."""
     out = ["ABOUT YOUR SITUATION"]
     out += _situation(ctx, cfg)
     if ctx.traits_shown or cfg.llm.traits_off_prompt == "sentences":
@@ -379,7 +451,7 @@ def render_user_prompt(ctx: DecisionContext, cfg: Config) -> str:
     out += ["", "TODAY"]
     out += _today(ctx, cfg)
     out += ["", "OPTIONS (choose one option id)"]
-    out += _options(ctx)
+    out += _options(ctx, cfg)
     out += ["", "Times are clock times (hh:mm) and estimates for today; money is in NZ dollars. "
                 "Early or late is measured against the start time shown for that option."]
     return "\n".join(line.rstrip() for line in out) + "\n"
@@ -478,7 +550,7 @@ class LLMCache:
 
 _PART_FACTOR = {
     "time": "travel_time", "schedule": "arrival_time", "fee": "fee", "parking": "other",
-    "fuel": "other", "pt": "pt", "wfh": "flexibility", "skip": "work_constraint", "habit": "habit",
+    "fuel": "other", "pt": "pt", "wfh": "flexibility", "habit": "habit",
 }
 _FACTOR_TEXT = {
     "travel_time": "travel time", "arrival_time": "arrival time", "fee": "the charge",
@@ -504,7 +576,7 @@ class MockLLM:
         self.effort = None
         m = cfg.llm.mock
         self.weights = {"time": m.w_time, "schedule": m.w_schedule, "fee": m.w_fee,
-                        "parking": m.w_parking, "fuel": m.w_fuel, "pt": m.w_pt, "wfh": m.w_wfh, "skip": m.w_skip,
+                        "parking": m.w_parking, "fuel": m.w_fuel, "pt": m.w_pt, "wfh": m.w_wfh,
                         "habit": m.w_habit}
 
     def _score(self, o: Option) -> dict[str, float]:
@@ -679,6 +751,9 @@ class LLMDecider:
 
     def __init__(self, cfg: Config, backend: MockLLM | AnthropicLLM, fallback: Decider,
                  log_path: Path, cache: LLMCache | None) -> None:
+        if cfg.llm.template_id != TEMPLATE_ID:   # an older run's template (its snapshot still loads)
+            raise ValueError(f"llm.template_id {cfg.llm.template_id!r}: this code renders template "
+                             f"{TEMPLATE_ID!r} only")
         self.cfg = cfg
         self.backend = backend
         self.fallback = fallback

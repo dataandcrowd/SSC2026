@@ -1,4 +1,7 @@
-"""PyEngine: hand-computed point-queue cases, validation, outputs; NetLogoEngine file plumbing (fake link)."""
+"""PyEngine: hand-computed point-queue cases, validation, outputs; NetLogoEngine file plumbing (fake link).
+
+The point-queue cases use scenarios without road files (free-flow roads, road_delay_min 0); road
+congestion has its own tests in test_roads.py."""
 
 from __future__ import annotations
 
@@ -10,10 +13,11 @@ import pytest
 
 from cordonlite import fees
 from cordonlite.engine import (
-    AGENTS_FILE, CORRIDORS_FILE, FEES_FILE, OUTCOME_COLUMNS, PROFILE_COLUMNS,
-    NetLogoEngine, PyEngine, make_engine, outcomes_file, plans_file, profile_file,
+    AGENTS_FILE, CORRIDORS_FILE, FEES_FILE, OUTCOME_COLUMNS, PROFILE_COLUMNS, ROAD_COLUMNS,
+    NetLogoEngine, PyEngine, _nl_string, make_engine, outcomes_file, plans_file, profile_file, road_file,
     simulate_point_queues,
 )
+from cordonlite.roads import AGENT_ROUTES_FILE, ROAD_PARAMS_FILE, ROAD_PROFILE_FILE, ROAD_SECTIONS_FILE
 
 START = 330  # config default sim_start_min
 CAP = 720
@@ -170,6 +174,8 @@ def test_output_schema_and_conservation(tiny_cfg, tiny_scenario_dir, tiny_plans)
     o, p = r.outcomes, r.profile
     assert list(o.columns) == list(OUTCOME_COLUMNS) and list(p.columns) == list(PROFILE_COLUMNS)
     assert all(str(o[c].dtype) == "int64" for c in OUTCOME_COLUMNS if c != "fee_paid")
+    assert (o["road_delay_min"] == 0).all()                       # no road files: free flow
+    assert r.road.empty and list(r.road.columns) == list(ROAD_COLUMNS)
     assert str(o["fee_paid"].dtype) == "float64"
     assert all(str(p[c].dtype) == "int64" for c in PROFILE_COLUMNS)
     n_car = int((tiny_plans["mode"] == "CAR").sum())
@@ -234,14 +240,20 @@ def test_bad_scenario_files(tiny_cfg, tmp_path):
 
 # ----------------------------------------------------------------- NetLogoEngine plumbing (no JVM)
 
+def _nl_unstring(lit: str) -> str:
+    """Inverse of _nl_string for the path literals in commands."""
+    return lit.strip('"').replace('\\"', '"').replace("\\\\", "\\")
+
+
 class FakeLink:
     """Stands in for pynetlogo.NetLogoLink: answers run-day with PyEngine and NetLogo-style CSVs."""
 
-    def __init__(self, cfg) -> None:
+    def __init__(self, cfg, write_road: bool = True) -> None:
         self.cfg = cfg
         self.commands: list[str] = []
         self.loaded: list[str] = []
         self.py = PyEngine(cfg)
+        self.write_road = write_road
 
     def load_model(self, path: str) -> None:
         self.loaded.append(path)
@@ -249,17 +261,19 @@ class FakeLink:
     def command(self, cmd: str) -> None:
         self.commands.append(cmd)
         if cmd.startswith("setup-from-dir "):
-            self.py.load(Path(cmd.split(" ", 1)[1].strip('"')))
+            self.py.load(Path(_nl_unstring(cmd.split(" ", 1)[1])))
         elif cmd.startswith("run-day "):
             head, rest = cmd[len("run-day "):].split(" ", 1)
             day = int(head)
             d, fee = rest.rsplit(" ", 1)
-            d = Path(d.strip('"'))
+            d = Path(_nl_unstring(d))
             p = pd.read_csv(d / plans_file(day))
             r = self.py.run_day(day, p, fee == "true")
             # NetLogo writes integral numbers without ".0"
             r.outcomes.to_csv(d / outcomes_file(day), index=False)
             r.profile.to_csv(d / profile_file(day), index=False)
+            if self.write_road:
+                r.road.to_csv(d / road_file(day), index=False)
 
 
 def test_netlogo_engine_file_exchange_with_fake_link(tiny_cfg, tiny_scenario_dir, tiny_plans):
@@ -267,19 +281,60 @@ def test_netlogo_engine_file_exchange_with_fake_link(tiny_cfg, tiny_scenario_dir
     nl = NetLogoEngine(tiny_cfg, link=link)
     nl.load(tiny_scenario_dir)
     assert link.loaded == [str(tiny_cfg.resolve_path(tiny_cfg.engine.model_path))]
-    assert link.commands[0] == f'setup-from-dir "{tiny_scenario_dir.resolve()}"'
+    assert link.commands[0] == f"setup-from-dir {_nl_string(str(tiny_scenario_dir.resolve()))}"
     assert link.commands[1] == f"set-clock {tiny_cfg.time.sim_start_min} {tiny_cfg.time.sim_end_cap_min}"
     shuffled = tiny_plans.sample(frac=1.0, random_state=3)
     r = nl.run_day(7, shuffled, True)
-    assert link.commands[-1] == f'run-day 7 "{tiny_scenario_dir.resolve()}" true'
+    assert link.commands[-1] == f"run-day 7 {_nl_string(str(tiny_scenario_dir.resolve()))} true"
     written = pd.read_csv(tiny_scenario_dir / "plans_day07.csv")
     assert list(written.columns) == ["agent_id", "mode", "depart_min"]
     assert written["agent_id"].is_monotonic_increasing
     ref = engine(tiny_cfg, tiny_scenario_dir).run_day(7, tiny_plans, True)
     pd.testing.assert_frame_equal(r.outcomes, ref.outcomes, check_exact=True)
     pd.testing.assert_frame_equal(r.profile, ref.profile, check_exact=True)
+    pd.testing.assert_frame_equal(r.road, ref.road, check_exact=True)
     nl.close()
     nl.close()  # safe twice
+
+
+def _write_road_files(d: Path) -> None:
+    pd.DataFrame({"section_id": [0, 1], "ff_min": [1.25, 2.5], "cap_vph": [300.0, 300.0],
+                  "bg_peak_vph": [300.0, 200.0], "obs_peak_vph": [330.0, 250.0], "w_factor": [1.0, 0.5]}
+                 ).to_csv(d / ROAD_SECTIONS_FILE, index=False)
+    pd.DataFrame([(a, k, s) for a in range(20) for k, s in enumerate([a % 2, 1 - a % 2][: 1 + a % 2])],
+                 columns=["agent_id", "seq", "section_id"]).to_csv(d / AGENT_ROUTES_FILE, index=False)
+    pd.DataFrame({"minute": range(1440), "r": 1.0}).to_csv(d / ROAD_PROFILE_FILE, index=False)
+    (d / ROAD_PARAMS_FILE).write_text("key,value\nbpr_alpha,1.0\nbpr_beta,4\nspeed_floor,0.18\n"
+                                      "flow_window_min,15\nvehicles_per_agent,60.0\n")
+
+
+def test_netlogo_engine_road_exchange_with_fake_link(tiny_cfg, tiny_scenario_dir, tiny_plans):
+    """road_dayNN.csv is read back; a stale one is deleted before NetLogo runs the day, and a
+    missing one is an error when the scenario has road files."""
+    _write_road_files(tiny_scenario_dir)
+    nl = NetLogoEngine(tiny_cfg, link=FakeLink(tiny_cfg))
+    nl.load(tiny_scenario_dir)
+    r = nl.run_day(2, tiny_plans, False)
+    ref = engine(tiny_cfg, tiny_scenario_dir).run_day(2, tiny_plans, False)
+    assert len(ref.road) > 0 and ref.outcomes["road_delay_min"].max() > 0
+    pd.testing.assert_frame_equal(r.outcomes, ref.outcomes, check_exact=True)
+    pd.testing.assert_frame_equal(r.road, ref.road, check_exact=True)
+    # a link that writes no road file: the stale file of an earlier attempt must not be read
+    nl2 = NetLogoEngine(tiny_cfg, link=FakeLink(tiny_cfg, write_road=False))
+    nl2.load(tiny_scenario_dir)
+    assert (tiny_scenario_dir / road_file(2)).exists()
+    with pytest.raises(RuntimeError, match=road_file(2)):
+        nl2.run_day(2, tiny_plans, False)
+    assert not (tiny_scenario_dir / road_file(2)).exists()
+
+
+def test_netlogo_engine_free_flow_needs_no_road_file(tiny_cfg, tiny_scenario_dir, tiny_plans):
+    """Without road files (free-flow roads) a model that writes no road_dayNN.csv gives no road rows."""
+    nl = NetLogoEngine(tiny_cfg, link=FakeLink(tiny_cfg, write_road=False))
+    nl.load(tiny_scenario_dir)
+    assert nl.scenario is not None and nl.scenario.road is None
+    r = nl.run_day(2, tiny_plans, False)
+    assert r.road.empty and list(r.road.columns) == list(ROAD_COLUMNS)
 
 
 def test_netlogo_engine_validates_before_calling_netlogo(tiny_cfg, tiny_scenario_dir):
@@ -296,3 +351,38 @@ def test_netlogo_string_escaping():
     from cordonlite.engine import _nl_string
 
     assert _nl_string('/a b/"c"\\d') == '"/a b/\\"c\\"\\\\d"'
+
+
+def test_netlogo_home_env_var(tiny_cfg, tmp_path, monkeypatch):
+    """CORDONLITE_NETLOGO_HOME, when set, is the NetLogo folder the link starts on (a stand-in
+    pynetlogo, no JVM); it never enters the Config, so config_snapshot.toml keeps config.toml's
+    netlogo_home."""
+    import sys
+    import types
+
+    from cordonlite import engine as E
+    from cordonlite.config import dump_toml, load_config
+
+    home = tmp_path / "NetLogo 7.0.4"
+    (home / "app").mkdir(parents=True)
+    (home / "app" / "netlogo-7.0.4.jar").write_bytes(b"")
+    started: list[dict] = []
+    fake = types.ModuleType("pynetlogo")
+    fake.NetLogoLink = lambda **kw: started.append(kw) or "link"
+    monkeypatch.setitem(sys.modules, "pynetlogo", fake)
+    monkeypatch.setattr(E, "_LINK", None)
+
+    monkeypatch.delenv(E.NETLOGO_HOME_ENV, raising=False)
+    assert E.resolve_netlogo_home(tiny_cfg) == tiny_cfg.engine.netlogo_home
+    snapshot = dump_toml(load_config())
+    monkeypatch.setenv(E.NETLOGO_HOME_ENV, "")  # empty: the config value
+    assert E.resolve_netlogo_home(tiny_cfg) == tiny_cfg.engine.netlogo_home
+    monkeypatch.setenv(E.NETLOGO_HOME_ENV, str(tmp_path / "missing"))
+    with pytest.raises(RuntimeError, match="missing"):
+        E.get_netlogo_link(tiny_cfg)
+    assert not started
+    monkeypatch.setenv(E.NETLOGO_HOME_ENV, str(home))
+    assert E.get_netlogo_link(tiny_cfg) == "link" and E.get_netlogo_link(tiny_cfg) == "link"
+    assert [s["netlogo_home"] for s in started] == [str(home)]  # one link, on the env var's folder
+    assert load_config().engine.netlogo_home == tiny_cfg.engine.netlogo_home != str(home)
+    assert dump_toml(load_config()) == snapshot

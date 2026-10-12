@@ -1,0 +1,193 @@
+arm,seed,peak_fee,window,archetype,archetype_label,company_car,n_agents,car_share,pt_share,wfh_share,travel_share,wtt_limited_share,wtt_no_car_share,wtp_below_peak_share
+R-daily,1,0.0,d21-30,1,hybrid_office,False,292,0.838,0.158,0.004,0.996,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,2,onsite_office,False,251,0.82,0.18,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,3,shift_service,False,93,0.825,0.175,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,0.0,d21-30,5,tertiary_student,False,143,0.813,0.187,0.0,1.0,0.0,0.0,0.0
+R-daily,1,3.0,d21-30,1,hybrid_office,False,292,0.753,0.222,0.025,0.975,0.0616,0.0308,0.0616
+R-daily,1,3.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,3.0,d21-30,2,onsite_office,False,251,0.751,0.249,0.0,1.0,0.0558,0.0398,0.0558
+R-daily,1,3.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,3.0,d21-30,3,shift_service,False,93,0.691,0.309,0.0,1.0,0.172,0.129,0.172
+R-daily,1,3.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.1111
+R-daily,1,3.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.125
+R-daily,1,3.0,d21-30,5,tertiary_student,False,143,0.711,0.289,0.0,1.0,0.1119,0.0699,0.1119
+R-daily,1,6.0,d21-30,1,hybrid_office,False,292,0.602,0.277,0.121,0.879,0.0993,0.0753,0.0993
+R-daily,1,6.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,6.0,d21-30,2,onsite_office,False,251,0.643,0.357,0.0,1.0,0.1235,0.0757,0.1235
+R-daily,1,6.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,6.0,d21-30,3,shift_service,False,93,0.585,0.415,0.0,1.0,0.2151,0.1935,0.2151
+R-daily,1,6.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.2
+R-daily,1,6.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.1635
+R-daily,1,6.0,d21-30,5,tertiary_student,False,143,0.553,0.447,0.0,1.0,0.2168,0.1608,0.2168
+R-daily,1,12.0,d21-30,1,hybrid_office,False,292,0.251,0.338,0.412,0.588,0.1712,0.1164,0.1712
+R-daily,1,12.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,12.0,d21-30,2,onsite_office,False,251,0.524,0.476,0.0,1.0,0.2112,0.1514,0.2112
+R-daily,1,12.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-daily,1,12.0,d21-30,3,shift_service,False,93,0.495,0.505,0.0,1.0,0.2903,0.2366,0.2903
+R-daily,1,12.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.3333
+R-daily,1,12.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.25
+R-daily,1,12.0,d21-30,5,tertiary_student,False,143,0.349,0.651,0.0,1.0,0.4266,0.3007,0.4266
+R-daily,1,18.0,d21-30,1,hybrid_office,False,292,0.082,0.382,0.536,0.464,0.25,0.1712,0.25
+R-daily,1,18.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+R-daily,1,18.0,d21-30,2,onsite_office,False,251,0.381,0.619,0.0,1.0,0.3028,0.2112,0.3028
+R-daily,1,18.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+R-daily,1,18.0,d21-30,3,shift_service,False,93,0.389,0.611,0.0,1.0,0.4086,0.2903,0.4086
+R-daily,1,18.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.4889
+R-daily,1,18.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.3558
+R-daily,1,18.0,d21-30,5,tertiary_student,False,143,0.224,0.776,0.0,1.0,0.5455,0.4266,0.5455
+R-daily,1,30.0,d21-30,1,hybrid_office,False,292,0.0,0.392,0.608,0.392,0.3288,0.2705,0.3288
+R-daily,1,30.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+R-daily,1,30.0,d21-30,2,onsite_office,False,251,0.192,0.808,0.0,1.0,0.4135,0.3227,0.4143
+R-daily,1,30.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+R-daily,1,30.0,d21-30,3,shift_service,False,93,0.192,0.808,0.0,1.0,0.4731,0.4194,0.4731
+R-daily,1,30.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.6222
+R-daily,1,30.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.4327
+R-daily,1,30.0,d21-30,5,tertiary_student,False,143,0.119,0.881,0.0,1.0,0.7063,0.5664,0.7063
+R-clock,1,0.0,d21-30,1,hybrid_office,False,292,0.846,0.151,0.003,0.997,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,2,onsite_office,False,251,0.837,0.163,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,3,shift_service,False,93,0.817,0.183,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,0.0,d21-30,5,tertiary_student,False,143,0.832,0.168,0.0,1.0,0.0,0.0,0.0
+R-clock,1,3.0,d21-30,1,hybrid_office,False,292,0.764,0.208,0.027,0.973,0.0616,0.0308,0.0616
+R-clock,1,3.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,3.0,d21-30,2,onsite_office,False,251,0.741,0.259,0.0,1.0,0.0558,0.0398,0.0558
+R-clock,1,3.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,3.0,d21-30,3,shift_service,False,93,0.688,0.312,0.0,1.0,0.172,0.129,0.172
+R-clock,1,3.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.1111
+R-clock,1,3.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.125
+R-clock,1,3.0,d21-30,5,tertiary_student,False,143,0.699,0.301,0.0,1.0,0.1119,0.0699,0.1119
+R-clock,1,6.0,d21-30,1,hybrid_office,False,292,0.524,0.284,0.192,0.808,0.0993,0.0753,0.0993
+R-clock,1,6.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,6.0,d21-30,2,onsite_office,False,251,0.629,0.371,0.0,1.0,0.1235,0.0757,0.1235
+R-clock,1,6.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,6.0,d21-30,3,shift_service,False,93,0.581,0.419,0.0,1.0,0.2151,0.1935,0.2151
+R-clock,1,6.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.2
+R-clock,1,6.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.1635
+R-clock,1,6.0,d21-30,5,tertiary_student,False,143,0.524,0.476,0.0,1.0,0.2168,0.1608,0.2168
+R-clock,1,12.0,d21-30,1,hybrid_office,False,292,0.168,0.349,0.483,0.517,0.1712,0.1164,0.1712
+R-clock,1,12.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,12.0,d21-30,2,onsite_office,False,251,0.49,0.51,0.0,1.0,0.2112,0.1514,0.2112
+R-clock,1,12.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+R-clock,1,12.0,d21-30,3,shift_service,False,93,0.473,0.527,0.0,1.0,0.2903,0.2366,0.2903
+R-clock,1,12.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.3333
+R-clock,1,12.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.25
+R-clock,1,12.0,d21-30,5,tertiary_student,False,143,0.294,0.706,0.0,1.0,0.4266,0.3007,0.4266
+R-clock,1,18.0,d21-30,1,hybrid_office,False,292,0.041,0.387,0.572,0.428,0.25,0.1712,0.25
+R-clock,1,18.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+R-clock,1,18.0,d21-30,2,onsite_office,False,251,0.315,0.685,0.0,1.0,0.3028,0.2112,0.3028
+R-clock,1,18.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+R-clock,1,18.0,d21-30,3,shift_service,False,93,0.333,0.667,0.0,1.0,0.4086,0.2903,0.4086
+R-clock,1,18.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.4889
+R-clock,1,18.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.3558
+R-clock,1,18.0,d21-30,5,tertiary_student,False,143,0.175,0.825,0.0,1.0,0.5455,0.4266,0.5455
+R-clock,1,30.0,d21-30,1,hybrid_office,False,292,0.0,0.394,0.606,0.394,0.3288,0.2705,0.3288
+R-clock,1,30.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+R-clock,1,30.0,d21-30,2,onsite_office,False,251,0.12,0.88,0.0,1.0,0.4143,0.3227,0.4143
+R-clock,1,30.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+R-clock,1,30.0,d21-30,3,shift_service,False,93,0.097,0.903,0.0,1.0,0.4731,0.4194,0.4731
+R-clock,1,30.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.6222
+R-clock,1,30.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.4327
+R-clock,1,30.0,d21-30,5,tertiary_student,False,143,0.07,0.93,0.0,1.0,0.7063,0.5664,0.7063
+L-clock (mock),1,0.0,d21-30,1,hybrid_office,False,292,0.798,0.199,0.003,0.997,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,2,onsite_office,False,251,0.761,0.239,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,3,shift_service,False,93,0.763,0.237,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,0.0,d21-30,5,tertiary_student,False,143,0.776,0.224,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,3.0,d21-30,1,hybrid_office,False,292,0.589,0.318,0.092,0.908,0.0616,0.0308,0.0616
+L-clock (mock),1,3.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,3.0,d21-30,2,onsite_office,False,251,0.633,0.367,0.0,1.0,0.0558,0.0398,0.0558
+L-clock (mock),1,3.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,3.0,d21-30,3,shift_service,False,93,0.581,0.419,0.0,1.0,0.172,0.129,0.172
+L-clock (mock),1,3.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.1111
+L-clock (mock),1,3.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.125
+L-clock (mock),1,3.0,d21-30,5,tertiary_student,False,143,0.524,0.476,0.0,1.0,0.1119,0.0699,0.1119
+L-clock (mock),1,6.0,d21-30,1,hybrid_office,False,292,0.298,0.387,0.315,0.685,0.0993,0.0753,0.0993
+L-clock (mock),1,6.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,6.0,d21-30,2,onsite_office,False,251,0.526,0.474,0.0,1.0,0.1235,0.0757,0.1235
+L-clock (mock),1,6.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,6.0,d21-30,3,shift_service,False,93,0.462,0.538,0.0,1.0,0.2151,0.1935,0.2151
+L-clock (mock),1,6.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.2
+L-clock (mock),1,6.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.1635
+L-clock (mock),1,6.0,d21-30,5,tertiary_student,False,143,0.343,0.657,0.0,1.0,0.2168,0.1608,0.2168
+L-clock (mock),1,12.0,d21-30,1,hybrid_office,False,292,0.041,0.462,0.497,0.503,0.1712,0.1164,0.1712
+L-clock (mock),1,12.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,12.0,d21-30,2,onsite_office,False,251,0.283,0.717,0.0,1.0,0.2112,0.1514,0.2112
+L-clock (mock),1,12.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-clock (mock),1,12.0,d21-30,3,shift_service,False,93,0.269,0.731,0.0,1.0,0.2903,0.2366,0.2903
+L-clock (mock),1,12.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.3333
+L-clock (mock),1,12.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.25
+L-clock (mock),1,12.0,d21-30,5,tertiary_student,False,143,0.147,0.853,0.0,1.0,0.4266,0.3007,0.4266
+L-clock (mock),1,18.0,d21-30,1,hybrid_office,False,292,0.007,0.452,0.541,0.459,0.25,0.1712,0.25
+L-clock (mock),1,18.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+L-clock (mock),1,18.0,d21-30,2,onsite_office,False,251,0.116,0.884,0.0,1.0,0.3028,0.2112,0.3028
+L-clock (mock),1,18.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+L-clock (mock),1,18.0,d21-30,3,shift_service,False,93,0.129,0.871,0.0,1.0,0.3978,0.2903,0.4086
+L-clock (mock),1,18.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.4889
+L-clock (mock),1,18.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.3558
+L-clock (mock),1,18.0,d21-30,5,tertiary_student,False,143,0.078,0.922,0.0,1.0,0.5455,0.4266,0.5455
+L-clock (mock),1,30.0,d21-30,1,hybrid_office,False,292,0.0,0.469,0.531,0.469,0.3288,0.2705,0.3288
+L-clock (mock),1,30.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+L-clock (mock),1,30.0,d21-30,2,onsite_office,False,251,0.016,0.984,0.0,1.0,0.4143,0.3227,0.4143
+L-clock (mock),1,30.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+L-clock (mock),1,30.0,d21-30,3,shift_service,False,93,0.022,0.978,0.0,1.0,0.4731,0.4194,0.4731
+L-clock (mock),1,30.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.6222
+L-clock (mock),1,30.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.4327
+L-clock (mock),1,30.0,d21-30,5,tertiary_student,False,143,0.0,1.0,0.0,1.0,0.7063,0.5664,0.7063
+L-daily (mock),1,0.0,d21-30,1,hybrid_office,False,292,0.778,0.217,0.004,0.996,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,1,hybrid_office,True,11,0.991,0.0,0.009,0.991,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,2,onsite_office,False,251,0.759,0.241,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,3,shift_service,False,93,0.747,0.253,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,0.0,d21-30,5,tertiary_student,False,143,0.746,0.254,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,3.0,d21-30,1,hybrid_office,False,292,0.633,0.322,0.046,0.954,0.0616,0.0308,0.0616
+L-daily (mock),1,3.0,d21-30,1,hybrid_office,True,11,0.973,0.0,0.027,0.973,0.0,0.0,0.0
+L-daily (mock),1,3.0,d21-30,2,onsite_office,False,251,0.648,0.352,0.0,1.0,0.0558,0.0398,0.0558
+L-daily (mock),1,3.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,3.0,d21-30,3,shift_service,False,93,0.587,0.413,0.0,1.0,0.172,0.129,0.172
+L-daily (mock),1,3.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.1111
+L-daily (mock),1,3.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.125
+L-daily (mock),1,3.0,d21-30,5,tertiary_student,False,143,0.566,0.434,0.0,1.0,0.1119,0.0699,0.1119
+L-daily (mock),1,6.0,d21-30,1,hybrid_office,False,292,0.383,0.389,0.229,0.771,0.0993,0.0753,0.0993
+L-daily (mock),1,6.0,d21-30,1,hybrid_office,True,11,0.945,0.0,0.055,0.945,0.0,0.0,0.0
+L-daily (mock),1,6.0,d21-30,2,onsite_office,False,251,0.541,0.459,0.0,1.0,0.1219,0.0757,0.1235
+L-daily (mock),1,6.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,6.0,d21-30,3,shift_service,False,93,0.51,0.49,0.0,1.0,0.2151,0.1935,0.2151
+L-daily (mock),1,6.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.2
+L-daily (mock),1,6.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.1635
+L-daily (mock),1,6.0,d21-30,5,tertiary_student,False,143,0.381,0.619,0.0,1.0,0.2168,0.1608,0.2168
+L-daily (mock),1,12.0,d21-30,1,hybrid_office,False,292,0.077,0.45,0.473,0.527,0.1712,0.1164,0.1712
+L-daily (mock),1,12.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,12.0,d21-30,2,onsite_office,False,251,0.344,0.656,0.0,1.0,0.2112,0.1514,0.2112
+L-daily (mock),1,12.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0
+L-daily (mock),1,12.0,d21-30,3,shift_service,False,93,0.34,0.66,0.0,1.0,0.2903,0.2366,0.2903
+L-daily (mock),1,12.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.3333
+L-daily (mock),1,12.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.25
+L-daily (mock),1,12.0,d21-30,5,tertiary_student,False,143,0.222,0.778,0.0,1.0,0.4266,0.3007,0.4266
+L-daily (mock),1,18.0,d21-30,1,hybrid_office,False,292,0.009,0.473,0.518,0.482,0.25,0.1712,0.25
+L-daily (mock),1,18.0,d21-30,1,hybrid_office,True,11,0.991,0.0,0.009,0.991,0.0,0.0,0.0909
+L-daily (mock),1,18.0,d21-30,2,onsite_office,False,251,0.183,0.817,0.0,1.0,0.3028,0.2112,0.3028
+L-daily (mock),1,18.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+L-daily (mock),1,18.0,d21-30,3,shift_service,False,93,0.21,0.79,0.0,1.0,0.4086,0.2903,0.4086
+L-daily (mock),1,18.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.4889
+L-daily (mock),1,18.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.3558
+L-daily (mock),1,18.0,d21-30,5,tertiary_student,False,143,0.1,0.9,0.0,1.0,0.5455,0.4266,0.5455
+L-daily (mock),1,30.0,d21-30,1,hybrid_office,False,292,0.0,0.476,0.524,0.476,0.3288,0.2705,0.3288
+L-daily (mock),1,30.0,d21-30,1,hybrid_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.0909
+L-daily (mock),1,30.0,d21-30,2,onsite_office,False,251,0.025,0.975,0.0,1.0,0.4143,0.3227,0.4143
+L-daily (mock),1,30.0,d21-30,2,onsite_office,True,11,1.0,0.0,0.0,1.0,0.0,0.0,0.1818
+L-daily (mock),1,30.0,d21-30,3,shift_service,False,93,0.043,0.957,0.0,1.0,0.4731,0.4194,0.4731
+L-daily (mock),1,30.0,d21-30,4,trades_vehicle,False,45,1.0,0.0,0.0,1.0,0.0,0.0,0.6222
+L-daily (mock),1,30.0,d21-30,4,trades_vehicle,True,104,1.0,0.0,0.0,1.0,0.0,0.0,0.4327
+L-daily (mock),1,30.0,d21-30,5,tertiary_student,False,143,0.008,0.992,0.0,1.0,0.7063,0.5664,0.7063

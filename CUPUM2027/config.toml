@@ -5,8 +5,8 @@
 #   [SSC]    copied from the SSC2026 NetLogo model (../netlogo)
 #   [L]      literature source named inline
 #   [CAL target=...] calibrated by scripts/calibrate_behaviour.py (R-daily, rule decider, seeds 1-3) to the
-#            stated target(s) (two scalars: costs.pt_attitude_penalty and costs.wfh_cost); search log data/behaviour_calibration.json, report docs/calibration_report.md
-#   [A, author decision ...] / [author decision ...] fixed by the authors, never calibrated (paid parking, petrol price, SKIP cost, early start)
+#            stated target(s) (three scalars since 2026-10-09: costs.pt_attitude_penalty, costs.wfh_cost and wtt.beta0; the first two before); search log data/behaviour_calibration.json, report docs/calibration_report.md
+#   [A, author decision ...] / [author decision ...] fixed by the authors, never calibrated (paid parking, petrol price, early start)
 # Relative paths are resolved against the cordon_lite folder (the folder holding this file).
 # Archetype-indexed lists have 5 entries in archetype order:
 #   1 hybrid office, 2 on-site office, 3 shift/service, 4 trades/work vehicle, 5 tertiary student.
@@ -14,7 +14,7 @@
 
 [run]
 seed = 1                          # master seed; every stream is spawned from it; 1 = the seed of the canonical runs and of data/calibration.json [SPEC]
-n_agents = 300                    # commuters simulated [SPEC]
+n_agents = 950                    # commuters simulated: 5% of the 19,000 AM charged vehicles (engine.agents_represented), so 1 agent = 20 cars; 300 before 2026-10-08 [A]
 n_days = 30                       # repeated weekdays [SPEC]
 arm = "R-clock"                   # one of R-daily, R-clock, L-clock, L-daily [SPEC]
 backend = "mock"                  # LLM backend for L-* arms: "mock" or "anthropic" [SPEC]
@@ -22,6 +22,7 @@ engine = "py"                     # "py" (PyEngine reference) or "netlogo" (NetL
 traits = "on"                     # "on" or "off"; off sets H, F, P, S to level 3 (information ladder) [SPEC]
 data_dir = "data"                 # prep outputs (origins.csv, gates.csv, corridors.csv) [SPEC]
 runs_dir = "runs"                 # run outputs go to runs/<arm>_<backend>_<engine>_s<seed>/ [SPEC]
+compress_csv_over_mb = 100.0      # road_entries.csv larger than this (MB) is written gzip-compressed as road_entries.csv.gz; 0 = always (2026-10-09) [A]
 
 [time]
 sim_start_min = 330               # 05:30, engine clock starts here [SPEC]
@@ -33,18 +34,28 @@ tstar_earliest_min = 420          # 07:00, earliest work/class start [SPEC]
 tstar_latest_min = 600            # 10:00, latest work/class start [SPEC]
 tstar_step_min = 15               # t* grid [SPEC]
 retime_offsets_min = [0, 15, 30, 45, 60]   # car options = standing departure +/- these, clipped [SPEC]
-initial_buffer_min = 10           # day-1 reference departure = t* - free-flow time - buffer, floored to grid [A]
+initial_buffer_min = 10           # day-1 reference departure = latest grid departure with departure + free-flow time + public road delay (day 1: usual traffic; 0 with road.enabled = false) + buffer <= t* [A]
 # Early-start addition (2026-10-05). A commuter whose employer allows the early working day (persona.early_shift_prob)
 # is also offered the car departures that reach each of the two starts: the reference departure for the usual start
-# t* and the one for the early start (start - free-flow time - initial_buffer_min, floored to the grid), each
+# t* and the one for the early start (same rule as initial_buffer_min, with the early start in place of t*), each
 # +/- these offsets, clipped to the departure window. Other commuters keep the standing +/- retime_offsets_min set [A]
 anchor_offsets_min = [0, 15]
 
 [fees]
 regime = "tou"                    # "tou", "flat" or "none" [SPEC]
 fee_start_day = 11                # days 1-10 uncharged, charge from day 11 [SPEC]
-fee_flat = 6.0                    # NZ$ per entry for regime "flat"; equals the ToU peak [A]
-# ToU schedule: piecewise linear in hours, (hour, NZ$) [SSC] akl_pricing.nls get-tou-fee
+# Peak charge, NZ$ per entry (2026-10-09) [A, author decision 2026-10-09]. Every charge of tou_points is multiplied
+# by peak_fee / 6 (their highest charge) before the table is built, so the shape and the hours stay and 6 gives the
+# SSC2026 schedule unchanged; regime "flat" charges peak_fee all day. Must be >= 0; 0 levies no charge at all, the
+# same run as regime "none" (no charge day, no trigger T2, no charge in the prompt). The comparison across charge
+# levels runs 0 (the no-charge counterfactual on the same days), 3 (AT's modelled NZ$3 and the 2026 consultation's
+# NZ$3-4), 6, 12, 18 and 30 (about London's daily charge), each charged from fee_start_day; a run with another
+# value than this file's gets the folder suffix _peak<NZ$> (CLI --peak-fee). Behaviour (costs.pt_attitude_penalty,
+# costs.wfh_cost, wtt.beta0) is calibrated at 6, so other values extrapolate. History: the same day's charge
+# multiplier fees.scale (peak NZ$6 x scale, runs _fx2, _fx3, _fx5) and fee_flat (NZ$6 for regime "flat") are
+# retired; an older config_snapshot.toml loads with peak_fee = its scale x its peak.
+peak_fee = 6.0
+# ToU schedule: piecewise linear in hours, (hour, NZ$) [SSC] akl_pricing.nls get-tou-fee; scaled to peak_fee
 tou_points = [
   [0.0, 2.0], [5.5, 2.0], [6.0, 4.0], [7.5, 4.0], [8.0, 6.0], [9.0, 6.0], [9.5, 4.0],
   [15.5, 4.0], [16.0, 6.0], [18.0, 6.0], [18.5, 4.0], [20.5, 4.0], [21.0, 2.0], [24.0, 2.0],
@@ -70,6 +81,23 @@ frc_capacity_vph = [4000.0, 2500.0, 1500.0, 900.0, 600.0]
 map_sample_origins = 1000         # origins drawn on prep_map.png [A]
 seed = 11                         # prep-only seed for origin sampling and corridor clustering; fixed so data/ never depends on run.seed (data/ was built with 11) [A]
 gate_rule = "first_entry"        # "first_entry": first edge whose far end is inside [SPEC]; "last_entry": final outside->inside crossing [A]
+# Road congestion inputs (prep.build_roads, 2026-10-07; writes data/road_*.csv)
+roads_shp = "netlogo7/gis/tomtom_major_roads.shp"   # TomTom major roads as a shapefile (segment_id = newSegmentId), EPSG:2193 [SPEC]
+adt_geojson = "../../SSC2026/netlogo/Data/Average_Daily_Traffic_Counts.geojson"  # AT/NZTA traffic count points (SSC2026 repository), EPSG:4326 [DATA]
+adt_match_m = 30.0                # a count point matches a same-name segment within this distance [A]
+adt_propagate_m = 1000.0          # a count holds along the same street up to this distance [A]
+road_inbound_share = 0.6          # share of the two-way AM peak flow that travels towards the city centre [A]
+road_peak_ratio_default = 0.096   # AM peak-hour volume / ADT where no AM peak count exists (median, central arterials) [DATA]
+road_commuter_car_share = 0.8     # car share used to net the commuters out of the counts (base_car target centre) [A]
+road_tti_target = 1.714           # AM rush-hour travel time / free flow: TomTom Traffic Index, Auckland 2025, congestion level 71.4% [DATA]
+road_tti_window = [480, 540]      # departures over which road_tti_target is matched (08:00-09:00) [A]
+road_cap_k_bounds = [0.02, 0.3]   # bisection bracket for k in capacity = k x directional ADT [A]
+road_adt_floor_pct = 5.0         # capacity uses max(adt_dir, this percentile of adt_dir within the road class): tiny or stale counts do not give near-zero capacity (2026-10-08) [A]
+road_tti_exclude_mwy = true       # match road_tti_target on non-motorway sections only; motorway sections follow road.mwy_* (2026-10-08) [A]
+road_profile_start_min = 360      # first 15-min bin of road_profile (06:00) [A]
+# background flow per 15-min bin from road_profile_start_min, as a ratio to the AM peak-hour mean flow
+# (peak timing from the counts' peak_hour field [DATA]; shoulder shape [A])
+road_profile = [0.32, 0.38, 0.46, 0.56, 0.67, 0.77, 0.87, 0.93, 1.01, 1.05, 1.00, 0.93, 0.81, 0.73, 0.69, 0.65, 0.62, 0.60]
 
 [engine]
 netlogo_home = "/Applications/NetLogo 7.0.4"                    # [SPEC]
@@ -82,7 +110,8 @@ gui = false                       # headless in runs and tests [SPEC]
 capacity_mode = "demand_share"
 rush_window_min = 60.0            # N/s per corridor under demand_share [A]
 agents_represented = 19000.0      # AM charged vehicles, AT/AC option 1a July 2025 [v3 csv SC row]
-min_capacity_per_min = 0.25       # floor so an almost empty corridor still serves [A]
+min_capacity_per_min = 0.25       # floor so an almost empty corridor still serves, agents/min; used when min_capacity_vph = 0 [A]
+min_capacity_vph = 950.0          # the same floor in vehicles/h, independent of n_agents (0.25 agents/min x 63.3 cars x 60 at 300 agents) [A]
 # Capacity calibration (integrator). capacity_per_min = base (capacity_mode) x capacity_scale.
 # `python -m cordonlite.run calibrate` bisects capacity_scale so that the R-daily no-charge run
 # (days calib_days, fee regime "none") has a peak mean queue delay of about
@@ -93,7 +122,11 @@ min_capacity_per_min = 0.25       # floor so an almost empty corridor still serv
 capacity_scale = 1.0              # used only when no calibration file is used [A]
 use_calibration = true            # read capacity_scale from calibration_file when it exists [A]
 calibration_file = "data/calibration.json"   # written by the calibrate subcommand [A]
-calib_target_peak_delay_min = 15.0           # target peak mean queue delay (min) [A]
+calib_target_peak_delay_min = 15.0           # target peak mean delay (min), see calib_delay [A]
+# which delay the target measures: "total" = gate queue + road delay on the way in (2026-10-07: with
+# congested roads, the 15 min that the gate queue used to stand for alone is shared with the roads);
+# "queue" = gate queue only (the model before 2026-10-07; the same thing when road.enabled = false) [A]
+calib_delay = "total"
 # calibration metric: "car_weighted_mean" = per-corridor peak 15-min mean queue delay averaged over
 # corridors with car counts as weights; "worst" = largest corridor peak; "busiest" = corridor with
 # the most cars (the integrator's first version) [A]
@@ -103,6 +136,27 @@ calib_scale_bounds = [0.05, 10.0] # bisection bracket for capacity_scale [A]
 calib_max_iter = 25               # bisection iterations (log scale) [A]
 calib_tol_min = 2.0               # stop when |peak - target| <= this many minutes; the day-to-day equilibrium is discrete and noisy [A]
 calib_bin_min = 15                # gate-arrival bin (min) for the peak mean queue delay [A]
+
+[road]
+# Road congestion on the way to the cordon gate (2026-10-07). Each car's travel time from home to its
+# gate depends on the traffic on its route when it drives it: background traffic from the counts plus
+# the commuters' own cars. Inputs come from prep.build_roads (data/road_*.csv). enabled = false gives
+# free-flow roads, where the gate queue is the only congestion (the model before 2026-10-07).
+enabled = true                    # [SPEC 2026-10-07]
+bpr_alpha = 0.15                  # BPR: travel time = free flow x (1 + alpha x (V/C)^beta), as SSC2026 [A]
+bpr_beta = 4                      # only 4 is implemented: the engines compute (x*x)*(x*x) [A]
+speed_floor = 0.18                # lowest speed as a share of free-flow speed, as SSC2026 [A]
+flow_window_min = 15              # commuter flow on a section = its cars that entered in the last 15 min [A]
+# Motorway flow breakdown (2026-10-08). Auckland motorways run over capacity for hours in the morning
+# and break down into stop-and-go ("phantom") traffic. On a motorway section (frc 0, not a ramp)
+# flow breaks down when V/C reaches mwy_breakdown_vc; it then runs at most mwy_jam_speed of free-flow
+# speed with capacity cut by mwy_capacity_drop, and (in usual traffic) stays broken down until V/C
+# falls below mwy_recover_vc. mwy_breakdown = false gives the plain BPR curve on motorways too.
+mwy_breakdown = true              # [SPEC 2026-10-08]
+mwy_breakdown_vc = 1.0            # breakdown at V/C >= 1 (HCM: level of service F) [A]
+mwy_recover_vc = 0.95             # recovery once usual V/C falls below this (hysteresis) [A]
+mwy_capacity_drop = 0.10          # discharge capacity after breakdown is 10% lower (Cassidy & Bertini 1999; 3-18% in the literature) [A]
+mwy_jam_speed = 0.45              # speed in broken-down flow <= 45% of free flow (45 km/h on a 100 km/h motorway) [A]
 
 [persona]
 vot_mu = 2.3                      # ln VoT, VoT NZ$/h ~ lognormal [SSC] SSC2026 model
@@ -149,7 +203,7 @@ park_cost_paid = [17.0, 17.0, 17.0, 0.0, 12.75]
 # [A, author decision 2026-10-05: many employers encourage a 07:00 to 15:00 day; no empirical source]. Drawn after
 # every other Layer A draw, so no earlier persona field changes. Not calibrated. The LLM prompt states it.
 early_shift_prob = [0.8, 0.5, 0.0, 0.5, 0.0]
-n_twins = 30                      # last n_twins agents copy Layer A of agents 0..n_twins-1 (twin table) [A]
+n_twins = 95                      # last n_twins agents copy Layer A of agents 0..n_twins-1 (twin table); 10% of run.n_agents [A]
 
 [traits]
 # Shares of levels 1..5, latent N(0,1) cut at share boundaries [v3 4.2, csv B share]
@@ -174,20 +228,32 @@ pt_access_min = 10.0              # walk/wait added to PT time [A]
 pt_ratio_default = 1.6            # PT in-vehicle time / free-flow car time, between v3 local 1.4 and boundary 2.0 [A]
 pt_ratio_by_corridor = []         # optional per corridor_id override list; empty = default for all [A]
 pt_unavailable_corridors = []     # corridor_ids with no practical PT [A]
-wfh_cost = 10.0                   # NZ$ k_WFH, scaled by phi(F) [CAL target=car crossings d21-30 vs d6-10 -12% to -22% and d11-13 to about -30%; base WFH <= 0.10], searched 2-16 in NZ$1 steps with parking and fuel fixed; interior to the range. v3 6.2 k_wfh = 8 (the value until 2026-10-03, then at the edge of the range 2-8). Identified by the response and overshoot (base WFH stays about 0.00-0.01 from k_WFH 8 upwards). Re-searched on 2026-10-05 with skip_cost 30 and the early start: 10 again (6 feasible points of 405; the feasible point nearest the anchors)
-skip_cost = 30.0                  # NZ$ base cost to postpone or cancel the day (plus skip_vot_hours x VoT) [A, author decision 2026-10-05; raised with the driving cost]; 25 until then
+wfh_cost = 12.0                   # NZ$ k_WFH, scaled by phi(F) [CAL target=car crossings d21-30 vs d6-10 -12% to -22% and d11-13 to about -30%; base WFH <= 0.10], searched 2-16 in NZ$1 steps with parking and fuel fixed; interior to the range. v3 6.2 k_wfh = 8 (the value until 2026-10-03, then at the edge of the range 2-8). Identified by the response and overshoot (base WFH stays about 0.00-0.01 from k_WFH 8 upwards). Re-searched on 2026-10-05 with skip_cost 30 and the early start: 10 again (6 feasible points of 405; the feasible point nearest the anchors). Re-searched on 2026-10-09 at 950 agents with congested roads and the motorway breakdown rule, capacity calibrated to the peak queue + road delay (same grid, targets, seeds, loss and rule; single-seed tolerances x sqrt(300 / 950)): 9, previously 10 (8 feasible points of 405, all at PAP 22 with k_WFH 9-16; the feasible point nearest the anchors, also the lowest-loss point of the grid). Re-searched on 2026-10-09 after SKIP was removed and the willingness to travel added, with wtt.beta0 as a third scalar (staged grid, 489 points, same targets less the SKIP share, seeds, loss and rule; anchors gain beta0 0.5): 12, previously 9 (15 feasible points, all at PAP 22 on a ridge from k_WFH 10 / beta0 0.05 to k_WFH 14 / beta0 0.25, where a higher k_WFH weakens the WFH response as much as a higher beta0 strengthens the willingness-to-pay response; the feasible point nearest the anchors, ahead of k_WFH 13 / beta0 0.2 by 0.011 in anchor distance). Without the willingness to travel (beta0 0) k_WFH 12 gives -14.5% on days 21-30
 delay_bin_min = 5                 # bin width of the public corridor delay profile [A]
 # NZ$ PT attitude penalty PAP [CAL target=base PT 0.08-0.15, base car 0.75-0.85, car crossings d21-30 vs d6-10
 # -12% to -22% (centre -20%)], searched 10-36 in NZ$1 steps with paid parking (NZ$17) and fuel (NZ$0.30/km) fixed;
-# 20 is interior to the range (earlier: 11 without a fuel cost, 12 with fuel 0.23 and parking searched, both on a
+# 22 is interior to the range (earlier: 11 without a fuel cost, 12 with fuel 0.23 and parking searched, both on a
 # range of 4-12). Form: PT GC = omega(P) x (VoT/60 x T_pt + PAP) + fare (specification), so omega also scales PT
 # time and there is no v3 HTA/2 factor. v3 6.2 uses omega(P) x PAP x HTA/2 with PAP NZ$8 swept {4, 8, 12}
-# (HTA = 1 local, 2 boundary), i.e. an attitude term of 4 to 12 x omega; Cordon-Lite's 20 x omega equals v3 PAP 20
-# (boundary) to 40 (local), far above v3's range. With parking and fuel fixed, PAP is the one scalar left to hold
+# (HTA = 1 local, 2 boundary), i.e. an attitude term of 4 to 12 x omega; Cordon-Lite's 22 x omega equals v3 PAP 22
+# (boundary) to 44 (local), far above v3's range. With parking and fuel fixed, PAP is the one scalar left to hold
 # the assumed baseline split, so it is a fitted residual, not an estimate of an attitude. 0 = specification GC.
 # Re-searched on 2026-10-05 with skip_cost 30 and the early start (same grid, targets, seeds and rule): 20 again.
-pt_attitude_penalty = 20.0
-skip_vot_hours = 1.0              # SKIP cost = skip_cost + skip_vot_hours x VoT (a lost or postponed day scales with the value of time) [A]
+# Re-searched on 2026-10-09 at 950 agents with congested roads and the motorway breakdown rule, capacity calibrated
+# to the peak queue + road delay (same grid, targets, seeds, loss and rule; single-seed tolerances
+# x sqrt(300 / 950)): 22, previously 20. 8 feasible points of 405, all at PAP 22 (k_WFH 9-16): base PT is 0.16
+# at PAP 21 and base car 0.86-0.87 at PAP 23 for k_WFH 7-16 (3-seed means, two decimals); the rule picks the
+# feasible point nearest the anchors, which is also the lowest-loss point of the grid.
+# Re-searched on 2026-10-09 after SKIP was removed and the willingness to travel added, with wtt.beta0 as a third
+# scalar (staged grid; beta0 does not move the base shares): 22 again. Base PT is 0.16 at PAP 21 for every k_WFH;
+# at PAP 23 and 24 base car is 0.86-0.88 from k_WFH 7 (23) or 6 (24) upwards, and the lower k_WFH that meet the base
+# shares there respond by -28% or more on days 21-30 even with beta0 = 0.
+pt_attitude_penalty = 22.0
+# SKIP (postpone or cancel the day) removed on 2026-10-09 [author decision 2026-10-09]: it had become a permanent
+# choice rather than a one-day postponement (at a NZ$30 peak 97 of R-clock's 102 skippers skipped all of days 21-30;
+# at NZ$6, 8 commuters skipped every day), and in the rule arms every skipper could have taken PT. Every commuter now
+# chooses among CAR (a departure time), PT and WFH where allowed; the willingness to pay ([wtt]) limits the car
+# options instead. Retired: skip_cost (NZ$30 from 2026-10-05, 25 before) and skip_vot_hours (1 hour of VoT).
 pt_headway_min = 10               # PT services leave on a 10-min grid; the rider takes the latest one arriving by t*, so PT has early-arrival schedule delay [A]
 wfh_form = "v3_relative"          # "v3_relative": WFH = wfh_cost x phi + VoT/60 x free-flow time + parking + fuel, i.e. WFH earns no commute-time, parking or fuel credit against driving (v3 6.2: no PARK term, zero-fee property; fuel follows the parking logic [A]) [v3]; "spec": wfh_cost x phi
 # Fuel (vehicle running) cost of the car option, NZ$ per km: car fuel = 2 x path_km x fuel_cost_per_km (round trip,
@@ -199,8 +265,8 @@ wfh_form = "v3_relative"          # "v3_relative": WFH = wfh_cost x phi + VoT/60
 #   253.45 c/L for the first week of September 2025 (0.23 NZ$/km, the value used until 2026-10-03) and 296.70 c/L
 #   for the first week of September 2026 (0.27 NZ$/km);
 #   https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-statistics/weekly-fuel-price-monitoring
-#   Base-year note: the fuel price is an October 2026 value, while the PT fare, the charge schedule and the SKIP
-#   cost are 2025 or earlier values and paid parking is a 2014 rate (see docs/calibration_report.md, Limits).
+#   Base-year note: the fuel price is an October 2026 value, while the PT fare and the charge schedule are 2025 or
+#   earlier values and paid parking is a 2014 rate (see docs/calibration_report.md, Limits).
 #   Consumption: 9.0 L/100 km, estimated real-world fuel use of NZ petrol light vehicles (build years 2013-2014;
 #   9.0-9.3 for 2010-2014), Metcalfe and Sridhar (2016), Real world energy use projections for VFEM, report for the
 #   Ministry of Transport, Table 5;
@@ -214,6 +280,24 @@ fuel_cost_per_km = 0.30
 # early_shift_cost x phi(F). Not calibrated; both are fixed assumptions.
 early_start_min = 420             # 07:00, start of the earlier working day (07:00 to 15:00) [A, author: employers encourage 07:00 to 15:00]
 early_shift_cost = 3.0            # NZ$ per day, inconvenience of working the early day, x phi(F) (6.0 at F = 1 to 1.5 at F = 5); small relative to the charge (NZ$4 to 6) [A]
+
+[wtt]
+# Willingness to travel (2026-10-09) [author decision 2026-10-09]. Each commuter has a fixed most it would pay a day
+# to drive into the city centre, WTP = -ln(u) x VoT / beta (NZ$, to the cent), with u ~ U(0, 1) drawn once (Layer A,
+# after every other Layer A draw; twins copy it) and beta = clip(beta0 x VoT_ref / VoT, beta_clip). The share
+# willing to pay a charge F then falls exponentially, P(WTP >= F) = exp(-beta x F / VoT): the exponential-decay entry
+# rule of the SSC2026 model (akl_pricing.nls decide-baseline: p_enter = clip(base_trip_rate x exp(-beta x fee / VoT),
+# 0.05, 0.95), beta = clip(base_beta x median VoT / VoT, 0.1, 2.0), base_beta 0.5) [SSC], here as a threshold fixed
+# per commuter instead of a daily draw, without the base trip rate and without the 0.05-0.95 clip [A]. On a charged
+# day a CAR option whose charge (the fee at its expected crossing) is above WTP is not offered, so cheaper shoulder
+# departures stay (retiming) and a commuter unwilling to pay any of them takes PT or works from home. Not applied to
+# a company car (the employer pays) or to a commuter with neither PT nor WFH (an essential trip). Applies in every
+# arm (rule, MockLLM, LLM): a choice-set constraint like PT availability; the prompt states the limit only on a day
+# it removed a car option. Uncharged days are unaffected (every fee 0 <= WTP), so days 1-10 and the capacity
+# calibration do not depend on it.
+beta0 = 0.15                      # price sensitivity at VoT_ref [CAL target=car crossings d21-30 vs d6-10 -12% to -22% and d11-13 to about -30%, with costs.pt_attitude_penalty and costs.wfh_cost], searched 0.05-1.0 (stage 1: 0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0; then the midpoints 0.15 and 0.25) on a staged grid with PAP and k_WFH; anchor 0.5 = SSC2026 base_beta [SSC]; interior to the range. 0 = off (no limit: the model before 2026-10-09; run as a reference, never selected). 2026-10-09: 0.15 with PAP 22 / k_WFH 12 (the feasible point nearest the anchors; 15 feasible points with beta0 0.05-0.25). A commuter with the median VoT pays the NZ$6 peak with probability exp(-0.15 x 6 / 9.97) = 0.91; at the chosen point 14% of commuters have a WTP below NZ$6 and 8% have no car option left on charged days. SSC2026's 0.5 at PAP 22 / k_WFH 12 gives -32% on days 21-30 (beyond the band). Calibrated at the NZ$6 peak; other fees.peak_fee values extrapolate
+beta_clip = [0.1, 2.0]            # bounds on beta, as SSC2026 [SSC]
+vot_ref = "distribution_median"   # VoT_ref: "distribution_median" = exp(persona.vot_mu) = NZ$9.97/h, the median of the VoT distribution [A]; "sample_median" = median VoT of the simulated commuters, as SSC2026 (its population median) [SSC]
 
 [memory]
 window_days = 5                   # rows shown in the prompt [v3 5.2, csv C window]
@@ -236,7 +320,7 @@ discontinuity_triggers = ["T1", "T4", "T6"]  # kappa_H halved on these wakes; T2
 review_every_days = 0             # T7 periodic review: wake an agent that has followed its standing plan for this many days in a row; 0 = off (default, the event-only clock); 5 = weekly review, run as a sensitivity [A]
 
 [events]
-pt_disruption_day = 20            # [SPEC]
+pt_disruption_day = 20            # one day or a list of days, e.g. --set events.pt_disruption_day=[3,8] (the same corridor each day) [SPEC]
 pt_disruption_corridor = -1       # -1 = corridor with the most PT-feasible agents [SPEC]
 pt_disruption_time_mult = 2.0     # PT time x2 [A]
 pt_disruption_announced = true    # announced that morning [A]
@@ -255,7 +339,7 @@ max_concurrency = 8               # asyncio semaphore [SPEC]
 max_retries = 5                   # SDK client retries [SPEC]
 invalid_output_retries = 1        # retry once on invalid output (unparsable, truncated, choice not offered), then rule fallback; API errors and refusals are not resent [SPEC]
 max_consecutive_errors = 5        # stop the run (LLMFatalError) after this many API errors in a row; 401/402/403/404 stop it at once; 0 = never [A]
-template_id = "cl-v1"             # prompt template [SPEC]
+template_id = "cl-v3"             # prompt template [SPEC]; cl-v3 (2026-10-09): no SKIP option, and the willingness-to-pay sentence on a day it removes a car option; cl-v2 added road traffic (omitted when road.enabled = false)
 reason_max_words = 30             # [SPEC]
 cache_dir = "runs/llm_cache"      # disk cache shared across runs and arms: identical prompts share one answer (v3 7.5) [A]
 replicate = 0                     # sample index added to the cache key when > 0, to draw a fresh LLM sample per replicate [A]
@@ -271,6 +355,5 @@ w_parking = 1.0
 w_fuel = 1.0                      # fuel addition; same weight as parking [A]
 w_pt = 0.9
 w_wfh = 1.0
-w_skip = 1.0
 w_habit = 0.75
 noise_sigma = 1.0                 # Gumbel scale (NZ$) [A]

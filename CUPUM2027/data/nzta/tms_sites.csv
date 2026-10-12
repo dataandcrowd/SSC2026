@@ -1,0 +1,37 @@
+site_ref,description,corridor,direction,flow_direction,kind,cbd_bound,cbd_role,lanes,lat,lon,x_nztm,y_nztm,note
+01N10417,SH1 Tristram Ave Interchange SB (N7),SH1_north,SB,1,mainline,1,CBD-bound,2,-36.773520,174.743848,1755626.6,5928833.3,Tristram Ave (upstream)
+01N10419,SH1 Northcote Rd Interchange SB (N6),SH1_north,SB,1,mainline,1,CBD-bound,3,-36.789490,174.753810,1756483.2,5927045.2,Northcote
+01N10420,SH1 Esmonde Rd Interchange SB (N5),SH1_north,SB,1,mainline,1,CBD-bound,3,-36.800944,174.761632,1757157.8,5925761.6,Esmonde
+01N10425,SH1 Shelly Beach Rd Off Ramp to Fanshawe St Off Ramp SB (N2),SH1_north,SB,1,mainline,1,CBD-bound,5,-36.838374,174.741841,1755316.4,5921641.3,south end of the bridge (Shelly Beach-Fanshawe)
+01N19424,Auckland Harbour Bridge - Classifier Site No 1 - SB,SH1_north,SB,1,mainline,1,CBD-bound,5,-36.825311,174.749213,1756000.3,5923078.6,Harbour Bridge classifier; moveable barrier (5 SB lanes in the AM)
+01N20429,SH1 Northwestern Off Ramp to Symonds/Wellesley/Port Off Ramp NB (S1),SH1_south,NB,2,mainline,1,mixed,3,-36.864186,174.766148,1757431.0,5918737.8,inside the CMJ after the CBD exits; through traffic to the bridge
+01N20431,SH1 Gillies Ave On Ramp to Market Rd Off Ramp NB (S2),SH1_south,NB,2,mainline,1,CBD-bound,4,-36.876031,174.780755,1758708.6,5917399.5,Newmarket viaduct (Market Rd-Gillies); best CBD approach site
+01N20433,SH1 Green Lane East Interchange NB (S3),SH1_south,NB,2,mainline,1,CBD-bound,3,-36.888228,174.795768,1760021.3,5916021.2,Ellerslie/Greenlane
+01N20439,SH1 Mt Wellington Hwy Interchange NB (S5),SH1_south,NB,2,mainline,1,CBD-bound,2,-36.917958,174.838139,1763733.8,5912650.8,between the Mt Wellington Hwy ramps
+01N20440,PANAMA RD - Telemetry Site 79 - NB,SH1_south,NB,2,mainline,1,CBD-bound,3,-36.929173,174.849607,1764731.3,5911386.8,Penrose/Panama Rd national telemetry site (gappy after the Sep 2022 handover)
+01620002,SH16 SH1 On Ramp to Wellesley St Off Ramp EB,SH16,EB,2,mainline,1,CBD-bound,2,-36.857631,174.767372,1757553.6,5919463.1,SH1 on ramp to Wellesley St off ramp (CBD end)
+01620006,SH16 St Lukes Rd Interchange EB,SH16,EB,2,mainline,1,CBD-bound,4,-36.868637,174.738161,1754927.1,5918289.8,St Lukes/Western Springs (after the SH20 link)
+01620008,SH16 Great Nth Rd Interchange EB,SH16,EB,2,mainline,1,CBD-bound,3,-36.872228,174.703778,1751855.1,5917946.6,Great North Rd interchange (before the SH20 link merges)
+01620009,SH16 Patiki Rd Off Ramp to Rosebank Rd On Ramp EB,SH16,EB,2,mainline,1,CBD-bound,4,-36.868444,174.670627,1748907.5,5918418.7,Causeway (Patiki-Rosebank)
+01620011,SH16 Te Atatu Sth On Ramp to Te Atatu Peninsula On Ramp EB,SH16,EB,2,mainline,1,CBD-bound,4,-36.858153,174.654350,1747476.3,5919585.7,Te Atatu
+01620013,SH16 Lincoln Rd Interchange EB,SH16,EB,2,mainline,1,CBD-bound,3,-36.849478,174.634246,1745700.5,5920579.0,Lincoln Rd (not in the 2022-25 quarter-hourly files since 2024)
+02010015,SH20 Neilson St On Ramp to Queenstown Rd Off Ramp NB,SH20,NB,1,mainline,1,partly CBD-bound,4,-36.926281,174.776850,1758256.7,5911830.9,Onehunga (Neilson-Queenstown)
+02010017,SH20 Hillsborough Rd On Ramp to Dominion Rd Off Ramp NB,SH20,NB,1,mainline,1,partly CBD-bound,3,-36.914514,174.748599,1755764.3,5913182.9,Hillsborough-Dominion
+02010018,SH20 Dominion Rd Interchange NB,SH20,NB,1,mainline,1,partly CBD-bound,3,-36.911382,174.739473,1754957.6,5913545.3,Dominion Rd (Mt Roskill)
+02010020,SH20 Maioro St Interchange NB,SH20,NB,1,mainline,1,partly CBD-bound,2,-36.902083,174.720396,1753276.6,5914607.8,Maioro St
+02010021,SH20 Waterview Tunnel NB,SH20,NB,1,mainline,1,partly CBD-bound,3,-36.900364,174.715719,1752863.3,5914806.0,Waterview Tunnel (splits to SH16 EB/WB)
+02019015,SH20 Queenstown Rd Off Ramp to Hillsborough Rd Off Ramp NB,SH20,NB,1,mainline,1,partly CBD-bound,3,-36.922075,174.767885,1757466.8,5912312.4,Queenstown-Hillsborough
+01639008,SH16 Southwestern On Ramp WB (Link),SH20_to_SH16,WB,3,link,0,not CBD-bound,2,-36.871958,174.698667,1751400.0,5917984.7,Waterview link SH20 NB -> SH16 WB
+01659008,SH16 Southwestern On Ramp EB (Link),SH20_to_SH16,EB,5,link,1,CBD-bound,2,-36.874549,174.703477,1751823.6,5917689.6,Waterview link SH20 NB -> SH16 EB (CBD share of SH20)
+01N40427,SH1 Nelson St Off Ramp NB,CBD_exit_SH1N,NB,6,ramp,1,CBD exit,,-36.858474,174.756121,1756548.8,5919388.0,Nelson St off ramp (non-continuous site)
+01N40430,SH1 Khyber Pass Off Ramp NB,CBD_exit_SH1N,NB,6,ramp,1,CBD exit,1,-36.867614,174.768154,1757602.8,5918354.2,Khyber Pass off ramp
+01N45429,SH1 Symonds St Off Ramp NB,CBD_exit_SH1N,NB,6,ramp,1,CBD exit,,-36.862940,174.764086,1757249.7,5918879.5,Symonds St off ramp
+01N46429,SH1 Port Off Ramp NB (Link 01650002),CBD_exit_SH1N,NB,6,ramp,1,CBD exit,1,-36.855843,174.767618,1757579.2,5919661.0,Port off ramp
+01N47429,SH1 Wellesley St Off Ramp NB,CBD_exit_SH1N,NB,6,ramp,1,CBD exit,1,-36.862940,174.764086,1757249.7,5918879.5,Wellesley St off ramp (catalogue gives the Symonds St coordinates)
+01N60425,SH1 Shelly Beach Rd Off Ramp SB,CBD_exit_SH1S,SB,4,ramp,1,CBD exit,1,-36.836901,174.742095,1755342.0,5921804.4,Shelly Beach Rd off ramp (non-continuous site)
+01N60426,SH1 Fanshawe St Off Ramp SB,CBD_exit_SH1S,SB,4,ramp,1,CBD exit,,-36.841675,174.750592,1756090.0,5921260.9,Fanshawe St off ramp
+01N60427,SH1 Cook St Off Ramp SB,CBD_exit_SH1S,SB,4,ramp,1,CBD exit,1,-36.847992,174.753937,1756375.4,5920554.5,Cook St off ramp (non-continuous site)
+01N69427,SH1 Port / SH16 Off Ramp SB,CBD_exit_SH1S,SB,4,ramp,1,mixed,2,-36.848029,174.753859,1756368.4,5920550.6,Port/SH16 off ramp SB
+01640002,SH16 Wellesley St Off Ramp EB,CBD_exit_SH16,EB,6,ramp,1,CBD exit,1,-36.857622,174.767371,1757553.5,5919464.1,Wellesley St off ramp EB
+01646004,SH16 Northern / Nelson Off Ramp EB,CBD_exit_SH16,EB,6,ramp,1,mixed,2,-36.860543,174.753616,1756321.3,5919162.6,Northern/Nelson off ramp EB
+01649004,SH16 Newton Rd Off Ramp EB,CBD_exit_SH16,EB,6,ramp,1,CBD exit,1,-36.864726,174.750828,1756064.2,5918703.1,Newton Rd off ramp EB (non-continuous site)

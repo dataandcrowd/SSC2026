@@ -10,8 +10,8 @@ Triggers (event key used for edge triggering in brackets):
        agent, once its corridor runs normally again (final fixer)              [("T4-end", disruption day)]
     T5 the last sustained_days car days each had |travel / expected - 1| >
        sustained_rel, and this was not yet so at the previous car day (edge)   [("T5", latest car day)]
-    T6 standing option infeasible today; a standing SKIP is always infeasible
-       (skipping is a one-day postponement, not a plan; integrator addition)  [("T6", today)]
+    T6 standing option infeasible today: not offered, e.g. a standing car departure whose charge
+       today is above the commuter's willingness to pay (options.wtt_filter, 2026-10-09) [("T6", today)]
     T7 periodic review (off by default): the agent has followed its standing plan without a
        decision for clock.review_every_days days (sensitivity to event-only waking) [("T7", today)]
 An event key fires once: it is stored in ``memory.consumed_events`` when returned.
@@ -23,9 +23,11 @@ disruption would move riders to the car for good under the clock arms.
 
 Public API:
     evaluate_triggers(persona, memory, today, feasible_option_ids, cfg) -> tuple[str, ...]
-        ``feasible_option_ids`` may be option ids or feasible modes: a non-car standing option is
-        feasible if its id is listed; a standing CAR departure is feasible if "CAR" (or any CAR_
-        id) is listed and the departure lies inside the departure window.
+        ``feasible_option_ids`` may be today's offered option ids or the feasible modes: a non-car
+        standing option is feasible if its id is listed; a standing CAR departure must lie inside
+        the departure window and, given option ids, be listed itself (given modes, "CAR" must be).
+        Pass the option ids of build_options (willingness to pay applied), so that a standing car
+        departure removed by it wakes the agent.
     is_discontinuity(triggers, cfg) -> bool
     should_wake(arm, triggers) -> bool
 """
@@ -58,13 +60,13 @@ def _standing_feasible(memory: AgentMemory, ids: set[str], cfg: Config) -> bool:
     sid = memory.standing_option_id
     if sid is None:
         return True
-    if sid == "SKIP":  # integrator: skipping is a one-day postponement, never a standing plan
-        return False
     if memory.standing_mode == "CAR" or sid.startswith("CAR_"):
-        car_ok = "CAR" in ids or any(i.startswith("CAR_") for i in ids)
         d = memory.standing_depart_min
         t = cfg.time
-        return car_ok and d is not None and t.depart_earliest_min <= d <= t.depart_latest_min
+        in_window = d is not None and t.depart_earliest_min <= d <= t.depart_latest_min
+        if any(i.startswith("CAR_") for i in ids):   # option ids: the standing departure itself
+            return in_window and sid in ids
+        return in_window and "CAR" in ids             # feasible modes
     return sid in ids
 
 

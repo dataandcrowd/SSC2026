@@ -3,18 +3,20 @@
 Conventions:
 - Times are integer minutes since midnight unless a name says otherwise.
 - Money is NZ$. VoT is NZ$/h.
-- Modes: "CAR", "PT", "WFH", "SKIP".
-- Option ids: "CAR_hhmm" (departure clock time, e.g. "CAR_0745"), "PT", "WFH", "SKIP".
+- Modes: "CAR", "PT", "WFH". SKIP (postpone or cancel the day) was removed on 2026-10-09; run folders made
+  before then may still hold SKIP rows (the engines still accept a SKIP plan: the commuter stays home).
+- Option ids: "CAR_hhmm" (departure clock time, e.g. "CAR_0745"), "PT", "WFH".
 - Deciders: "rule", "llm", "llm-fallback-rule", "standing", "forced".
 - Triggers: "T1".."T6" (see clock.py).
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Mapping, Protocol, Sequence
 
-MODES: tuple[str, ...] = ("CAR", "PT", "WFH", "SKIP")
+MODES: tuple[str, ...] = ("CAR", "PT", "WFH")
 DECIDERS: tuple[str, ...] = ("rule", "llm", "llm-fallback-rule", "standing", "forced")
 TRIGGERS: tuple[str, ...] = ("T1", "T2", "T3", "T4", "T5", "T6", "T7")
 FACTORS: tuple[str, ...] = (
@@ -22,11 +24,14 @@ FACTORS: tuple[str, ...] = (
     "past_experience", "disruption", "work_constraint", "other",
 )
 # Keys of Option.gc_parts; gc == sum(gc_parts.values()).
-GC_PARTS: tuple[str, ...] = ("time", "schedule", "fee", "parking", "fuel", "pt", "wfh", "skip", "habit")
+GC_PARTS: tuple[str, ...] = ("time", "schedule", "fee", "parking", "fuel", "pt", "wfh", "habit")
 
 # Public corridor delay profile from yesterday: corridor_id -> sorted ((bin_mid_minute, mean_queue_delay_min), ...).
 # Empty tuple for a corridor = no information (expected public delay 0).
 DelayProfile = Mapping[int, tuple[tuple[float, float], ...]]
+# Public road delay by agent: agent_id -> road delay (min) for each departure minute from
+# time.sim_start_min (TodayInfo.public_road; NaN off options.departure_grid).
+RoadDelayInfo = Mapping[int, tuple[float, ...]]
 
 
 def option_id_for(mode: str, depart_min: int | None = None) -> str:
@@ -83,6 +88,15 @@ class Persona:
     # Layer A (early-start addition): the employer allows an earlier working day (costs.early_start_min,
     # e.g. 07:00 to 15:00) on any day the commuter chooses; drawn after every other Layer A draw
     early_shift_ok: bool = False
+    # Layer A (willingness-to-travel addition, 2026-10-09; drawn after every other Layer A draw, so no
+    # earlier field changes; twins copy it): the uniform draw u, the price sensitivity
+    # beta = clip(wtt.beta0 x VoT_ref / VoT, wtt.beta_clip) and the most the commuter would pay a day to
+    # drive into the city centre, WTP = -ln(u) x VoT / beta (NZ$, to the cent), so that
+    # P(WTP >= F) = exp(-beta x F / VoT). A CAR option charged above WTP is not offered (options.wtt_filter).
+    # The defaults (beta 0, WTP infinite) are the model without it, as with wtt.beta0 = 0.
+    wtt_u: float = 0.0
+    wtt_beta: float = 0.0
+    wtp_fee: float = math.inf
 
     @property
     def fftt_total_min(self) -> int:
@@ -113,7 +127,7 @@ class Option:
     expected_gate_arrive_min: int | None
     expected_delay_min: float | None       # expected queue delay at the gate
     expected_gate_exit_min: int | None     # minute at which the fee is evaluated
-    expected_travel_min: float             # door to door (0 for WFH/SKIP)
+    expected_travel_min: float             # door to door (0 for WFH)
     expected_arrive_min: int | None        # at destination
     early_min: float
     late_min: float
@@ -133,11 +147,18 @@ class Option:
     # Shown in the prompt (options table column "fuel"); the rule adds it as gc_parts["fuel"].
     fuel: float = 0.0
     # Early-start addition: the start time this option is measured against (CAR and PT; None for
-    # WFH/SKIP). It is the usual start t*, or costs.early_start_min when the commuter may start early
+    # WFH). It is the usual start t*, or costs.early_start_min when the commuter may start early
     # and that target is cheaper for this option; early_min and late_min refer to it. Shown in the
     # prompt (options table column "start").
     start_used_min: int | None = None
     early_shift: bool = False              # True when start_used_min is the early start
+    # Road congestion addition (2026-10-07, SPEC 1.5): the public road delay (min, unrounded) on the
+    # agent's route for this departure (TodayInfo.public_road: usual traffic on day 1, yesterday's
+    # traffic later); it is included in expected_gate_arrive_min (as floor(R + 0.5), the engine's
+    # rounding), expected_travel_min and gc_parts["time"]. CAR only (0.0 when roads are off); None
+    # otherwise. Shown in the prompt in whole minutes, floor(R + 0.5) (options table column
+    # "traffic delay").
+    expected_road_delay_min: float | None = None
 
 
 @dataclass(frozen=True)
@@ -160,9 +181,14 @@ class MemoryRecord:
     decider: str
     triggers: tuple[str, ...]
     reason: str
-    # Early-start addition: the start the day was measured against (None for WFH/SKIP)
+    # Early-start addition: the start the day was measured against (None for WFH)
     start_used_min: int | None = None
     early_shift: bool = False
+    # Road congestion addition (2026-10-07): the car's road delay before the gate as driven
+    # (outcome road_delay_min) and the chosen option's expected road delay (public information).
+    # CAR only; None otherwise.
+    road_delay_min: float | None = None
+    expected_road_delay_min: float | None = None
 
 
 @dataclass(frozen=True)
@@ -178,6 +204,14 @@ class TodayInfo:
     pt_disrupted_corridors: frozenset[int] # corridors with PT disruption today
     pt_disruption_announced: bool
     pt_disruption_time_mult: float
+    # Road congestion addition (2026-10-07, SPEC 1.5): agent_id -> road delay (min, unrounded, so that
+    # floor(R + 0.5) is the engine's whole-minute road delay) a car on the agent's route would have
+    # for each departure minute from time.sim_start_min to time.depart_latest_min inclusive
+    # (index = depart_min - sim_start_min; see roads.road_delay_at). Only the minutes on
+    # options.departure_grid are computed (run.public_road); the others hold NaN. Empty when roads
+    # are off (expected road delay 0).
+    public_road: RoadDelayInfo = field(default_factory=dict)
+    public_road_source: str = "usual"      # "usual" (day 1: usual traffic) or "yesterday" (yesterday's traffic)
 
 
 @dataclass(frozen=True)
@@ -188,7 +222,7 @@ class DecisionContext:
     day: int
     persona: Persona
     params: TraitParams
-    options: tuple[Option, ...]            # feasible only, deterministic order (CAR by depart, PT, WFH, SKIP)
+    options: tuple[Option, ...]            # offered only, deterministic order (CAR by depart, PT, WFH)
     standing_option_id: str | None
     triggers: tuple[str, ...]
     discontinuity: bool                    # kappa_H was scaled by kappa_h_disc_factor
@@ -197,6 +231,9 @@ class DecisionContext:
     ref_fee: float
     today: TodayInfo
     traits_shown: bool = True              # False when run.traits == "off" (prompt omits dispositions)
+    # Willingness-to-travel addition (2026-10-09): CAR options removed today because their charge is above
+    # persona.wtp_fee (options.wtt_filter); the prompt says so only when this is > 0
+    wtt_removed: int = 0
 
     @property
     def option_ids(self) -> tuple[str, ...]:

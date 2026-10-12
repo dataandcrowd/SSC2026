@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import math
 
 import numpy as np
 import pandas as pd
@@ -58,7 +59,8 @@ def test_initial_depart(tiny_cfg) -> None:
 def test_public_delay_profile_and_interp() -> None:
     out = pd.DataFrame({
         "agent_id": [0, 1, 2, 3, 4], "day": 1, "corridor_id": [0, 0, 0, 1, 1],
-        "depart_min": [400, 401, 420, 400, 400], "gate_arrive_min": [450, 452, 470, 450, 451],
+        "depart_min": [400, 401, 420, 400, 400], "road_delay_min": 0,
+        "gate_arrive_min": [450, 452, 470, 450, 451],
         "gate_exit_min": [452, 458, 480, -1, 451], "queue_delay_min": [2, 6, 10, -1, 0],
         "arrive_min": [460, 466, 488, -1, 460], "fee_paid": 0.0,
     })[list(OUTCOME_COLUMNS)]
@@ -77,12 +79,50 @@ def test_public_delay_profile_and_interp() -> None:
     assert public_delay_profile(None, [0, 1], 5) == {0: (), 1: ()}
 
 
+def _uncached_public_delay(profile, corridor_id, g, bin_min=None) -> float:
+    """expected_public_delay as it was before the per-profile cache (arrays rebuilt on every call)."""
+    pts = profile.get(int(corridor_id), ())
+    if not pts:
+        return 0.0
+    xs = np.fromiter((p[0] for p in pts), dtype=float)
+    ys = np.fromiter((p[1] for p in pts), dtype=float)
+    h = bin_min / 2.0 if bin_min else 0.0
+    if float(g) < xs[0] - h or float(g) > xs[-1] + h:
+        return 0.0
+    return float(np.interp(float(g), xs, ys))
+
+
+def test_expected_public_delay_cache_gives_the_uncached_values() -> None:
+    """The per-profile cache returns exactly the uncached values, also after a profile's points are
+    replaced and for a new profile object (a new day)."""
+    rng = np.random.default_rng(5)
+
+    def profile() -> dict:
+        return {c: tuple((float(b * 15 + 7), float(rng.uniform(0, 20))) for b in sorted(rng.choice(range(24, 44), 6,
+                                                                                                    replace=False)))
+                for c in range(4)} | {4: ()}
+
+    def check(prof) -> None:
+        for _ in range(2):                        # the second pass reads the cache
+            for c in range(6):
+                for g in range(350, 680, 3):
+                    for b in (None, 15):
+                        assert expected_public_delay(prof, c, g, b) == _uncached_public_delay(prof, c, g, b)
+
+    p1 = profile()
+    check(p1)
+    p1[2] = ((480.0, 1.0), (510.0, 30.0))         # points of one corridor replaced in place
+    check(p1)
+    check(profile())                              # the next day's profile
+    check(p1)                                     # and back
+
+
 def test_feasible_modes(tiny_cfg, make_today) -> None:
     t = make_today(1)
-    assert feasible_modes(persona(), t, tiny_cfg) == ("CAR", "PT", "SKIP")
-    assert feasible_modes(persona(wfh_allowed=True), t, tiny_cfg) == ("CAR", "PT", "WFH", "SKIP")
-    assert feasible_modes(persona(pt_allowed=False, must_drive=True), t, tiny_cfg) == ("CAR", "SKIP")
-    assert feasible_modes(persona(), make_today(5, disrupted=[0]), tiny_cfg) == ("CAR", "PT", "SKIP")
+    assert feasible_modes(persona(), t, tiny_cfg) == ("CAR", "PT")
+    assert feasible_modes(persona(wfh_allowed=True), t, tiny_cfg) == ("CAR", "PT", "WFH")
+    assert feasible_modes(persona(pt_allowed=False, must_drive=True), t, tiny_cfg) == ("CAR",)
+    assert feasible_modes(persona(), make_today(5, disrupted=[0]), tiny_cfg) == ("CAR", "PT")
 
 
 def test_build_options_structure(tiny_personas, tiny_cfg, make_today) -> None:
@@ -133,18 +173,18 @@ def test_gc_formula_car(tiny_cfg) -> None:
 SPEC_GC = {"costs.wfh_form": "spec", "costs.wfh_cost": 8.0, "costs.pt_attitude_penalty": 0.0}
 
 
-def test_gc_formula_pt_wfh_skip() -> None:
+def test_gc_formula_pt_wfh() -> None:
     # the specification GC (no PAP, WFH = wfh_cost x phi), still selectable
     tiny_cfg = load_config(overrides={"run.n_agents": 20, **SPEC_GC})
     p = persona(wfh_allowed=True, vot=30.0, pt_time_min=50.0)
     prm = TraitParams(kappa_h=2.0, phi=0.5, omega=1.5, eta=2.0)
     m = new_memory(0)
     opts = build_options(p, m, today(), prm, tiny_cfg, False)
-    pt, wfh, skip = (next(o for o in opts if o.mode == k) for k in ("PT", "WFH", "SKIP"))
+    pt, wfh = (next(o for o in opts if o.mode == k) for k in ("PT", "WFH"))
+    assert [o.mode for o in opts if o.mode != "CAR"] == ["PT", "WFH"]   # no SKIP since 2026-10-09
     assert pt.gc == pytest.approx(1.5 * 0.5 * 50.0 + 7.0)
     assert (pt.depart_min, pt.expected_arrive_min, pt.early_min, pt.late_min) == (460, 510, 0.0, 0.0)
     assert wfh.gc == pytest.approx(8.0 * 0.5)
-    assert skip.gc == pytest.approx(30.0 + 1.0 * 30.0)   # skip_cost + skip_vot_hours x VoT
     # PT services on a 10-min headway: the latest service arriving by t* (510)
     q = persona(wfh_allowed=True, vot=30.0, pt_time_min=47.0)
     ptq = next(o for o in build_options(q, m, today(), prm, tiny_cfg, False) if o.mode == "PT")
@@ -157,30 +197,6 @@ def test_gc_formula_pt_wfh_skip() -> None:
     # not announced or other corridor: unchanged
     for t in (today(disrupted=[0], announced=False), today(disrupted=[1])):
         assert next(o for o in build_options(p, m, t, prm, tiny_cfg, False) if o.mode == "PT").pt_time_min == 50.0
-
-
-def test_standing_skip_is_not_a_habit(tiny_cfg) -> None:
-    """After a SKIP the habit reference is the last non-SKIP option, so SKIP carries the habit cost."""
-    from cordonlite.memory import record_from_outcome, update_memory
-    from cordonlite.options import car_outcome, non_car_outcome
-    p = persona()
-    m = new_memory(0)
-    prm = TraitParams(kappa_h=2.0, phi=1.0, omega=1.0, eta=1.0)
-    opts = build_options(p, m, today(), prm, tiny_cfg, False)
-    car = next(o for o in opts if o.mode == "CAR")
-    row = {"agent_id": 0, "day": 1, "depart_min": car.depart_min, "gate_arrive_min": car.expected_gate_arrive_min,
-           "gate_exit_min": car.expected_gate_arrive_min, "queue_delay_min": 0,
-           "arrive_min": car.expected_arrive_min, "fee_paid": 0.0}
-    update_memory(m, record_from_outcome(car_outcome(p, row, car.option_id), car, "rule"), tiny_cfg)
-    set_standing(m, car)
-    skip = next(o for o in opts if o.mode == "SKIP")
-    update_memory(m, record_from_outcome(non_car_outcome(p, skip, 2, False), skip, "rule"), tiny_cfg)
-    set_standing(m, skip)
-    assert m.standing_option_id == "SKIP" and m.habit_option_id == car.option_id
-    opts2 = build_options(p, m, today(), prm, tiny_cfg, False)
-    assert next(o for o in opts2 if o.mode == "SKIP").gc_parts["habit"] == 2.0
-    assert next(o for o in opts2 if o.option_id == car.option_id).gc_parts["habit"] == 0.0
-    assert [o.option_id for o in opts2 if o.is_standing] == [car.option_id]
 
 
 def test_habit_and_discontinuity(tiny_cfg) -> None:
@@ -414,7 +430,7 @@ def test_fuel_is_a_car_cost_part(tiny_cfg) -> None:
             assert b.gc_parts["parking"] == 8.0          # parking is unchanged by fuel
         else:
             assert b.fuel == 0.0 and b.gc_parts["fuel"] == 0.0
-            assert b.gc == pytest.approx(a.gc)           # spec form: PT, WFH, SKIP unaffected
+            assert b.gc == pytest.approx(a.gc)           # spec form: PT and WFH unaffected
 
 
 def test_wfh_v3_relative_earns_no_fuel_credit() -> None:
@@ -447,7 +463,7 @@ def test_outcome_rows_fuel_paid(tiny_cfg) -> None:
     c = car_outcome(p, row)
     assert "fuel_paid" in OUTCOME_ROW_COLUMNS and tuple(c) == OUTCOME_ROW_COLUMNS
     assert c["fuel_paid"] == 9.2 and c["parking_paid"] == 8.0
-    for mode in ("PT", "WFH", "SKIP"):
+    for mode in ("PT", "WFH"):
         r = non_car_outcome(p, next(o for o in opts if o.mode == mode), 4, False)
         assert r["fuel_paid"] == 0.0 and tuple(r) == OUTCOME_ROW_COLUMNS
 
@@ -481,7 +497,7 @@ def test_early_shift_departures_and_effective_start() -> None:
     o0 = {o.option_id: o for o in build_options(p0, m, today(), P3, cfg, False)}
     o1 = {o.option_id: o for o in build_options(p1, m, today(), P3, cfg, False)}
     assert all(o.start_used_min == 510 and not o.early_shift for o in o0.values() if o.mode in ("CAR", "PT"))
-    assert all(o.start_used_min is None and not o.early_shift for o in o0.values() if o.mode in ("WFH", "SKIP"))
+    assert all(o.start_used_min is None and not o.early_shift for o in o0.values() if o.mode == "WFH")
     e = o1["CAR_0615"]                                 # arrives 06:40, 20 min before 07:00
     assert (e.start_used_min, e.early_shift, e.early_min, e.late_min) == (420, True, 20.0, 0.0)
     a = p1.vot / 60.0
@@ -489,7 +505,7 @@ def test_early_shift_departures_and_effective_start() -> None:
     # the same costs otherwise (time, fee at the early crossing, parking, fuel)
     assert e.gc == pytest.approx(sum(e.gc_parts.values()))
     # options near the usual start keep t* and are identical with and without the permission
-    for oid in ("CAR_0745", "CAR_0800", "PT", "SKIP"):
+    for oid in ("CAR_0745", "CAR_0800", "PT"):
         assert o1[oid] == o0[oid]
     # an arrival between the two starts takes the cheaper one: CAR_0645 arrives 07:10 (80 min before t*)
     mid = o1["CAR_0645"]
@@ -503,9 +519,10 @@ def test_early_shift_departures_and_effective_start() -> None:
     assert e2.gc_parts["schedule"] == pytest.approx(2.0 * a * 0.61 * 20.0 + 3.0 * 2.0)
 
 
-def test_early_shift_preferred_over_skip_under_charge() -> None:
-    """Constructed case: a long queue from 06:45, the charge, paid parking and a strong dislike of PT make
-    postponing the cheapest option; with the employer's permission the commuter starts early instead."""
+def test_early_shift_preferred_under_charge() -> None:
+    """Constructed case: a long queue from 06:45, the charge, paid parking and a strong dislike of PT. Without
+    the employer's permission the commuter keeps driving for the usual start (until SKIP was removed on
+    2026-10-09 it postponed the day); with the permission it starts early instead, crossing before the queue."""
     from cordonlite.rules import RuleDecider
     from cordonlite.types import DecisionContext
     cfg = _early_cfg()
@@ -520,10 +537,11 @@ def test_early_shift_preferred_over_skip_under_charge() -> None:
                              if o.option_id == "CAR_0745"))
         opts = build_options(p, m, t, prm, cfg, False)
         ctx = DecisionContext(agent_id=0, day=11, persona=p, params=prm, options=opts,
-                              standing_option_id=m.habit_option_id, triggers=("T2",), discontinuity=False,
+                              standing_option_id=m.standing_option_id, triggers=("T2",), discontinuity=False,
                               recent=(), delay_ratio_ema=1.0, ref_fee=0.0, today=t)
         choices[name] = ctx.option(RuleDecider(cfg).decide(ctx).option_id)
-    assert choices["no"].option_id == "SKIP"
+    n = choices["no"]
+    assert n.mode == "CAR" and not n.early_shift and n.start_used_min == 510
     c = choices["yes"]
     assert c.mode == "CAR" and c.early_shift and c.start_used_min == 420 and c.depart_min <= 390
     assert c.late_min == 0.0 and c.fee == pytest.approx(4.0)               # crosses before 07:30 at NZ$4
@@ -550,19 +568,17 @@ def test_early_shift_outcome_and_lateness_use_effective_start(tiny_cfg) -> None:
     assert (rec.start_used_min, rec.early_shift, rec.late_min) == (420, True, 15.0)
     set_standing(m, e)
     update_memory(m, rec, cfg)
-    ev = candidate_events(p, m, today(day=2, active=False), ("CAR", "PT", "SKIP"), cfg)
+    ev = candidate_events(p, m, today(day=2, active=False), ("CAR", "PT"), cfg)
     assert ("T3", 1) in ev                                                  # 15 min late for 07:00 > 10 min
     # the same arrival measured against the usual start would be 75 min early: no T3
     m2 = new_memory(0)
     set_standing(m2, e)
     update_memory(m2, record_from_outcome(usual, e, "rule", ("T1",), ""), cfg)
-    assert ("T3", 1) not in candidate_events(p, m2, today(day=2, active=False), ("CAR", "PT", "SKIP"), cfg)
+    assert ("T3", 1) not in candidate_events(p, m2, today(day=2, active=False), ("CAR", "PT"), cfg)
     # PT: the early-start service is used only when cheaper; the row follows the option
     pt = next(o for o in opts if o.mode == "PT")
     r_pt = non_car_outcome(p, pt, 1, False)
     assert r_pt["start_used_min"] == pt.start_used_min and r_pt["early_shift"] == pt.early_shift
-    skip = non_car_outcome(p, next(o for o in opts if o.mode == "SKIP"), 1, False)
-    assert skip["start_used_min"] is None and skip["early_shift"] is False
 
 
 def test_early_shift_pt_takes_cheaper_start() -> None:
@@ -577,3 +593,143 @@ def test_early_shift_pt_takes_cheaper_start() -> None:
             assert (pt.depart_min, pt.expected_arrive_min, pt.early_min, pt.start_used_min) == (370, 420, 0.0, 420)
         else:
             assert (pt.depart_min, pt.expected_arrive_min, pt.early_min, pt.start_used_min) == (460, 510, 5.0, 515)
+
+
+# ------------------------------------------------------------------------------------------
+# Road congestion (2026-10-07, SPEC 1.5): public road delay R on the agent's route
+# ------------------------------------------------------------------------------------------
+
+def road_today(cfg, delay_at, agent_id: int = 0, source: str = "yesterday", **kw) -> TodayInfo:
+    """today() with public_road for one agent: delay_at(d) for every departure minute published."""
+    t = cfg.time
+    pub = {agent_id: tuple(float(delay_at(d)) for d in range(t.sim_start_min, t.depart_latest_min + 1))}
+    return dataclasses.replace(today(**kw), public_road=pub, public_road_source=source)
+
+
+def test_build_options_with_road_delay(tiny_cfg) -> None:
+    """R moves the expected gate arrival (rounded), so the queue lookup and the fee minute; it adds to
+    the time cost and the expected door-to-door time; the delay ratio scales the queue only."""
+    from cordonlite.options import expected_road_delay
+    p = persona(vot=30.0, tstar_min=510)
+    m = new_memory(0)
+    m.delay_ratio_ema = 1.5
+    m.standing_depart_min = 465                     # grid centred on 07:45 whatever R is
+    prof = {0: ((490.0, 4.0), (510.0, 8.0))}
+    t = road_today(tiny_cfg, lambda d: round(max(0.0, (d - 420) * 0.3), 2), public_delay=prof)
+    assert expected_road_delay(p, t, 465, tiny_cfg) == 13.5
+    assert expected_road_delay(p, today(), 465, tiny_cfg) == 0.0 == expected_road_delay(p, None, 465, tiny_cfg)
+    opts = {o.option_id: o for o in build_options(p, m, t, P3, tiny_cfg, False)}
+    o = opts["CAR_0745"]                            # depart 465, R = 13.5 -> floor(14.0) = 14
+    a = 0.5
+    g = 465 + 20 + 14
+    d_pub = expected_public_delay(prof, 0, g, tiny_cfg.costs.delay_bin_min)
+    assert d_pub == pytest.approx(4.0 + 9 / 20 * 4.0)
+    D = d_pub * 1.5                                 # 8.7 -> 9
+    x = g + 9
+    assert (o.expected_gate_arrive_min, o.expected_gate_exit_min, o.expected_arrive_min) == (g, x, x + 5)
+    assert o.expected_road_delay_min == 13.5 and o.expected_public_delay_min == pytest.approx(d_pub)
+    assert o.expected_delay_min == pytest.approx(D)
+    assert o.gc_parts["time"] == pytest.approx(a * (25 + 13.5 + D))
+    assert o.expected_travel_min == pytest.approx(25 + 13.5 + D)
+    assert o.fee == fees.fee_at(x)
+    assert o.late_min == x + 5 - 510
+    early = opts["CAR_0700"]                        # depart 420: R = 0, the free-flow numbers
+    assert early.expected_road_delay_min == 0.0 and early.expected_gate_arrive_min == 440
+    assert early.expected_travel_min == pytest.approx(25.0)
+    for o in opts.values():
+        assert (o.expected_road_delay_min is None) == (o.mode != "CAR")
+    # PT and WFH do not see road traffic
+    o_free = {o.option_id: o for o in build_options(p, m, dataclasses.replace(t, public_road={}), P3, tiny_cfg, False)}
+    assert opts["PT"] == o_free["PT"]
+
+
+def test_zero_road_delays_equal_free_flow(tiny_personas, tiny_cfg, make_today) -> None:
+    """Published delays of 0 give exactly the options of free-flow roads (roads off)."""
+    t = tiny_cfg.time
+    zeros = {p.agent_id: (0.0,) * (t.depart_latest_min - t.sim_start_min + 1) for p in tiny_personas}
+    for day in (1, 3):
+        for p in tiny_personas:
+            for early_ok in (False, True):
+                q = dataclasses.replace(p, early_shift_ok=early_ok)
+                m = new_memory(q.agent_id)
+                free = build_options(q, m, make_today(day), trait_params(q, tiny_cfg), tiny_cfg, False)
+                zero = build_options(q, m, make_today(day, public_road=zeros), trait_params(q, tiny_cfg),
+                                     tiny_cfg, False)
+                assert free == zero
+                assert all(o.expected_road_delay_min == 0.0 for o in free if o.mode == "CAR")
+
+
+def test_start_anchor_uses_road_delays(tiny_cfg) -> None:
+    """Latest grid departure with d + fftt_total + floor(R_d + 0.5) + buffer <= start (07:45 here:
+    free-flow anchor 510 - 25 - 10 = 475 -> 465)."""
+    from cordonlite.options import start_anchor_depart
+    p = persona(tstar_min=510)
+    assert initial_depart_min(p, tiny_cfg, road_today(tiny_cfg, lambda d: 0.0)) == 465
+    assert initial_depart_min(p, tiny_cfg, road_today(tiny_cfg, lambda d: 10.49)) == 465   # 465+25+10+10 = 510
+    assert initial_depart_min(p, tiny_cfg, road_today(tiny_cfg, lambda d: 10.5)) == 450    # floor(11.0): 511 > 510
+    rising = road_today(tiny_cfg, lambda d: max(0.0, (d - 360) * 0.4))   # 465: 42 min, 450: 36, 435: 30
+    # 465 + 25 + 42 + 10 and 450 + 25 + 36 + 10 are past 510; 435 + 25 + 30 + 10 = 500 fits
+    expect = max(d for d in range(360, 586, 15) if d + 25 + math.floor(max(0.0, (d - 360) * 0.4) + 0.5) + 10 <= 510)
+    assert start_anchor_depart(p, 510, tiny_cfg, rising) == expect == 435
+    assert initial_depart_min(persona(tstar_min=420, fftt_to_gate_min=80), tiny_cfg, rising) == 360   # none fits
+    # another agent's delays do not apply
+    assert initial_depart_min(p, tiny_cfg, road_today(tiny_cfg, lambda d: 30.0, agent_id=7)) == 465
+    # the grid of a new commuter is centred on the road-aware anchor, and fee_faced uses the same one
+    m = new_memory(0)
+    late = road_today(tiny_cfg, lambda d: 10.5)
+    opts = build_options(p, m, late, P3, tiny_cfg, False)
+    assert [o.depart_min for o in opts if o.mode == "CAR"] == car_departures(450, tiny_cfg)
+    assert fee_faced(p, m, opts, tiny_cfg, late) == next(o.fee for o in opts if o.depart_min == 450)
+    # early-start anchors use the road delays too: 420 - 25 - 11 - 10 = 374 -> 360
+    e = dataclasses.replace(p, early_shift_ok=True)
+    assert start_anchor_depart(e, 420, tiny_cfg, late) == 360
+    assert set(car_departures(465, tiny_cfg, e, late)) >= {360, 375, 435, 450, 465}
+
+
+@pytest.mark.parametrize("latest", [585, 590])
+def test_road_delays_are_read_only_on_the_departure_grid(tiny_cfg, latest: int) -> None:
+    """Options, anchors and fee_faced read the public road delay only at departure_grid minutes
+    (run.public_road computes only those): NaN at every other minute changes nothing. 590 puts
+    depart_latest_min off the 15-min grid (the clip value is on departure_grid)."""
+    from cordonlite.options import departure_grid, start_anchor_depart
+    cfg = load_config(overrides={"time.depart_latest_min": latest})
+    t = cfg.time
+    grid = departure_grid(cfg)
+    assert grid[0] == t.depart_earliest_min and grid[-1] == latest
+    assert set(range(t.depart_earliest_min, latest + 1, t.depart_step_min)) <= set(grid) <= \
+        set(range(t.depart_earliest_min, latest + 1, t.depart_step_min)) | {latest}
+
+    def delay(d: int) -> float:
+        return max(0.0, (d - 400) * 0.37) + (d % 7) * 0.11
+
+    full = road_today(cfg, delay)
+    on_grid = dataclasses.replace(full, public_road={0: tuple(v if t.sim_start_min + i in set(grid) else math.nan
+                                                             for i, v in enumerate(full.public_road[0]))})
+    for tstar in (420, 480, 510, 540, 600):
+        for early_ok in (False, True):
+            p = persona(tstar_min=tstar, early_shift_ok=early_ok, fftt_to_gate_min=35)
+            for stand in (None, 361, 450, 487, 584, latest):
+                m = new_memory(0)
+                m.standing_depart_min = stand
+                a = build_options(p, m, full, P3, cfg, False)
+                assert build_options(p, m, on_grid, P3, cfg, False) == a
+                assert fee_faced(p, m, a, cfg, on_grid) == fee_faced(p, m, a, cfg, full)
+                assert {o.depart_min for o in a if o.mode == "CAR"} <= set(grid)
+            for start in (420, tstar):
+                assert start_anchor_depart(p, start, cfg, on_grid) == start_anchor_depart(p, start, cfg, full) in grid
+
+
+def test_outcome_rows_carry_road_delay(tiny_cfg) -> None:
+    p = persona()
+    opts = build_options(p, new_memory(0), today(), P3, tiny_cfg, False)
+    eng = {"agent_id": 0, "day": 4, "corridor_id": 0, "depart_min": 465, "road_delay_min": 7,
+           "gate_arrive_min": 492, "gate_exit_min": 495, "queue_delay_min": 3, "arrive_min": 500, "fee_paid": 6.0}
+    c = car_outcome(p, eng)
+    assert c["road_delay_min"] == 7 and c["travel_min"] == 35.0 and tuple(c) == OUTCOME_ROW_COLUMNS
+    assert OUTCOME_ROW_COLUMNS.index("road_delay_min") == OUTCOME_ROW_COLUMNS.index("depart_min") + 1
+    un = car_outcome(p, {**eng, "gate_exit_min": -1, "queue_delay_min": -1, "arrive_min": -1, "fee_paid": 0.0})
+    assert un["road_delay_min"] == 7                 # known for an unserved car too
+    assert car_outcome(p, {k: v for k, v in eng.items() if k != "road_delay_min"})["road_delay_min"] == 0
+    for o in opts:
+        if o.mode != "CAR":
+            assert non_car_outcome(p, o, 4, False)["road_delay_min"] is None

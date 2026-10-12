@@ -100,7 +100,7 @@ def test_recent_window(tiny_cfg) -> None:
 
 
 def test_set_standing_and_record_from_outcome(tiny_personas, tiny_cfg, make_today) -> None:
-    p = tiny_personas[0]   # archetype 1: CAR, PT, WFH, SKIP
+    p = tiny_personas[0]   # archetype 1: CAR, PT, WFH
     m = new_memory(p.agent_id)
     opts = build_options(p, m, make_today(1, fee_active=False), trait_params(p, tiny_cfg), tiny_cfg, True)
     car = opts[0]
@@ -163,3 +163,33 @@ def test_ref_fee_faced() -> None:
     m2 = new_memory(0)
     update_memory(m2, rec(1, mode="PT"), old, fee_faced=6.0)
     assert m2.ref_fee == 0.0
+
+
+def test_road_delay_in_records_and_ratio_stays_queue_only(tiny_personas, tiny_cfg, make_today) -> None:
+    """MemoryRecord keeps the road delay as driven and the option's expected road delay; the delay
+    ratio EMA learns from the queue only (road delay 12 instead of 3 changes nothing)."""
+    p = tiny_personas[0]
+    t = tiny_cfg.time
+    pub = {p.agent_id: tuple(3.0 for _ in range(t.sim_start_min, t.depart_latest_min + 1))}
+    opts = build_options(p, new_memory(p.agent_id), make_today(2, fee_active=False, public_road=pub),
+                         trait_params(p, tiny_cfg), tiny_cfg, False)
+    car = opts[0]
+    assert car.expected_road_delay_min == 3.0
+    emas = []
+    for road in (3, 12):
+        g = car.depart_min + p.fftt_to_gate_min + road
+        engine_row = {"agent_id": p.agent_id, "day": 2, "corridor_id": p.corridor_id, "depart_min": car.depart_min,
+                      "road_delay_min": road, "gate_arrive_min": g, "gate_exit_min": g + 4, "queue_delay_min": 4,
+                      "arrive_min": g + 4 + p.fftt_gate_to_dest_min, "fee_paid": 0.0}
+        r = record_from_outcome(car_outcome(p, engine_row, car.option_id), car, "rule")
+        assert (r.road_delay_min, r.expected_road_delay_min) == (float(road), 3.0)
+        assert r.travel_min == p.fftt_total_min + road + 4
+        assert r.expected_travel_min == car.expected_travel_min == pytest.approx(p.fftt_total_min + 3.0)
+        m = new_memory(p.agent_id)
+        update_memory(m, r, tiny_cfg)
+        emas.append(m.delay_ratio_ema)
+    assert emas[0] == emas[1] == pytest.approx(1.6)       # r = (4 + 1) / (0 + 1) clipped to 3
+    for o in (x for x in opts if x.mode != "CAR"):
+        nr = record_from_outcome(non_car_outcome(p, o, 2, False), o, "rule")
+        assert nr.road_delay_min is None and nr.expected_road_delay_min is None
+    assert {"road_delay_min", "expected_road_delay_min"} <= set(memory_frame([m]).columns)
