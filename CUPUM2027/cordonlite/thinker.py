@@ -403,18 +403,24 @@ def _doing(ctx: DecisionContext, plan: Plan, cfg: Config, since: int | None,
                 f"your start time" if m > 1 else "")
         if seen and both and late:
             seen += " (" + ", ".join(f"day {r.day} by {by[r.mode]}" for r in lates) + ")"
+        if seen:
+            lines.append(seen + ".")
         cars = [r for r in trips if r.mode == "CAR" and r.queue_delay_min is not None and r.queue_delay_min >= 0]
         if cars:
+            lead = "- On your most recent drive" if len(cars) == 1 else "- On your recent drives"
             q = float(np.mean([r.queue_delay_min for r in cars]))
             queue = (f"the queue at your entry point was about {L._mins(q)}" if q >= 0.5
                      else "there was no queue at your entry point")
             if L._roads_on(ctx):
                 tr = float(np.mean([float(r.road_delay_min or 0.0) for r in cars]))
-                queue = (f"traffic on the way added about {L._road_mins(tr)}" if tr >= 0.5
-                         else "there was no traffic delay on the way") + f" and {queue}"
-            seen = f"{seen}, and {queue}" if seen else f"- On that trip {queue}"
-        if seen:
-            lines.append(seen + ".")
+                if tr < 0.5 and q < 0.5:
+                    lines.append(f"{lead}, there was no traffic delay on the way and no queue at your entry point.")
+                else:
+                    traffic = (f"traffic on the way added about {L._road_mins(tr)}" if tr >= 0.5
+                               else "there was no traffic delay on the way")
+                    lines.append(f"{lead}, {traffic}, and {queue}.")
+            else:
+                lines.append(f"{lead}, {queue}.")
         paid = [float(r.fee_paid) for r in trips if r.mode == "CAR" and r.fee_paid > 0.005]
         if paid and not p.company_car:
             lines.append(f"- The charge has cost you about {L._money(float(np.mean(paid)))} on each day you drove.")
