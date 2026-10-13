@@ -18,7 +18,7 @@ Public API:
         def __init__(self, cfg, noise_ids=None) -> None   # noise_ids: {agent_id: noise_id}
         def decide(self, ctx) -> Decision
         def decide_batch(self, contexts) -> list[Decision]
-    option_code(option_id) -> int              # CAR_hhmm -> hhmm, PT 10001, WFH 10002, SKIP 10003
+    option_code(option_id) -> int              # CAR_hhmm -> hhmm, PT 10001, WFH 10002 (SKIP's 10003 retired)
     explain(ctx, option_id) -> tuple[str, tuple[str, ...]]   # templated reason and factors
 """
 
@@ -34,11 +34,11 @@ from cordonlite.types import GC_PARTS, Decision, DecisionContext, Option, clock_
 # GC part -> closed factor list (types.FACTORS)
 PART_FACTOR: dict[str, str] = {
     "time": "travel_time", "schedule": "arrival_time", "fee": "fee", "parking": "other",
-    "fuel": "other", "pt": "pt", "wfh": "flexibility", "skip": "work_constraint", "habit": "habit",
+    "fuel": "other", "pt": "pt", "wfh": "flexibility", "habit": "habit",
 }
 PART_LABEL: dict[str, str] = {
     "time": "travel time", "schedule": "arrival time", "fee": "the charge", "parking": "parking",
-    "fuel": "fuel", "pt": "the PT trip", "wfh": "working from home", "skip": "missing the day", "habit": "changing routine",
+    "fuel": "fuel", "pt": "the PT trip", "wfh": "working from home", "habit": "changing routine",
 }
 
 
@@ -47,7 +47,7 @@ def _describe(o: Option) -> str:
         return f"drive at {clock_str(o.depart_min)}" + (" for the early start" if o.early_shift else "")  # type: ignore[arg-type]
     if o.mode == "PT" and o.early_shift:
         return "take PT for the early start"
-    return {"PT": "take PT", "WFH": "work from home", "SKIP": "skip the trip"}[o.mode]
+    return {"PT": "take PT", "WFH": "work from home"}[o.mode]
 
 
 def explain(ctx: DecisionContext, option_id: str) -> tuple[str, tuple[str, ...]]:
@@ -78,7 +78,7 @@ def explain(ctx: DecisionContext, option_id: str) -> tuple[str, tuple[str, ...]]
     return reason, tuple(factors)
 
 
-_MODE_CODE = {"PT": 10001, "WFH": 10002, "SKIP": 10003}
+_MODE_CODE = {"PT": 10001, "WFH": 10002}
 
 
 def option_code(option_id: str) -> int:

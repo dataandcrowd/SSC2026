@@ -9,7 +9,10 @@ Public API:
     update_memory(mem, record, cfg, fee_faced=None) -> None
         Appends the record. On car days with a served car and a public forecast:
         r = (queue_delay + offset) / (expected_public_delay + offset), clipped to ratio_clip,
-        ema <- ema + alpha * (r - ema). Reference fee: ref <- ref + alpha * (perceived - ref)
+        ema <- ema + alpha * (r - ema). The ratio is queue-only: the road delay before the gate is
+        stored (MemoryRecord.road_delay_min, expected_road_delay_min) but not learned from, since
+        the public road information is already specific to the agent's route (SPEC 1.5).
+        Reference fee: ref <- ref + alpha * (perceived - ref)
         every day ("all_days", perceived = fee paid, 0 on non-car days), on car days only
         ("car_days"), or every day with the fee FACED ("faced", v3 5.2 fee-ref: the fee paid on a
         car day, otherwise ``fee_faced``, the charge at the agent's car reference departure, see
@@ -55,17 +58,6 @@ class AgentMemory:
     def car_records(self) -> list[MemoryRecord]:
         """All car-day records, oldest first."""
         return [r for r in self.records if r.mode == "CAR"]
-
-    @property
-    def habit_option_id(self) -> str | None:
-        """Habit reference: the standing option, except that a standing SKIP is not a habit (a
-        one-day postponement); then the most recent non-SKIP option, or None."""
-        if self.standing_option_id != "SKIP":
-            return self.standing_option_id
-        for r in reversed(self.records):
-            if r.mode != "SKIP":
-                return r.option_id
-        return None
 
     def last_car_depart_min(self) -> int | None:
         """Departure minute of the most recent car day, if any."""
@@ -143,7 +135,9 @@ def record_from_outcome(row: Mapping[str, object], option: Option, decider: str,
     """MemoryRecord from an outcomes.csv-style row (see options.car_outcome / non_car_outcome).
 
     ``expected_delay_min`` is the option's PUBLIC forecast; ``expected_travel_min`` the option's
-    expected door-to-door time (including the personal ratio).
+    expected door-to-door time (including the personal ratio and the expected road delay).
+    ``road_delay_min`` is the car's road delay as driven (row) and ``expected_road_delay_min`` the
+    option's public road delay; both None on non-car days.
     """
     mode = str(row["mode"])
     car = mode == "CAR"
@@ -166,6 +160,8 @@ def record_from_outcome(row: Mapping[str, object], option: Option, decider: str,
         reason=str(reason),
         start_used_min=_opt_int(row.get("start_used_min")) if mode in ("CAR", "PT") else None,
         early_shift=bool(row.get("early_shift") or False) and mode in ("CAR", "PT"),
+        road_delay_min=_opt_float(row.get("road_delay_min")) if car else None,
+        expected_road_delay_min=_opt_float(option.expected_road_delay_min) if car else None,
     )
 
 

@@ -114,15 +114,15 @@ def test_identical_a_different_b(cfg0) -> None:
 
 def test_paid_parking_split_and_early_start(cfg0) -> None:
     """Shared Layer A with paid parking NZ$17 and the fuel cost of a 20 km path, on the charge morning.
-    Without the employer's early-start permission the split is pay / PT, with a few retimers (H = 1) and
-    almost nobody postponing (SKIP costs NZ$30 plus one hour of VoT since 2026-10-05). With the permission
+    Without the employer's early-start permission the split is pay / PT, with a few retimers (H = 1); the two
+    trait profiles that postponed the day until SKIP was removed (2026-10-09) now keep driving. With the permission
     (07:00 start instead of 08:00) the flexible, cost-salient commuters leave at 06:30 for the early start:
     the same Layer A and Layer B, a different constraint, a different choice."""
     import itertools
     from collections import Counter
     a = {**SHARED_A, "parking_cost": cfg0.persona.park_cost_paid[1], "fuel_cost": _fuel(cfg0)}
     assert (a["parking_cost"], a["fuel_cost"]) == (17.0, 12.0)
-    assert (cfg0.costs.skip_cost, cfg0.costs.early_start_min, cfg0.costs.early_shift_cost) == (30.0, 420, 3.0)
+    assert (cfg0.costs.early_start_min, cfg0.costs.early_shift_cost) == (420, 3.0)
 
     def run(t, early=False):
         h, f, pp, s = t
@@ -139,12 +139,12 @@ def test_paid_parking_split_and_early_start(cfg0) -> None:
         assert o.early_shift and o.start_used_min == 420 and o.late_min == 0.0 and o.fee == pytest.approx(4.0)
     assert run((5, 1, 1, 1), early=True)[:2] == ("CAR_0730", "CAR_0730")   # the payer is unchanged
     assert run((2, 3, 3, 4), early=True)[:2] == ("CAR_0730", "PT")
-    for early, want in ((False, {"keep": 276, "PT": 93, "retime": 4, "SKIP": 2, "pt_before": 250}),
-                        (True, {"keep": 260, "PT": 93, "early_start": 20, "SKIP": 2, "pt_before": 250})):
+    for early, want in ((False, {"keep": 317, "PT": 54, "retime": 4, "pt_before": 250}),
+                        (True, {"keep": 300, "PT": 53, "early_start": 22, "pt_before": 250})):
         kinds = Counter()
         for t in itertools.product(range(1, 6), repeat=4):
             d1, d11, o = run(t, early)
-            kinds["pt_before" if d1 == "PT" else "keep" if d11 == d1 else d11 if d11 in ("PT", "SKIP")
+            kinds["pt_before" if d1 == "PT" else "keep" if d11 == d1 else d11 if d11 == "PT"
                   else "early_start" if o.early_shift else "retime"] += 1
         assert kinds == want
 
@@ -237,15 +237,15 @@ def test_logit_probabilities() -> None:
     """argmin(gc - Gumbel) reproduces binary logit: P(cheaper) = 1 / (1 + exp(-dGC / sigma))."""
     cfg = load_config(overrides={"rules.sigma_rule": 1.0})
     rd = RuleDecider(cfg)
-    p = Persona(**{**SHARED_A, "pt_allowed": False}, H=3, F=3, P=3, S=3)
+    p = Persona(**SHARED_A, H=3, F=3, P=3, S=3)
     base = context(p, new_memory(0), today(11, True), cfg)
     car = min((o for o in base.options if o.mode == "CAR"), key=lambda o: o.gc)
-    skip = base.option("SKIP")
+    pt = base.option("PT")
     car = dataclasses.replace(car, gc=10.0)
-    skip = dataclasses.replace(skip, gc=11.0)
+    pt = dataclasses.replace(pt, gc=11.0)
     n, wins = 6000, 0
     for i in range(n):
-        ctx = dataclasses.replace(base, agent_id=i, options=(car, skip))
+        ctx = dataclasses.replace(base, agent_id=i, options=(car, pt))
         wins += rd.decide(ctx).option_id == car.option_id
     assert wins / n == pytest.approx(1 / (1 + np.exp(-1.0)), abs=0.02)
 

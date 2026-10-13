@@ -92,13 +92,6 @@ def make_options(p: Persona, today: TodayInfo, standing: str | None,
             expected_arrive_min=None, early_min=0.0, late_min=0.0, fee=0.0, parking=0.0,
             pt_time_min=None, pt_fare=None, is_standing=standing == "WFH",
             gc=sum(parts.values()) + 123.4567, gc_parts=parts))
-    parts = {"skip": 25.0, "habit": 0.0 if standing == "SKIP" else 1.5}
-    out.append(Option(
-        option_id="SKIP", mode="SKIP", depart_min=None, expected_gate_arrive_min=None,
-        expected_delay_min=None, expected_gate_exit_min=None, expected_travel_min=0.0,
-        expected_arrive_min=None, early_min=0.0, late_min=0.0, fee=0.0, parking=0.0,
-        pt_time_min=None, pt_fare=None, is_standing=standing == "SKIP",
-        gc=sum(parts.values()) + 123.4567, gc_parts=parts))
     return tuple(out)
 
 
@@ -297,7 +290,7 @@ def test_schema_enum_equals_option_ids(ctxs: list[DecisionContext]) -> None:
     (None, False),
 ])
 def test_validate_output(obj: object, ok: bool) -> None:
-    assert llm.validate_output(obj, ["CAR_0730", "PT", "SKIP"])[0] is ok
+    assert llm.validate_output(obj, ["CAR_0730", "PT", "WFH"])[0] is ok
 
 
 def test_cache_key_properties() -> None:
@@ -733,7 +726,7 @@ def test_prompt_states_fuel_cost_and_fuel_column(tiny_personas: list[Persona], t
     cols = header.split(" | ")
     assert cols[cols.index("parking") + 1] == "fuel"
     i = cols.index("fuel")
-    rows = [ln.split(" | ") for ln in text.splitlines() if ln.startswith(("CAR_", "PT |", "SKIP |"))]
+    rows = [ln.split(" | ") for ln in text.splitlines() if ln.startswith(("CAR_", "PT |", "WFH |"))]
     assert all(r[i] == "NZ$6.81" for r in rows if r[0].startswith("CAR_"))
     assert all(r[i] == "-" for r in rows if not r[0].startswith("CAR_"))
     # no fuel cost: stated as nothing; an employer vehicle names the employer
@@ -789,9 +782,9 @@ def test_prompt_states_early_start_only_when_allowed(tiny_personas: list[Persona
         i = header.index("start time")
         assert header[i + 1] == "expected arrival"
         rows = {r[0]: r for r in (ln.split(" | ") for ln in text.splitlines()
-                                  if ln.startswith(("CAR_", "PT |", "WFH |", "SKIP |")))}
+                                  if ln.startswith(("CAR_", "PT |", "WFH |")))}
         for o in opts:
-            want = "-" if o.mode in ("WFH", "SKIP") else f"{o.start_used_min // 60:02d}:{o.start_used_min % 60:02d}"
+            want = "-" if o.mode == "WFH" else f"{o.start_used_min // 60:02d}:{o.start_used_min % 60:02d}"
             assert rows[o.option_id][i] == want
     y_text, y_opts = texts["yes"]
     early = [o for o in y_opts if o.early_shift]
@@ -818,3 +811,216 @@ def test_prompt_memory_table_shows_start_used(tiny_personas: list[Persona], tiny
     text = llm.render_user_prompt(make_ctx(p, make_today(11), recent=(rec,)), tiny_cfg)
     line = next(ln for ln in text.splitlines() if ln.startswith("10 | drove"))
     assert " | 07:00 | 06:40 (20 min early) | " in line
+
+
+# ------------------------------------------------------------------------------------------
+# Road congestion: templates cl-v2 and cl-v3 (traffic parts only when the day's information has roads)
+# ------------------------------------------------------------------------------------------
+
+CLV1_OPTIONS_HEADER = ("option id | what | leave home | expected queue | cross into centre | door to door | "
+                       "start time | expected arrival | road charge | parking | fuel | fare | usual")
+CLV1_MEMORY_HEADER = ("day | what you did | left home | queue at entry | door to door | start time | arrived | "
+                      "charge paid | note")
+
+
+def road_info(cfg: Config, p: Persona, per_min: float = 0.06) -> dict[int, tuple[float, ...]]:
+    """public_road for one agent: (d - sim_start) x per_min minutes, 2 dp (07:00 -> 5.4 min)."""
+    t = cfg.time
+    return {p.agent_id: tuple(round((d - t.sim_start_min) * per_min, 2)
+                              for d in range(t.sim_start_min, t.depart_latest_min + 1))}
+
+
+def test_template_id_is_cl_v3() -> None:
+    from cordonlite import config as config_mod
+
+    assert llm.TEMPLATE_ID == config_mod.TEMPLATE_ID == load_config().llm.template_id == "cl-v3"
+
+
+def test_prompt_has_no_skip_option(ctxs: list[DecisionContext], tiny_cfg: Config) -> None:
+    """cl-v3 (2026-10-09): SKIP is gone from the options table, the schema and the wording."""
+    for c in ctxs:
+        text = llm.render_user_prompt(c, tiny_cfg)
+        assert "SKIP" not in text and "do not go into the city centre" not in text
+        assert "SKIP" not in llm.output_schema(c.option_ids)["properties"]["choice"]["enum"]
+        assert "would not pay more than" not in text                  # nothing removed by the willingness to pay
+
+
+def test_prompt_without_roads_is_cl_v1_text(ctxs: list[DecisionContext], tiny_cfg: Config) -> None:
+    """Roads off (no public road information): no traffic wording, the cl-v1 sentences and columns
+    (cl-v3 has no SKIP row, otherwise the text without roads is unchanged)."""
+    for c in ctxs:
+        text = llm.render_user_prompt(c, tiny_cfg)
+        assert "traffic" not in text.lower()
+        assert "- With no queues the drive takes about" in text and "Queues can form at the entry point" in text
+        assert CLV1_OPTIONS_HEADER in text.splitlines()
+        assert CLV1_MEMORY_HEADER in text.splitlines()
+
+
+def test_prompt_with_roads_day1_usual_traffic(tiny_personas: list[Persona], tiny_cfg: Config,
+                                             make_today: Callable[..., TodayInfo]) -> None:
+    p = next(x for x in tiny_personas if x.pt_allowed and not x.company_car)
+    today = make_today(1, fee_active=False, public_road=road_info(tiny_cfg, p), public_road_source="usual")
+    text = llm.render_user_prompt(make_ctx(p, today, standing=None, recent=()), tiny_cfg)
+    lines = text.splitlines()
+    assert (f"- With no traffic the drive takes about {p.fftt_total_min} min: {p.fftt_to_gate_min} min to reach "
+            f"the city-centre boundary and {p.fftt_gate_to_dest_min} min from there. In the morning, traffic on "
+            "the way and a queue at your entry point can make it longer.") in lines
+    assert ("- Usual traffic on your route, by time of leaving home: leaving 07:00: 5 min, leaving 07:15: 6 min, "
+            "leaving 07:30: 7 min, leaving 07:45: 8 min, leaving 08:00: 9 min.") in lines
+    assert "- No information on yesterday's queues at your entry point is available." in lines
+    assert "Yesterday's" not in text and "With no queues" not in text
+    header = next(ln for ln in lines if ln.startswith("option id |")).split(" | ")
+    assert header[header.index("traffic delay") + 1] == "expected queue"
+    assert header[header.index("leave home") + 1] == "traffic delay"
+    i = header.index("traffic delay")
+    rows = {r[0]: r for r in (ln.split(" | ") for ln in lines if ln.startswith(("CAR_", "PT |", "WFH |")))}
+    assert rows["CAR_0700"][i] == "5 min" and rows["CAR_0800"][i] == "9 min"
+    assert rows["PT"][i] == "-"
+    # every row has the new cell (an empty last cell, "usual", is cut by the line rstrip)
+    assert all(len(header) - 1 <= len(r) <= len(header) for r in rows.values())
+
+
+def test_prompt_with_roads_yesterday_traffic_and_queue(tiny_personas: list[Persona], tiny_cfg: Config,
+                                                       make_today: Callable[..., TodayInfo]) -> None:
+    from dataclasses import replace as dc_replace
+
+    p = next(x for x in tiny_personas if x.corridor_id == 0 and x.pt_allowed and not x.company_car)
+    today = make_today(6, fee_active=True, public_delay=PROFILE, public_road=road_info(tiny_cfg, p),
+                       public_road_source="yesterday")
+    recent = tuple(dc_replace(r, road_delay_min=4.0 + r.day if r.mode == "CAR" else None)
+                   for r in make_recent(p, 5))
+    ctx = make_ctx(p, today, recent=recent)
+    # options built by build_options carry the road delay themselves; the prompt shows that value
+    ctx = dc_replace(ctx, options=tuple(dc_replace(o, expected_road_delay_min=11.0) if o.option_id == "CAR_0800"
+                                        else o for o in ctx.options))
+    text = llm.render_user_prompt(ctx, tiny_cfg)
+    lines = text.splitlines()
+    line = next(ln for ln in lines if ln.startswith("- Yesterday's traffic on your route and queue"))
+    pub = {o.option_id: llm._public_delay_at(ctx, o, tiny_cfg) for o in ctx.options if o.mode == "CAR"}
+    assert line.startswith("- Yesterday's traffic on your route and queue at your entry point, by time of "
+                           f"leaving home: leaving 07:00: 5 min traffic + {round(pub['CAR_0700'])} min queue, ")
+    assert line.endswith(f"leaving 08:00: 11 min traffic + {round(pub['CAR_0800'])} min queue.")
+    assert not any(ln.startswith("- Yesterday's queue at your entry point") for ln in lines)
+    assert "No information on yesterday's queues" not in text
+    # memory table: traffic delay next to the queue at entry, '-' on a PT day
+    mh = next(ln for ln in lines if ln.startswith("day | what you did")).split(" | ")
+    assert mh[mh.index("traffic delay") + 1] == "queue at entry"
+    j = mh.index("traffic delay")
+    mrows = [ln.split(" | ") for ln in lines if ln[:2].rstrip(" |").isdigit()]
+    assert len(mrows) == len(recent)
+    for r, rec in zip(mrows, recent):
+        assert len(mh) - 1 <= len(r) <= len(mh)      # an empty note cell is cut by the line rstrip
+        assert r[j] == (f"{int(4 + rec.day)} min" if rec.mode == "CAR" else "-")
+    # yesterday's traffic but no queue information on this corridor
+    t2 = make_today(6, fee_active=True, public_delay={0: (), 1: (), 2: ()}, public_road=road_info(tiny_cfg, p),
+                    public_road_source="yesterday")
+    text2 = llm.render_user_prompt(make_ctx(p, t2, recent=recent), tiny_cfg)
+    assert "- Yesterday's traffic on your route, by time of leaving home: leaving 07:00: 5 min," in text2
+    assert "- No information on yesterday's queues at your entry point is available." in text2
+
+
+def test_prompt_road_lines_follow_real_options(tiny_personas: list[Persona], tiny_cfg: Config,
+                                               make_today: Callable[..., TodayInfo]) -> None:
+    """With build_options, the traffic shown is Option.expected_road_delay_min and the queue shown is
+    looked up at the gate arrival that includes the road delay."""
+    from cordonlite import memory, options
+
+    p = next(x for x in tiny_personas if x.corridor_id == 0)
+    prof = {0: tuple((float(m), (m - 400) / 10.0) for m in range(402, 560, 5)), 1: (), 2: ()}
+    today = make_today(4, fee_active=False, public_delay=prof, public_road=road_info(tiny_cfg, p, 0.1),
+                       public_road_source="yesterday")
+    params = persona_mod.trait_params(p, tiny_cfg)
+    opts = options.build_options(p, memory.new_memory(p.agent_id), today, params, tiny_cfg, False)
+    ctx = DecisionContext(agent_id=p.agent_id, day=4, persona=p, params=params, options=opts,
+                          standing_option_id=None, triggers=("T1",), discontinuity=False, recent=(),
+                          delay_ratio_ema=1.0, ref_fee=0.0, today=today)
+    line = next(ln for ln in llm.render_user_prompt(ctx, tiny_cfg).splitlines()
+                if ln.startswith("- Yesterday's traffic on your route and queue"))
+    for o in opts:
+        if o.mode == "CAR":
+            g = o.depart_min + p.fftt_to_gate_min + int(o.expected_road_delay_min + 0.5)
+            assert g == o.expected_gate_arrive_min
+            q = options.expected_public_delay(prof, 0, g, tiny_cfg.costs.delay_bin_min)
+            assert (f"leaving {o.depart_min // 60:02d}:{o.depart_min % 60:02d}: "
+                    f"{g - o.depart_min - p.fftt_to_gate_min} min traffic + {round(q)} min queue") in line
+
+
+def test_prompt_road_delay_rounds_like_the_gate_arrival(tiny_personas: list[Persona], tiny_cfg: Config,
+                                                       make_today: Callable[..., TodayInfo]) -> None:
+    """A road delay of k.5 min (even k, where round() goes down) is shown as k + 1 min, the whole
+    minutes build_options adds to the gate arrival, so traffic + to-gate time = crossing time."""
+    from cordonlite import memory, options
+
+    p = next(x for x in tiny_personas if x.pt_allowed and not x.company_car)
+    t = tiny_cfg.time
+    n = t.depart_latest_min - t.sim_start_min + 1
+    for r, shown in ((0.5, 1), (2.5, 3), (6.5, 7), (5.4999, 5)):
+        today = make_today(1, fee_active=False, public_road={p.agent_id: (r,) * n}, public_road_source="usual")
+        params = persona_mod.trait_params(p, tiny_cfg)
+        opts = options.build_options(p, memory.new_memory(p.agent_id), today, params, tiny_cfg, False)
+        ctx = DecisionContext(agent_id=p.agent_id, day=1, persona=p, params=params, options=opts,
+                              standing_option_id=None, triggers=("T1",), discontinuity=False, recent=(),
+                              delay_ratio_ema=1.0, ref_fee=0.0, today=today)
+        lines = llm.render_user_prompt(ctx, tiny_cfg).splitlines()
+        header = next(ln for ln in lines if ln.startswith("option id |")).split(" | ")
+        i, j = header.index("traffic delay"), header.index("cross into centre")
+        rows = {r_[0]: r_ for r_ in (ln.split(" | ") for ln in lines if ln.startswith("CAR_"))}
+        usual = next(ln for ln in lines if ln.startswith("- Usual traffic on your route"))
+        cars = [o for o in opts if o.mode == "CAR"]
+        assert cars and len(rows) == len(cars)
+        for o in cars:
+            assert o.expected_gate_arrive_min - o.depart_min - p.fftt_to_gate_min == shown
+            assert rows[o.option_id][i] == f"{shown} min"
+            assert rows[o.option_id][j] == llm.clock_str(o.depart_min + p.fftt_to_gate_min + shown)
+            assert f"leaving {llm.clock_str(o.depart_min)}: {shown} min" in usual
+
+
+def test_llm_run_prompts_with_and_without_roads(tmp_path: Path, tiny_origins: Any, tiny_corridors_prep: Any) -> None:
+    """A tiny L-clock run: traffic in every cl-v3 prompt with roads on (usual on day 1, yesterday's
+    later); none with roads off."""
+    from cordonlite import run as R
+    from tests.conftest import write_tiny_road_data
+
+    data = tmp_path / "data"
+    data.mkdir()
+    tiny_origins.to_csv(data / "origins.csv", index=False)
+    tiny_corridors_prep.to_csv(data / "corridors.csv", index=False)
+    write_tiny_road_data(data, tiny_origins)
+    users = {}
+    for on in (True, False):
+        cfg = load_config(overrides={
+            "run.n_agents": 20, "run.n_days": 4, "fees.fee_start_day": 3, "persona.n_twins": 4,
+            "run.data_dir": str(data), "run.seed": 3, "engine.use_calibration": False,
+            "engine.capacity_scale": 0.5, "run.arm": "L-daily", "road.enabled": on})
+        d = R.run_simulation(cfg, tmp_path / ("on" if on else "off"))
+        recs = [json.loads(x) for x in (d / "llm_calls.jsonl").read_text(encoding="utf-8").splitlines()]
+        assert recs and {r["template_id"] for r in recs} == {"cl-v3"}
+        users[on] = recs
+    for r in users[True]:
+        assert "- With no traffic the drive takes about" in r["user"]
+        if "| drive |" in r["user"]:
+            lead = "- Usual traffic on your route" if r["day"] == 1 else "- Yesterday's traffic on your route"
+            assert lead in r["user"]
+    assert all("traffic" not in r["user"].lower() for r in users[False])
+
+
+def test_make_example_prompt_heading_names_the_run_template(tmp_path: Path) -> None:
+    """scripts/make_example_prompt.py labels the document with the run's template id (cl-v3)."""
+    import shutil
+    import subprocess
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    run = tmp_path / "run"
+    run.mkdir()
+    shutil.copy(root / "config.toml", run / "config_snapshot.toml")
+    rec = {"day": 6, "agent_id": 3, "user": "Your usual choice lately: drive\n", "template_id": "cl-v3",
+           "schema_option_ids": ["CAR_0800", "PT"], "triggers": ["T2"],
+           "parsed": {"reason": "x", "factors": ["fee"], "choice": "PT"}}
+    (run / "llm_calls.jsonl").write_text(json.dumps(rec) + "\n", encoding="utf-8")
+    out = tmp_path / "example_prompt.md"
+    subprocess.run([sys.executable, str(root / "scripts" / "make_example_prompt.py"), "--run", str(run),
+                    "--out", str(out)], check=True, capture_output=True, cwd=root)
+    heading = out.read_text(encoding="utf-8").splitlines()[0]
+    assert heading == f"# Example rendered prompt (template `{llm.TEMPLATE_ID}`)"
+    assert llm.TEMPLATE_ID == "cl-v3"

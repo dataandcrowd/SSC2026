@@ -13,6 +13,8 @@ Public API:
     personas_to_frame(personas) -> pd.DataFrame            # personas.csv (Persona fields, in order)
     agents_frame(personas) -> pd.DataFrame                 # engine agents.csv columns
     twin_pairs(personas) -> list[tuple[int, int]]          # (original agent_id, twin agent_id)
+    wtt_vot_ref(vots, cfg) -> float                        # VoT_ref of the willingness to pay (wtt.vot_ref)
+    willingness_to_pay(u, vot, vot_ref, cfg) -> (beta, wtp)   # exponential decay; (0, inf) with wtt.beta0 = 0
 """
 
 from __future__ import annotations
@@ -108,7 +110,9 @@ def build_personas(origins: pd.DataFrame, corridors: pd.DataFrame, cfg: Config,
 
     Layer A draw order on stream "A": per base agent (origin by weight, VoT); then quintiles over
     the base agents; then per base agent (archetype, t*, company car, parking); then per base agent
-    the early-start permission (persona.early_shift_prob by archetype). Fuel cost is
+    the early-start permission (persona.early_shift_prob by archetype); then per base agent the
+    uniform u of the willingness to pay (willingness_to_pay; wtt_beta and wtp_fee are derived from
+    it, VoT and the [wtt] keys). Fuel cost is
     derived (no draw): 2 x path_km x costs.fuel_cost_per_km, 0 for a company car. Twins: the last
     k = min(n_twins, n // 2) agents copy every Layer A field of agents 0..k-1 and keep their own
     Layer B draw. Layer B: draw_traits(n) on stream "B" (not used when traits == "off").
@@ -178,6 +182,8 @@ def build_personas(origins: pd.DataFrame, corridors: pd.DataFrame, cfg: Config,
             # fuel: round trip, to the cent so the rule and the prompt use the same number; the
             # employer pays for a company car / work vehicle (same rule as parking)
             fuel_cost=0.0 if company else round(2.0 * float(o["path_km"]) * float(cc.fuel_cost_per_km), 2),
+            # PT time scales the FREE-FLOW car time and does not change with road traffic (rail and
+            # busway assumption; road congestion of 2026-10-07 slows cars only)
             pt_time_min=round(cfg.pt_ratio(corridor) * (to_gate + to_dest) + cc.pt_access_min, 4),
             pt_fare=float(cc.pt_fare),
         ))
@@ -186,6 +192,14 @@ def build_personas(origins: pd.DataFrame, corridors: pd.DataFrame, cfg: Config,
     for i in range(n_base):
         u = float(rng_a.random())
         a_rows[i]["early_shift_ok"] = bool(u < pc.early_shift_prob[a_rows[i]["archetype"] - 1])
+    # Willingness to travel (2026-10-09): one uniform draw per base agent AFTER every other Layer A draw
+    # (the early-start permission included), so no earlier field changes (twins copy it with the rest of
+    # Layer A). VoT_ref covers every commuter, twins' copies included.
+    vot_ref = wtt_vot_ref(np.concatenate([vots, vots[:k]]), cfg)
+    for i in range(n_base):
+        u = float(rng_a.random())
+        beta, wtp = willingness_to_pay(u, a_rows[i]["vot"], vot_ref, cfg)
+        a_rows[i].update(wtt_u=u, wtt_beta=beta, wtp_fee=wtp)
     a_rows += [dict(a_rows[j]) for j in range(k)]
 
     if traits == "off":
@@ -196,6 +210,33 @@ def build_personas(origins: pd.DataFrame, corridors: pd.DataFrame, cfg: Config,
 
     return [Persona(agent_id=i, **a_rows[i], H=int(tr[i, 0]), F=int(tr[i, 1]),
                     P=int(tr[i, 2]), S=int(tr[i, 3])) for i in range(n)]
+
+
+def wtt_vot_ref(vots: np.ndarray, cfg: Config) -> float:
+    """VoT_ref of the willingness to pay (NZ$/h): exp(persona.vot_mu), the median of the VoT
+    distribution (wtt.vot_ref = "distribution_median"), or the median of ``vots``, the VoT of every
+    commuter ("sample_median", as the SSC2026 model, which used its population median)."""
+    if cfg.wtt.vot_ref == "sample_median":
+        return float(np.median(np.asarray(vots, dtype=float)))
+    return float(math.exp(cfg.persona.vot_mu))
+
+
+def willingness_to_pay(u: float, vot: float, vot_ref: float, cfg: Config) -> tuple[float, float]:
+    """(beta, WTP) of a commuter with uniform draw ``u`` in [0, 1) and value of time ``vot`` (NZ$/h).
+
+    beta = clip(wtt.beta0 x vot_ref / vot, wtt.beta_clip) and WTP = -ln(u) x vot / beta, rounded to the
+    cent (the prompt states it in cents, so the rule and the prompt use the same number). WTP is
+    exponential with rate beta / vot, so P(WTP >= F) = exp(-beta x F / vot): the SSC2026 exponential decay
+    exp(-beta x fee / VoT) as a fixed threshold per commuter. wtt.beta0 = 0 switches it off: (0.0, inf),
+    no clip; u = 0 also gives an infinite WTP."""
+    b0 = float(cfg.wtt.beta0)
+    if b0 <= 0.0:
+        return 0.0, math.inf
+    lo, hi = cfg.wtt.beta_clip
+    beta = min(max(b0 * float(vot_ref) / float(vot), float(lo)), float(hi))
+    if u <= 0.0:
+        return beta, math.inf
+    return beta, round(-math.log(u) * float(vot) / beta, 2)
 
 
 def trait_params(persona: Persona, cfg: Config) -> TraitParams:

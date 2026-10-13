@@ -1,7 +1,8 @@
 """Shared fixtures: a tiny synthetic scenario (3 corridors, 20 agents) needing no prep data.
 
 Fixtures
-    tiny_cfg              Config with n_agents=20, n_days=6, fee_start_day=3, n_twins=4.
+    tiny_cfg              Config with n_agents=20, n_days=6, fee_start_day=3, n_twins=4, road.enabled=false
+                          (free-flow roads: the hand-computed numbers in many tests assume them).
     tiny_corridors        engine corridors.csv frame (corridor_id, name, capacity_per_min, x, y).
     tiny_agents           engine agents.csv frame (agent_id, corridor_id, fftt_to_gate_min, fftt_gate_to_dest_min, x, y).
     tiny_scenario_dir     tmp dir holding corridors.csv, agents.csv, fees.csv (ToU).
@@ -9,7 +10,10 @@ Fixtures
     tiny_corridors_prep   prep corridors.csv frame.
     tiny_personas         20 hand-built Persona objects consistent with tiny_agents.
     tiny_plans            day plans frame (agent_id, mode, depart_min): mix of CAR/PT/WFH/SKIP.
-    make_today            factory: make_today(day, fee_active=..., public_delay=None, disrupted=()) -> TodayInfo.
+    make_today            factory: make_today(day, fee_active=..., public_delay=None, disrupted=(),
+                          public_road=None, public_road_source="usual") -> TodayInfo.
+    write_tiny_road_data  helper: write_tiny_road_data(data_dir, origins) writes prep-style road files
+                          (road_sections.csv, origin_sections.csv, road_profile.csv, road_meta.json).
 
 NetLogo tests: mark with @pytest.mark.netlogo. They are skipped unless pytest is run with
 --run-netlogo or CORDONLITE_RUN_NETLOGO=1, and must run in their own pytest process because
@@ -18,6 +22,7 @@ the JVM can start only once per process and may hang on exit.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Callable, Iterable
@@ -29,7 +34,7 @@ import pytest
 from cordonlite import fees
 from cordonlite.config import Config, load_config
 from cordonlite.engine import AGENTS_COLUMNS, AGENTS_FILE, CORRIDORS_COLUMNS, CORRIDORS_FILE, FEES_FILE
-from cordonlite.types import DelayProfile, Persona, TodayInfo
+from cordonlite.types import DelayProfile, Persona, RoadDelayInfo, TodayInfo
 
 N_TINY_AGENTS = 20
 N_TINY_CORRIDORS = 3
@@ -57,6 +62,7 @@ def tiny_cfg() -> Config:
         "fees.fee_start_day": 3,
         "persona.n_twins": 4,
         "events.pt_disruption_day": 5,
+        "road.enabled": False,
     })
 
 
@@ -175,7 +181,8 @@ def tiny_plans() -> pd.DataFrame:
 def make_today() -> Callable[..., TodayInfo]:
     def _make(day: int, fee_active: bool = True, regime: str = "tou",
               public_delay: DelayProfile | None = None, disrupted: Iterable[int] = (),
-              fee_changed_today: bool = False) -> TodayInfo:
+              fee_changed_today: bool = False, public_road: RoadDelayInfo | None = None,
+              public_road_source: str = "usual") -> TodayInfo:
         table = fees.fee_table(regime if fee_active else "none")
         return TodayInfo(
             day=day, fee_regime=regime, fee_active=fee_active, fee_by_minute=tuple(table),
@@ -183,5 +190,40 @@ def make_today() -> Callable[..., TodayInfo]:
             public_delay=public_delay if public_delay is not None else {c: () for c in range(N_TINY_CORRIDORS)},
             pt_disrupted_corridors=frozenset(disrupted), pt_disruption_announced=True,
             pt_disruption_time_mult=2.0,
+            public_road=public_road if public_road is not None else {},
+            public_road_source=public_road_source,
         )
     return _make
+
+
+def write_tiny_road_data(data_dir: Path, origins: pd.DataFrame, cap_vph: float = 1200.0,
+                         w_factor: float = 0.05) -> None:
+    """Prep-style road files for a tiny origins frame (like tiny_origins).
+
+    Each origin drives its own section (ff = fftt_to_gate_min - 5) and then two sections shared by
+    its corridor (ff 2.0 and 3.0), so the route's free-flow minutes sum to fftt_to_gate_min.
+    Background is 75% of capacity at the profile peak; observed flow 85%."""
+    sec_rows, os_rows = [], []
+    corrs = sorted(int(c) for c in origins["corridor_id"].unique())
+    shared = {c: (1000 + 2 * c, 1001 + 2 * c) for c in corrs}
+    for c in corrs:
+        for sid, ff in zip(shared[c], (2.0, 3.0)):
+            sec_rows.append((sid, ff))
+    for _, o in origins.iterrows():
+        oid, c = int(o["origin_id"]), int(o["corridor_id"])
+        sec_rows.append((oid, float(o["fftt_to_gate_min"]) - 5.0))
+        for k, sid in enumerate((oid, *shared[c])):
+            os_rows.append((oid, k, sid))
+    sec = pd.DataFrame(sec_rows, columns=["section_id", "ff_min"]).sort_values("section_id")
+    sec["cap_vph"] = cap_vph
+    sec["bg_peak_vph"] = round(0.75 * cap_vph, 3)
+    sec["obs_peak_vph"] = round(0.85 * cap_vph, 3)
+    sec["w_factor"] = w_factor
+    sec["frc"] = 2                      # extra prep columns are ignored by the run
+    sec.to_csv(data_dir / "road_sections.csv", index=False)
+    pd.DataFrame(os_rows, columns=["origin_id", "seq", "section_id"]).to_csv(
+        data_dir / "origin_sections.csv", index=False)
+    m = np.arange(1440)
+    r = np.clip(1.0 - np.abs(m - 480) / 180.0, 0.15, 1.0).round(6)   # peak at 08:00
+    pd.DataFrame({"minute": m, "r": r}).to_csv(data_dir / "road_profile.csv", index=False)
+    (data_dir / "road_meta.json").write_text(json.dumps({"k": 0.1}) + "\n", encoding="utf-8")

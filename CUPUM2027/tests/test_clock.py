@@ -37,7 +37,7 @@ def rec(day: int, mode: str = "CAR", late: float = 0.0, travel: float = 25.0, ex
                         decider="standing", triggers=(), reason="")
 
 
-IDS = ("CAR_0730", "PT", "SKIP")
+IDS = ("CAR_0730", "PT")
 
 
 def standing_car():
@@ -131,15 +131,20 @@ def test_t5_needs_car_yesterday_and_skips_non_car_days(make_today, tiny_cfg) -> 
 def test_t6_standing_infeasible(make_today, tiny_cfg) -> None:
     m = new_memory(0)
     set_standing(m, opt("PT", "PT"))
-    assert evaluate_triggers(persona(), m, make_today(5), ("CAR_0730", "SKIP"), tiny_cfg) == ("T6",)
+    assert evaluate_triggers(persona(), m, make_today(5), ("CAR_0730",), tiny_cfg) == ("T6",)
     m2 = new_memory(0)
     set_standing(m2, opt("WFH", "WFH"))
-    assert evaluate_triggers(persona(), m2, make_today(5), ("CAR", "PT", "WFH", "SKIP"), tiny_cfg) == ()
+    assert evaluate_triggers(persona(), m2, make_today(5), ("CAR", "PT", "WFH"), tiny_cfg) == ()
     m3 = new_memory(0)
     set_standing(m3, opt("CAR_0545", "CAR", 345))                         # outside the window
-    assert evaluate_triggers(persona(), m3, make_today(5), ("CAR", "SKIP"), tiny_cfg) == ("T6",)
+    assert evaluate_triggers(persona(), m3, make_today(5), ("CAR",), tiny_cfg) == ("T6",)
     # feasible modes or option ids are both accepted for a standing car
-    assert evaluate_triggers(persona(), standing_car(), make_today(5), ("CAR", "SKIP"), tiny_cfg) == ()
+    assert evaluate_triggers(persona(), standing_car(), make_today(5), ("CAR",), tiny_cfg) == ()
+    assert evaluate_triggers(persona(), standing_car(), make_today(5), ("CAR_0730", "PT"), tiny_cfg) == ()
+    # with option ids the standing departure itself must be offered (the willingness to pay may remove
+    # it while other departures stay, 2026-10-09)
+    assert evaluate_triggers(persona(), standing_car(), make_today(5), ("CAR_0715", "PT"), tiny_cfg) == ("T6",)
+    assert evaluate_triggers(persona(), standing_car(), make_today(5), ("PT",), tiny_cfg) == ("T6",)
 
 
 def test_multiple_sorted(make_today, tiny_cfg) -> None:
@@ -164,22 +169,6 @@ def test_discontinuity_and_wake(tiny_cfg) -> None:
     assert should_wake("R-clock", ("T3",)) and should_wake("L-clock", ("T1",))
     with pytest.raises(ValueError):
         should_wake("X", ())
-
-
-def test_standing_skip_wakes_next_day(tiny_cfg, make_today) -> None:
-    """Integrator addition: a standing SKIP is not a standing plan, so T6 fires each following day."""
-    from cordonlite.memory import new_memory, set_standing
-    from cordonlite.types import Option
-
-    m = new_memory(0)
-    skip = Option(option_id="SKIP", mode="SKIP", depart_min=None, expected_gate_arrive_min=None,
-                  expected_delay_min=None, expected_gate_exit_min=None, expected_travel_min=0.0,
-                  expected_arrive_min=None, early_min=0.0, late_min=0.0, fee=0.0, parking=0.0,
-                  pt_time_min=None, pt_fare=None, is_standing=False, gc=25.0)
-    set_standing(m, skip)
-    ids = ("CAR", "PT", "WFH", "SKIP")
-    assert evaluate_triggers(persona(), m, make_today(5), ids, tiny_cfg) == ("T6",)
-    assert evaluate_triggers(persona(), m, make_today(6), ids, tiny_cfg) == ("T6",)
 
 
 def test_t4_disruption_end_wakes_once(make_today, tiny_cfg) -> None:
@@ -217,3 +206,40 @@ def test_t7_periodic_review_fires_only_when_enabled():
     cfg = load_config()
     assert cfg.clock.review_every_days == 0
     assert dataclasses.replace(cfg.clock, review_every_days=5).review_every_days == 5
+
+
+def test_t5_and_t3_include_road_delay(make_today, tiny_cfg) -> None:
+    """Road congestion needs no clock change: the expected door-to-door time of a car option includes
+    the public road delay, so a usual 10 min of traffic is no surprise (no T5), while traffic far above
+    it on two car days is (T5); lateness caused by traffic counts for T3 like any other."""
+    from cordonlite.memory import record_from_outcome, update_memory
+    from cordonlite.options import build_options, car_outcome
+    from cordonlite.persona import trait_params
+
+    p = persona()                                           # t* 08:00, 25 min free flow, F = 3
+    t = tiny_cfg.time
+    pub = {0: tuple(10.0 for _ in range(t.sim_start_min, t.depart_latest_min + 1))}
+
+    def drive(m, day: int, road: int, today) -> tuple[str, ...]:
+        o = next(x for x in build_options(p, m, today, trait_params(p, tiny_cfg), tiny_cfg, False)
+                 if x.option_id == "CAR_0700")
+        a = 420 + 20 + road
+        row = car_outcome(p, {"agent_id": 0, "day": day, "corridor_id": 0, "depart_min": 420, "road_delay_min": road,
+                              "gate_arrive_min": a, "gate_exit_min": a, "queue_delay_min": 0,
+                              "arrive_min": a + 5, "fee_paid": 0.0}, o.option_id)
+        update_memory(m, record_from_outcome(row, o, "standing"), tiny_cfg)
+        return evaluate_triggers(p, m, make_today(day + 1, fee_active=False), IDS, tiny_cfg)
+
+    roads = make_today(1, fee_active=False, public_road=pub)
+    m = standing_car()
+    assert [drive(m, d, 10, roads) for d in (1, 2, 3)] == [(), (), ()]      # 35 min as expected
+    assert drive(m, 4, 30, roads) == ()                                      # 55 / 35: one day only
+    assert drive(m, 5, 30, roads) == ("T5",)                                 # two days in a row
+    # the same 35-min days against a free-flow expectation (25 min) would be a sustained surprise
+    free = make_today(1, fee_active=False)
+    m2 = standing_car()
+    assert [drive(m2, d, 10, free) for d in (1, 2)] == [(), ("T5",)]
+    # leaving 07:00 and arriving 08:15 for an 08:00 start because of 50 min of traffic: T3 at F = 3
+    # (tolerance 10 min); 45 min of traffic arrives 10 min late, within the tolerance
+    assert drive(standing_car(), 1, 45, roads) == ()
+    assert drive(standing_car(), 1, 50, roads) == ("T3",)

@@ -1,9 +1,9 @@
-"""LLM deciders: prompt rendering (template cl-v1), schema, MockLLM and AnthropicLLM backends.
+"""LLM deciders: prompt rendering (template cl-v3), schema, MockLLM and AnthropicLLM backends.
 
 Owner: llm builder. See INTERFACES.md. Never call the live API in tests.
 
 Public API:
-    TEMPLATE_ID = "cl-v1"
+    TEMPLATE_ID = "cl-v3"
     SYSTEM_PROMPT: str
     system_prompt(cfg) -> str                                           # SYSTEM_PROMPT with cfg word limit
     render_user_prompt(ctx: DecisionContext, cfg: Config) -> str       # byte-stable, no GC, no archetype code/label
@@ -20,6 +20,18 @@ Design notes
 - The prompt never shows the generalised cost (GC) or its parts, the archetype code or label,
   or trait names. It shows constraints, disposition sentences, the memory table, today's
   information and the options with their attributes.
+- Template cl-v2 (2026-10-07) adds road traffic: the situation sentence on the drive, a TODAY line
+  with the road delay on the agent's route by departure time (usual traffic on day 1, yesterday's
+  traffic with yesterday's queue later), and a "traffic delay" column in the options and memory
+  tables. The traffic parts are shown when TodayInfo.public_road holds information (road.enabled);
+  with roads off the user message is exactly the cl-v1 text. Road delays are shown in whole minutes
+  rounded half up, floor(R + 0.5) (_road_mins), the rounding build_options uses for the expected
+  gate arrival, so the traffic delay shown is the one built into the row's crossing time and arrival.
+- Template cl-v3 (2026-10-09) drops the SKIP option (no "do not go into the city centre today" row or
+  choice) and, only on a day when the commuter's willingness to pay removed a car option
+  (DecisionContext.wtt_removed > 0), states the limit in the TODAY section. The options table and the
+  schema list the offered options only, the ones the rule chooses from. With roads off the user
+  message is the cl-v2 text without traffic (cl-v1 without the SKIP row).
 - MockLLM is a deterministic stand-in, NOT an LLM. Its outputs carry backend="mock".
 - AnthropicLLM uses the official SDK (anthropic 1.x) with structured outputs
   (output_config.format = json_schema) and, by default, the server-side refusal fallback
@@ -56,29 +68,7 @@ from cordonlite.types import (
     clock_str,
 )
 
-TEMPLATE_ID = "cl-v1"
-# cl-v2 (llm.template_id = "cl-v2") changes two things and leaves the rest of cl-v1 as it is:
-#   1. the options table has a "you pay today" column (road charge the commuter pays + parking + fuel,
-#      or the fare), so a money comparison needs no arithmetic;
-#   2. the reply names one main_factor and an optional second_factor instead of a free list. Both are
-#      enums in the JSON schema, narrowed per agent-day to the factors that can apply (factor_ids):
-#      no road_charge without a charge, no disruption without one, no routine or past_experience on
-#      the first day, no bus_train_preference when no bus or train is offered. Tags that cannot
-#      apply therefore cannot be returned. The tags are defined in the system prompt; their names
-#      avoid the trait names, which never appear in a prompt.
-TEMPLATE_V2 = "cl-v2"
-FACTORS_V2: tuple[str, ...] = (
-    "road_charge", "other_money", "travel_time", "arrival_time", "routine", "bus_train_preference",
-    "flexibility", "past_experience", "disruption", "constraint", "other",
-)
-NO_FACTOR = "none"
-# cl-v2 tag -> types.FACTORS tag, to compare with the rule arms and with cl-v1 runs
-FACTOR_V2_TO_V1: dict[str, str] = {
-    "road_charge": "fee", "other_money": "other", "travel_time": "travel_time",
-    "arrival_time": "arrival_time", "routine": "habit", "bus_train_preference": "pt",
-    "flexibility": "flexibility", "past_experience": "past_experience", "disruption": "disruption",
-    "constraint": "work_constraint", "other": "other",
-}
+TEMPLATE_ID = "cl-v3"
 
 # Models that accept the server-side refusal fallback ("default" form). Claude Haiku 4.5 does
 # not run the classifiers that trigger it, so the fallback beta is not sent for it.
@@ -99,43 +89,9 @@ _SYSTEM_TEMPLATE = (
 )
 
 
-# How a reply names its factors (cl-v2 and the plan template in planner.py).
-FACTOR_DEFINITIONS = (
-    "Name the one factor that decided the choice (main_factor) and, only if a second factor "
-    "clearly mattered, that one as well (second_factor; otherwise \"none\"). The factors mean:\n"
-    "- road_charge: the charge for driving into the city centre: paying it, its amount, or avoiding it.\n"
-    "- other_money: parking, fuel or the bus or train fare.\n"
-    "- travel_time: how long the trip takes door to door, queues included.\n"
-    "- arrival_time: arriving early, on time or late against the start time.\n"
-    "- routine: keeping the usual way of making the trip, or the bother of changing it.\n"
-    "- bus_train_preference: liking or disliking buses and trains in themselves, apart from their "
-    "cost and time.\n"
-    "- flexibility: being able, or not able, to change the hours of the day or to work from home.\n"
-    "- past_experience: something that happened on the recent days shown.\n"
-    "- disruption: a disruption to buses and trains.\n"
-    "- constraint: something the day requires that rules other options out.\n"
-    "- other: none of these.\n"
-    "Only factors that can apply today are offered."
-)
-
-_SYSTEM_TEMPLATE_V2 = (
-    "You simulate the morning travel decision of one commuter who travels into Auckland city "
-    "centre on a weekday. You are given this person's circumstances, how they tend to decide, "
-    "their recent trips, today's information and the options open to them today.\n"
-    "Decide as this person would, weighing their own circumstances, tendencies and recent "
-    "experience. Use only the information given. Do not rely on demographic or occupational "
-    "stereotypes.\n"
-    "Choose exactly one option id from the options table. Give the person's reason in the first "
-    "person, in at most {words} words. When the reason compares money, use the \"you pay today\" "
-    "column.\n"
-) + FACTOR_DEFINITIONS
-
-
 def system_prompt(cfg: Config | None = None) -> str:
-    """System prompt of the configured template (cl-v1 by default) with the reason word limit."""
+    """System prompt of template cl-v3 (unchanged from cl-v1) with the configured reason word limit."""
     words = cfg.llm.reason_max_words if cfg is not None else 30
-    if cfg is not None and cfg.llm.template_id == TEMPLATE_V2:
-        return _SYSTEM_TEMPLATE_V2.format(words=words)
     return _SYSTEM_TEMPLATE.format(words=words)
 
 
@@ -154,6 +110,14 @@ def _mins(x: float | None) -> str:
     if x is None:
         return "-"
     return f"{int(round(x))} min"
+
+
+def _road_mins(x: float | None) -> str:
+    """Road delay in whole minutes, rounded half up as in the expected gate arrival
+    (options.build_options: g = d + fftt_to_gate + floor(R + 0.5)); _mins rounds half to even."""
+    if x is None:
+        return "-"
+    return f"{math.floor(x + 0.5)} min"
 
 
 def _clock(m: int | float | None) -> str:
@@ -180,7 +144,6 @@ def _mode_phrase(mode: str, activity: str) -> str:
         "CAR": "drove",
         "PT": "bus or train",
         "WFH": "worked from home",
-        "SKIP": "did not go into the city centre",
     }.get(mode, mode.lower())
 
 
@@ -190,13 +153,30 @@ def _dispositions(persona: Persona) -> tuple[str, ...]:
     return tuple(persona_mod.disposition_sentences(persona))
 
 
+def _roads_on(ctx: DecisionContext) -> bool:
+    """True when today's information includes road traffic (road.enabled); False leaves out every traffic part."""
+    return bool(ctx.today.public_road)
+
+
+def _road_delay_at(ctx: DecisionContext, o: Option, cfg: Config) -> float:
+    """Public road delay on the agent's route (usual or yesterday's traffic) for a car option."""
+    r = getattr(o, "expected_road_delay_min", None)
+    if r is not None:  # set by options.build_options
+        return float(r)
+    from cordonlite.roads import road_delay_at
+
+    return road_delay_at(ctx.today.public_road, ctx.persona.agent_id, int(o.depart_min or 0),
+                         cfg.time.sim_start_min)
+
+
 def _public_delay_at(ctx: DecisionContext, o: Option, cfg: Config) -> float:
     """Yesterday's public corridor delay (before the personal ratio) for a car option."""
     pub = getattr(o, "expected_public_delay_min", None)
     if pub is not None:  # set by options.build_options
         return float(pub)
     gate_arrive_min = o.expected_gate_arrive_min if o.expected_gate_arrive_min is not None \
-        else int(o.depart_min or 0) + ctx.persona.fftt_to_gate_min
+        else (int(o.depart_min or 0) + ctx.persona.fftt_to_gate_min
+              + math.floor(_road_delay_at(ctx, o, cfg) + 0.5))
     try:
         from cordonlite.options import expected_public_delay
     except ImportError:
@@ -257,10 +237,16 @@ def _situation(ctx: DecisionContext, cfg: Config) -> list[str]:
                          f"{_mins(p.pt_time_min)} door to door, {_money(p.pt_fare)} for the day.")
         else:
             lines.append("- There is no practical bus or train from your area.")
-    lines.append(f"- With no queues the drive takes about {_mins(p.fftt_total_min)}: "
-                 f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
-                 f"{_mins(p.fftt_gate_to_dest_min)} from there. Queues can form at the entry "
-                 f"point you use in the morning.")
+    if _roads_on(ctx):
+        lines.append(f"- With no traffic the drive takes about {_mins(p.fftt_total_min)}: "
+                     f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
+                     f"{_mins(p.fftt_gate_to_dest_min)} from there. In the morning, traffic on the "
+                     f"way and a queue at your entry point can make it longer.")
+    else:
+        lines.append(f"- With no queues the drive takes about {_mins(p.fftt_total_min)}: "
+                     f"{_mins(p.fftt_to_gate_min)} to reach the city-centre boundary and "
+                     f"{_mins(p.fftt_gate_to_dest_min)} from there. Queues can form at the entry "
+                     f"point you use in the morning.")
     if p.parking_cost > 0:
         lines.append(f"- Parking at your destination costs you {_money(p.parking_cost)} a day.")
     else:
@@ -291,7 +277,6 @@ def _standing_phrase(ctx: DecisionContext) -> str:
     return {
         "PT": "bus or train (option PT)",
         "WFH": "work from home (option WFH)",
-        "SKIP": "not going into the city centre (option SKIP)",
     }.get(sid, f"option {sid}")
 
 
@@ -299,6 +284,7 @@ def _memory(ctx: DecisionContext) -> list[str]:
     recs: Sequence[MemoryRecord] = ctx.recent
     if not recs:
         return ["No trips recorded yet."]
+    roads = _roads_on(ctx)
     rows = []
     for r in recs:
         travel = r.travel_min if r.mode in ("CAR", "PT") else None
@@ -320,15 +306,17 @@ def _memory(ctx: DecisionContext) -> list[str]:
         if r.mode == "CAR":
             fee = _money(r.fee_paid) + (" (employer)" if ctx.persona.company_car and r.fee_paid > 0 else "")
             queue = _mins(r.queue_delay_min)
+            traffic = _road_mins(r.road_delay_min)
         else:
-            fee, queue = "-", "-"
+            fee, queue, traffic = "-", "-", "-"
         rows.append([
             str(r.day), _mode_phrase(r.mode, ctx.persona.activity),
             _clock(r.depart_min) if r.mode in ("CAR", "PT") else "-",
+            *([traffic] if roads else []),
             queue, _mins(travel), start, arrived, fee, "; ".join(note),
         ])
-    return _table(["day", "what you did", "left home", "queue at entry", "door to door",
-                   "start time", "arrived", "charge paid", "note"], rows)
+    return _table(["day", "what you did", "left home", *(["traffic delay"] if roads else []),
+                   "queue at entry", "door to door", "start time", "arrived", "charge paid", "note"], rows)
 
 
 def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
@@ -358,6 +346,16 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
                          "to the next.")
         if p.company_car:
             lines.append("  Your employer pays this charge for your vehicle.")
+        if ctx.wtt_removed > 0:
+            # willingness to pay (2026-10-09): stated only on a day it removed a car option
+            limit = _money(p.wtp_fee)
+            if any(o.mode == "CAR" for o in ctx.options):
+                lines.append(f"- You would not pay more than {limit} a day to drive into the city centre, so "
+                             f"driving at times when the charge is higher than that is not offered today.")
+            else:
+                lines.append(f"- You would not pay more than {limit} a day to drive into the city centre, and "
+                             f"every time you could drive today is charged more than that, so driving is not "
+                             f"offered today.")
     elif t.fee_changed_today:
         lines.append("- The congestion charge for driving into the city centre ends today; "
                      "there is no charge.")
@@ -366,15 +364,29 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
     cars = [o for o in ctx.options if o.mode == "CAR" and o.depart_min is not None]
     if cars:
         prof = t.public_delay.get(p.corridor_id, ())
-        if not prof:
-            lines.append("- No information on yesterday's queues at your entry point is available.")
+        roads = _roads_on(ctx)
+        yesterday_roads = roads and t.public_road_source == "yesterday"
+        if yesterday_roads and prof:
+            # yesterday's traffic and queue together, for the same departures
+            parts = [f"leaving {clock_str(o.depart_min)}: {_road_mins(_road_delay_at(ctx, o, cfg))} traffic + "
+                     f"{_mins(_public_delay_at(ctx, o, cfg))} queue" for o in cars]
+            lines.append("- Yesterday's traffic on your route and queue at your entry point, by time of "
+                         "leaving home: " + ", ".join(parts) + ".")
         else:
-            parts = []
-            for o in cars:
-                parts.append(f"leaving {clock_str(o.depart_min)}: "
-                             f"{_mins(_public_delay_at(ctx, o, cfg))}")
-            lines.append("- Yesterday's queue at your entry point, by time of leaving home: "
-                         + ", ".join(parts) + ".")
+            if roads:   # usual traffic (day 1), or yesterday's traffic with no queue information
+                lead = "Yesterday's traffic on your route" if yesterday_roads else "Usual traffic on your route"
+                parts = [f"leaving {clock_str(o.depart_min)}: {_road_mins(_road_delay_at(ctx, o, cfg))}"
+                         for o in cars]
+                lines.append(f"- {lead}, by time of leaving home: " + ", ".join(parts) + ".")
+            if not prof:
+                lines.append("- No information on yesterday's queues at your entry point is available.")
+            else:
+                parts = []
+                for o in cars:
+                    parts.append(f"leaving {clock_str(o.depart_min)}: "
+                                 f"{_mins(_public_delay_at(ctx, o, cfg))}")
+                lines.append("- Yesterday's queue at your entry point, by time of leaving home: "
+                             + ", ".join(parts) + ".")
     if p.corridor_id in t.pt_disrupted_corridors and t.pt_disruption_announced \
             and any(o.mode == "PT" for o in ctx.options):
         lines.append(f"- Announcement: buses and trains from your area are disrupted today; "
@@ -385,42 +397,30 @@ def _today(ctx: DecisionContext, cfg: Config) -> list[str]:
     return lines
 
 
-def you_pay_today(o: Option, persona: Persona) -> float | None:
-    """Money the commuter pays for the day under an option (cl-v2 column "you pay today").
-
-    CAR: road charge (0 when the employer pays it) + parking + fuel. PT: the fare. WFH: 0.
-    SKIP: None (shown as "-"; postponing is not a money trade-off)."""
-    if o.mode == "CAR":
-        return round((0.0 if persona.company_car else float(o.fee)) + float(o.parking) + float(o.fuel), 2)
-    if o.mode == "PT":
-        return round(float(o.pt_fare or 0.0), 2)
-    if o.mode == "WFH":
-        return 0.0
-    return None
-
-
-def _options(ctx: DecisionContext, total: bool = False) -> list[str]:
+def _options(ctx: DecisionContext, cfg: Config) -> list[str]:
     p = ctx.persona
+    roads = _roads_on(ctx)
     rows = []
     for o in ctx.options:
         what = {
             "CAR": "drive",
             "PT": "bus or train",
             "WFH": "work from home",
-            "SKIP": "do not go into the city centre today",
         }.get(o.mode, o.mode.lower())
         trip = o.mode in ("CAR", "PT")
         if o.mode == "CAR":
             fee = _money(o.fee) + (" (employer pays)" if p.company_car and o.fee > 0 else "")
             cross = _clock(o.expected_gate_exit_min)
             queue = _mins(o.expected_delay_min)
+            traffic = _road_mins(_road_delay_at(ctx, o, cfg)) if roads else "-"
             park = _money(o.parking)
             fuel = _money(o.fuel)
         else:
-            fee, cross, queue, park, fuel = "-", "-", "-", "-", "-"
+            fee, cross, queue, traffic, park, fuel = "-", "-", "-", "-", "-", "-"
         rows.append([
             o.option_id, what,
             _clock(o.depart_min) if trip else "-",
+            *([traffic] if roads else []),
             queue, cross,
             _mins(o.expected_travel_min) if trip else "-",
             _clock(o.start_used_min if o.start_used_min is not None else p.tstar_min) if trip else "-",
@@ -429,18 +429,15 @@ def _options(ctx: DecisionContext, total: bool = False) -> list[str]:
             _money(o.pt_fare) if (o.mode == "PT" and o.pt_fare is not None) else "-",
             "yes" if o.is_standing else "",
         ])
-        if total:
-            pay = you_pay_today(o, p)
-            rows[-1].insert(len(rows[-1]) - 1, "-" if pay is None else _money(pay))
-    header = ["option id", "what", "leave home", "expected queue", "cross into centre",
-              "door to door", "start time", "expected arrival", "road charge", "parking", "fuel", "fare", "usual"]
-    if total:
-        header.insert(len(header) - 1, "you pay today")
-    return _table(header, rows)
+    return _table(["option id", "what", "leave home", *(["traffic delay"] if roads else []),
+                   "expected queue", "cross into centre", "door to door", "start time", "expected arrival",
+                   "road charge", "parking", "fuel", "fare", "usual"],
+                  rows)
 
 
 def render_user_prompt(ctx: DecisionContext, cfg: Config) -> str:
-    """User message of template cl-v1. Deterministic; shows no GC and no archetype."""
+    """User message of template cl-v3 (without the traffic parts when roads are off). Deterministic;
+    shows no GC and no archetype."""
     out = ["ABOUT YOUR SITUATION"]
     out += _situation(ctx, cfg)
     if ctx.traits_shown or cfg.llm.traits_off_prompt == "sentences":
@@ -453,15 +450,10 @@ def render_user_prompt(ctx: DecisionContext, cfg: Config) -> str:
     out += _memory(ctx)
     out += ["", "TODAY"]
     out += _today(ctx, cfg)
-    v2 = cfg.llm.template_id == TEMPLATE_V2
     out += ["", "OPTIONS (choose one option id)"]
-    out += _options(ctx, total=v2)
-    note = ("Times are clock times (hh:mm) and estimates for today; money is in NZ dollars. "
-            "Early or late is measured against the start time shown for that option.")
-    if v2:
-        note += (" \"You pay today\" is the money you would pay for the day under that option (road "
-                 "charge, parking and fuel, or the fare); it does not count your time.")
-    out += ["", note]
+    out += _options(ctx, cfg)
+    out += ["", "Times are clock times (hh:mm) and estimates for today; money is in NZ dollars. "
+                "Early or late is measured against the start time shown for that option."]
     return "\n".join(line.rstrip() for line in out) + "\n"
 
 
@@ -469,45 +461,8 @@ def render_user_prompt(ctx: DecisionContext, cfg: Config) -> str:
 # Schema, validation, keys
 # --------------------------------------------------------------------------------------------
 
-def factor_ids(ctx: DecisionContext) -> tuple[str, ...]:
-    """cl-v2: the factor tags that can apply to this agent-day, in FACTORS_V2 order."""
-    t, p = ctx.today, ctx.persona
-    can_apply = {
-        "road_charge": bool(t.fee_active or t.fee_changed_today),
-        "routine": ctx.standing_option_id is not None,
-        "bus_train_preference": any(o.mode == "PT" for o in ctx.options),
-        "past_experience": bool(ctx.recent),
-        "disruption": bool((p.corridor_id in t.pt_disrupted_corridors and t.pt_disruption_announced)
-                           or "T4" in ctx.triggers or any(r.pt_disrupted for r in ctx.recent)),
-    }
-    return tuple(f for f in FACTORS_V2 if can_apply.get(f, True))
-
-
-def reply_factors(parsed: dict) -> tuple[str, ...]:
-    """Factor tags of a valid reply as a tuple: the cl-v1 list, or cl-v2 (main[, second])."""
-    if "main_factor" in parsed:
-        main, second = parsed["main_factor"], parsed.get("second_factor", NO_FACTOR)
-        return (main,) if second in (NO_FACTOR, main) else (main, second)
-    return tuple(parsed["factors"])
-
-
-def output_schema(option_ids: Sequence[str], factors: Sequence[str] | None = None) -> dict:
-    """JSON schema for one decision. Reason first, so it is written before the choice (v3 7.4).
-
-    With ``factors`` (cl-v2, see factor_ids) the reply has main_factor and second_factor, each an
-    enum of the given tags (second_factor also accepts "none"), instead of the cl-v1 list."""
-    if factors is not None:
-        return {
-            "type": "object",
-            "properties": {
-                "reason": {"type": "string"},
-                "main_factor": {"type": "string", "enum": list(factors)},
-                "second_factor": {"type": "string", "enum": list(factors) + [NO_FACTOR]},
-                "choice": {"type": "string", "enum": list(option_ids)},
-            },
-            "required": ["reason", "main_factor", "second_factor", "choice"],
-            "additionalProperties": False,
-        }
+def output_schema(option_ids: Sequence[str]) -> dict:
+    """JSON schema for one decision. Reason first, so it is written before the choice (v3 7.4)."""
     return {
         "type": "object",
         "properties": {
@@ -520,24 +475,11 @@ def output_schema(option_ids: Sequence[str], factors: Sequence[str] | None = Non
     }
 
 
-def validate_output(obj: object, option_ids: Sequence[str],
-                    factors: Sequence[str] | None = None) -> tuple[bool, str]:
-    """Check a parsed output against the schema of this agent-day (cl-v2 when ``factors`` is given)."""
+def validate_output(obj: object, option_ids: Sequence[str]) -> tuple[bool, str]:
+    """Check a parsed output against the schema of this agent-day."""
     if not isinstance(obj, dict):
         return False, "output is not a JSON object"
     keys = set(obj)
-    if factors is not None:
-        if keys != {"choice", "reason", "main_factor", "second_factor"}:
-            return False, f"keys {sorted(keys)} != ['choice', 'main_factor', 'reason', 'second_factor']"
-        if not isinstance(obj["choice"], str) or obj["choice"] not in option_ids:
-            return False, f"choice {obj['choice']!r} not in option ids"
-        if not isinstance(obj["reason"], str) or not obj["reason"].strip():
-            return False, "reason missing or empty"
-        if obj["main_factor"] not in factors:
-            return False, f"main_factor {obj['main_factor']!r} not offered"
-        if obj["second_factor"] != NO_FACTOR and obj["second_factor"] not in factors:
-            return False, f"second_factor {obj['second_factor']!r} not offered"
-        return True, ""
     if keys != {"choice", "reason", "factors"}:
         return False, f"keys {sorted(keys)} != ['choice', 'factors', 'reason']"
     if not isinstance(obj["choice"], str) or obj["choice"] not in option_ids:
@@ -608,12 +550,7 @@ class LLMCache:
 
 _PART_FACTOR = {
     "time": "travel_time", "schedule": "arrival_time", "fee": "fee", "parking": "other",
-    "fuel": "other", "pt": "pt", "wfh": "flexibility", "skip": "work_constraint", "habit": "habit",
-}
-_PART_FACTOR_V2 = {
-    "time": "travel_time", "schedule": "arrival_time", "fee": "road_charge", "parking": "other_money",
-    "fuel": "other_money", "pt": "bus_train_preference", "wfh": "flexibility", "skip": "constraint",
-    "habit": "routine",
+    "fuel": "other", "pt": "pt", "wfh": "flexibility", "habit": "habit",
 }
 _FACTOR_TEXT = {
     "travel_time": "travel time", "arrival_time": "arrival time", "fee": "the charge",
@@ -639,7 +576,7 @@ class MockLLM:
         self.effort = None
         m = cfg.llm.mock
         self.weights = {"time": m.w_time, "schedule": m.w_schedule, "fee": m.w_fee,
-                        "parking": m.w_parking, "fuel": m.w_fuel, "pt": m.w_pt, "wfh": m.w_wfh, "skip": m.w_skip,
+                        "parking": m.w_parking, "fuel": m.w_fuel, "pt": m.w_pt, "wfh": m.w_wfh,
                         "habit": m.w_habit}
 
     def _score(self, o: Option) -> dict[str, float]:
@@ -659,23 +596,16 @@ class MockLLM:
         chosen = scored[k]
         others = [s for j, s in enumerate(scored) if j != k]
         factor = "other"
-        part = None
         if others:
             parts = sorted({p for s in scored for p in s})
             adv = {p: float(np.mean([s.get(p, 0.0) for s in others])) - chosen.get(p, 0.0)
                    for p in parts}
             best = max(parts, key=lambda p: (round(adv[p], 9), -parts.index(p)))
             if adv[best] > 0:
-                part = best
                 factor = _PART_FACTOR.get(best, "other")
         text = _FACTOR_TEXT.get(factor, "overall cost")
-        reason = f"[mock] I chose {opts[k].option_id} mainly because of {text}."
-        if "main_factor" in schema["properties"]:   # cl-v2 reply shape
-            offered = schema["properties"]["main_factor"]["enum"]
-            main = _PART_FACTOR_V2.get(part or "", "other")
-            return {"reason": reason, "main_factor": main if main in offered else "other",
-                    "second_factor": NO_FACTOR, "choice": opts[k].option_id}
-        return {"reason": reason, "factors": [factor], "choice": opts[k].option_id}
+        return {"reason": f"[mock] I chose {opts[k].option_id} mainly because of {text}.",
+                "factors": [factor], "choice": opts[k].option_id}
 
 
 class LLMFatalError(RuntimeError):
@@ -821,6 +751,9 @@ class LLMDecider:
 
     def __init__(self, cfg: Config, backend: MockLLM | AnthropicLLM, fallback: Decider,
                  log_path: Path, cache: LLMCache | None) -> None:
+        if cfg.llm.template_id != TEMPLATE_ID:   # an older run's template (its snapshot still loads)
+            raise ValueError(f"llm.template_id {cfg.llm.template_id!r}: this code renders template "
+                             f"{TEMPLATE_ID!r} only")
         self.cfg = cfg
         self.backend = backend
         self.fallback = fallback
@@ -828,7 +761,6 @@ class LLMDecider:
         self.cache = cache
         self.system = system_prompt(cfg)
         self.template_id = cfg.llm.template_id
-        self.v2 = self.template_id == TEMPLATE_V2
         self.key_extra = backend.key_extra() if hasattr(backend, "key_extra") else (
             {"replicate": int(cfg.llm.replicate)} if cfg.llm.replicate > 0 else None)
         self._loop: asyncio.AbstractEventLoop | None = None
@@ -865,9 +797,8 @@ class LLMDecider:
                          user, schema, self.key_extra)
 
     def _validate(self, parsed: object, ids: Sequence[str], schema: dict) -> tuple[bool, str]:
-        """Validity of one parsed reply (a hook: the plan template in planner.py has its own check)."""
-        offered = schema["properties"]["main_factor"]["enum"] if self.v2 else None
-        return validate_output(parsed, ids, offered)
+        """Validity of one parsed reply (a hook: thinker.ThinkLLM checks its own reply schema)."""
+        return validate_output(parsed, ids)
 
     async def _one(self, ctx: DecisionContext, user: str, schema: dict, key: str,
                    sem: asyncio.Semaphore) -> tuple[dict | None, list[dict]]:
@@ -894,7 +825,6 @@ class LLMDecider:
                     if self._aborted is not None:   # another call of this batch stopped the run
                         raise LLMFatalError(self._aborted)
                     parsed, meta = await self.backend.acomplete(self.system, user, schema)
-            offered = schema["properties"]["main_factor"]["enum"] if self.v2 else None
             valid, why = (self._validate(parsed, ids, schema) if parsed is not None
                           else (False, meta.get("error") or "no output"))
             if parsed is not None and not valid:
@@ -914,8 +844,6 @@ class LLMDecider:
                 "model_served": meta.get("model_served"), "request_id": meta.get("request_id"),
                 "attempt": attempt,
             }
-            if offered is not None:
-                rec["schema_factor_ids"] = list(offered)
             records.append(rec)
             self._log(rec)
             kind = meta.get("error_kind")
@@ -967,7 +895,7 @@ class LLMDecider:
         first: dict[str, int] = {}
         for i, ctx in enumerate(contexts):
             user = render_user_prompt(ctx, self.cfg)
-            schema = output_schema(ctx.option_ids, factor_ids(ctx) if self.v2 else None)
+            schema = output_schema(ctx.option_ids)
             key = self._key(user, schema)
             first.setdefault(key, i)
             items.append((ctx, user, schema, key))
@@ -1018,7 +946,7 @@ class LLMDecider:
                 decisions.append(Decision(
                     agent_id=ctx.agent_id, day=ctx.day, option_id=parsed["choice"],
                     decider="llm", reason=parsed["reason"].strip(),
-                    factors=reply_factors(parsed), meta=meta))
+                    factors=tuple(parsed["factors"]), meta=meta))
             metas.append(meta)
         if need_fb:
             self.stats["n_fallback"] += len(need_fb)

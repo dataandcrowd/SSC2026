@@ -6,7 +6,13 @@ Implementations (added by the engine builder in this module):
     make_engine(kind: str, cfg: Config) -> Engine   kind in {"py", "netlogo"}.
 
 Semantics (identical in both implementations). Per corridor, minute resolution:
-  - A car with depart minute d joins its corridor queue at a = d + fftt_to_gate_min.
+  - Roads (cordonlite.roads.simulate_roads, SPEC 1.4): when the run directory holds the road
+    scenario files, each car drives its pre-gate route section by section with time-dependent
+    speed factors (background traffic plus the commuters' own entries in the flow window) and
+    road_delay_min = max(0, floor(extra + 0.5)) of its extra minutes over free flow. Without road
+    files, or for a car without a route, road_delay_min = 0 (free flow).
+  - A car with depart minute d joins its corridor queue at
+    a = d + fftt_to_gate_min + road_delay_min.
   - For each minute m ascending from sim_start_min: append arrivals with a == m to the back of
     the FIFO in ascending agent_id order; available = carry + c; n = min(len(queue),
     floor(available)); serve the first n (gate_exit_min = m); carry = available - n; if the queue
@@ -17,33 +23,41 @@ Semantics (identical in both implementations). Per corridor, minute resolution:
     fee_paid = fees.csv[gate_exit_min] if fee_active else 0.
   - Profile rows: every corridor x every minute from sim_start_min to the last minute processed,
     with arrivals, served and queue_len (after serving).
+  - Road rows: commuter entries per section and minute (non-zero only); none without roads.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
 import pandas as pd
 
+from cordonlite.roads import ROAD_ENTRIES_COLUMNS, RoadScenario, typed_entries
+
 PLAN_COLUMNS: tuple[str, ...] = ("agent_id", "mode", "depart_min")
+PLANS_FILE = "plans.csv"           # every day of a run in one file, written once at the end
+PLANS_COLUMNS: tuple[str, ...] = ("day", *PLAN_COLUMNS)
 OUTCOME_COLUMNS: tuple[str, ...] = (
-    "agent_id", "day", "corridor_id", "depart_min", "gate_arrive_min", "gate_exit_min",
+    "agent_id", "day", "corridor_id", "depart_min", "road_delay_min", "gate_arrive_min", "gate_exit_min",
     "queue_delay_min", "arrive_min", "fee_paid",
 )
 PROFILE_COLUMNS: tuple[str, ...] = ("day", "corridor_id", "minute", "arrivals", "served", "queue_len")
+ROAD_COLUMNS: tuple[str, ...] = ROAD_ENTRIES_COLUMNS   # day, section_id, minute, entries
 
 # Scenario files written by the orchestrator into the run directory.
 CORRIDORS_FILE = "corridors.csv"   # corridor_id, name, capacity_per_min, x, y
 AGENTS_FILE = "agents.csv"         # agent_id, corridor_id, fftt_to_gate_min, fftt_gate_to_dest_min, x, y
 FEES_FILE = "fees.csv"             # minute, fee  (active regime, 1440 rows)
+# Optional road files (cordonlite.roads.ROAD_SCENARIO_FILES): road_sections.csv, agent_routes.csv,
+# road_profile.csv, road_params.csv; all four or none (none = free-flow roads).
 CORRIDORS_COLUMNS: tuple[str, ...] = ("corridor_id", "name", "capacity_per_min", "x", "y")
 AGENTS_COLUMNS: tuple[str, ...] = ("agent_id", "corridor_id", "fftt_to_gate_min", "fftt_gate_to_dest_min", "x", "y")
 
 
 def plans_file(day: int) -> str:
-    """plans_dayNN.csv (NetLogoEngine file exchange)."""
+    """plans_dayNN.csv (NetLogoEngine file exchange only: run_simulation deletes it, PLANS_FILE holds every day)."""
     return f"plans_day{day:02d}.csv"
 
 
@@ -55,6 +69,15 @@ def profile_file(day: int) -> str:
     return f"profile_day{day:02d}.csv"
 
 
+def road_file(day: int) -> str:
+    """road_dayNN.csv (NetLogoEngine file exchange; columns ROAD_COLUMNS)."""
+    return f"road_day{day:02d}.csv"
+
+
+def _empty_road() -> pd.DataFrame:
+    return pd.DataFrame({c: pd.Series(dtype="int64") for c in ROAD_COLUMNS})
+
+
 @dataclass
 class DayResult:
     """Engine output for one day.
@@ -63,17 +86,20 @@ class DayResult:
               all integer columns int64 except fee_paid (float64).
     profile:  columns PROFILE_COLUMNS, sorted by corridor_id then minute, int64 except
               none (all integer).
+    road:     columns ROAD_COLUMNS (day, section_id, minute, entries), int64, sorted by
+              section_id then minute, non-zero entries only; empty without road files.
     """
 
     outcomes: pd.DataFrame
     profile: pd.DataFrame
+    road: pd.DataFrame = field(default_factory=_empty_road)
 
 
 class Engine(Protocol):
     """Day-by-day gate-bottleneck simulator."""
 
     def load(self, scenario_dir: Path) -> None:
-        """Read corridors.csv, agents.csv and fees.csv from scenario_dir."""
+        """Read corridors.csv, agents.csv, fees.csv and the road files (if present) from scenario_dir."""
         ...
 
     def run_day(self, day: int, plans: pd.DataFrame, fee_active: bool) -> DayResult:
@@ -98,6 +124,7 @@ from typing import TYPE_CHECKING, Any, Sequence  # noqa: E402
 import numpy as np  # noqa: E402
 
 from cordonlite.fees import read_fees_csv  # noqa: E402
+from cordonlite.roads import read_road_scenario, simulate_roads  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
     from cordonlite.config import Config
@@ -117,10 +144,12 @@ class Scenario:
     agent_fftt_to_gate: dict[int, int]
     agent_fftt_gate_to_dest: dict[int, int]
     fee_table: tuple[float, ...]
+    road: RoadScenario | None = None       # None = free-flow roads (no road files)
 
 
 def read_scenario(scenario_dir: str | Path) -> Scenario:
-    """Read corridors.csv, agents.csv and fees.csv (floats parsed round-trip exact)."""
+    """Read corridors.csv, agents.csv, fees.csv and the road files if present (floats parsed
+    round-trip exact)."""
     d = Path(scenario_dir)
     cor = pd.read_csv(d / CORRIDORS_FILE, float_precision="round_trip")
     ag = pd.read_csv(d / AGENTS_FILE, float_precision="round_trip")
@@ -145,6 +174,9 @@ def read_scenario(scenario_dir: str | Path) -> Scenario:
         v = ag[col].to_numpy(dtype=float)
         if np.any(v != np.round(v)) or np.any(v < 0):
             raise ValueError(f"agents.csv {col} must be non-negative integers")
+    road = read_road_scenario(d)
+    if road is not None and not set(road.routes) <= set(a_cor):
+        raise ValueError("agent_routes.csv refers to unknown agent_id")
     return Scenario(
         corridor_ids=cids,
         capacities=caps,
@@ -153,12 +185,15 @@ def read_scenario(scenario_dir: str | Path) -> Scenario:
         agent_fftt_to_gate={int(a): int(v) for a, v in zip(ag["agent_id"], ag["fftt_to_gate_min"])},
         agent_fftt_gate_to_dest={int(a): int(v) for a, v in zip(ag["agent_id"], ag["fftt_gate_to_dest_min"])},
         fee_table=tuple(read_fees_csv(d / FEES_FILE)),
+        road=road,
     )
 
 
 def car_rows(plans: pd.DataFrame, scen: Scenario, sim_start_min: int) -> list[tuple[int, int, int, int]]:
     """Validate a plans frame and return CAR rows (agent_id, corridor_id, depart_min, gate_arrive_min)
-    sorted by agent_id. Agents absent from plans are simply not simulated."""
+    sorted by agent_id, where gate_arrive_min is the FREE-FLOW arrival d + fftt_to_gate_min (PyEngine
+    adds the road delay; road delay is never negative, so the sim_start_min check on the free-flow
+    arrival covers the congested one). Agents absent from plans are simply not simulated."""
     missing = [c for c in PLAN_COLUMNS if c not in plans.columns]
     if missing:
         raise ValueError(f"plans lacks columns {missing}")
@@ -283,20 +318,25 @@ class PyEngine:
         scen = self.scenario
         if scen is None:
             raise RuntimeError("PyEngine.load() must be called before run_day()")
-        cars = car_rows(plans, scen, self.sim_start_min)
+        free = car_rows(plans, scen, self.sim_start_min)
+        roads = simulate_roads([(aid, d) for aid, _cid, d, _a in free], scen.road)
+        rd = roads.delay_min
+        cars = [(aid, cid, d, a + rd[aid]) for aid, cid, d, a in free]
         exits, prof, _last = simulate_point_queues(
             cars, scen.corridor_ids, scen.capacities, self.sim_start_min, self.sim_end_cap_min)
         rows = []
         for aid, cid, d, a in cars:
             x = exits.get(aid, -1)
             if x < 0:
-                rows.append((aid, day, cid, d, a, -1, -1, -1, 0.0))
+                rows.append((aid, day, cid, d, rd[aid], a, -1, -1, -1, 0.0))
             else:
                 fee = scen.fee_table[x] if fee_active else 0.0
-                rows.append((aid, day, cid, d, a, x, x - a, x + scen.agent_fftt_gate_to_dest[aid], float(fee)))
+                rows.append((aid, day, cid, d, rd[aid], a, x, x - a, x + scen.agent_fftt_gate_to_dest[aid],
+                             float(fee)))
         outcomes = _typed_outcomes(pd.DataFrame(rows, columns=list(OUTCOME_COLUMNS))) if rows else _empty_outcomes()
         profile = _typed_profile(pd.DataFrame([(day, *r) for r in prof], columns=list(PROFILE_COLUMNS)))
-        return DayResult(outcomes=outcomes, profile=profile)
+        road = typed_entries(pd.DataFrame([(day, *r) for r in roads.entries], columns=list(ROAD_COLUMNS)))
+        return DayResult(outcomes=outcomes, profile=profile, road=road)
 
     def close(self) -> None:
         self.scenario = None
@@ -307,19 +347,37 @@ class PyEngine:
 _LINK: Any = None
 _LINK_LOCK = threading.Lock()
 
+# JVM options for the pynetlogo link: the NetLogo app's own heap setting. Without it the JVM starts
+# with a small default heap (about 250 MB here), and the GUI model (about 190 MB live after setup)
+# pauses for a full garbage collection every few ticks.
+NETLOGO_JVM_ARGS: tuple[str, ...] = ("-XX:MaxRAMPercentage=50",)
+
+# Where NetLogo is installed on this machine. When set (and not empty) it takes precedence over
+# [engine] netlogo_home. It is read only when the link starts and never enters the Config, so the
+# run folder name (variant label), config_snapshot.toml and summary.json do not depend on it.
+NETLOGO_HOME_ENV = "CORDONLITE_NETLOGO_HOME"
+
+
+def resolve_netlogo_home(cfg: Config) -> str:
+    """NetLogo folder for this machine: $CORDONLITE_NETLOGO_HOME if set, else [engine] netlogo_home."""
+    return os.environ.get(NETLOGO_HOME_ENV) or cfg.engine.netlogo_home
+
 
 def get_netlogo_link(cfg: Config) -> Any:
-    """One shared pynetlogo.NetLogoLink per process (the JVM can start only once)."""
+    """One shared pynetlogo.NetLogoLink per process (the JVM can start only once, with
+    NETLOGO_JVM_ARGS), on the NetLogo folder of resolve_netlogo_home."""
     global _LINK
     with _LINK_LOCK:
         if _LINK is None:
-            home = Path(cfg.engine.netlogo_home)
+            home_s = resolve_netlogo_home(cfg)
+            home = Path(home_s)
             if not (home.is_dir() and any(home.glob("**/netlogo-*.jar"))):
-                raise RuntimeError(f"NetLogo 7.0.4 not found at {home}: install it or set "
-                                   "[engine] netlogo_home in config.toml")
+                raise RuntimeError(f"NetLogo 7.0.4 not found at {home}: install it, or set "
+                                   f"{NETLOGO_HOME_ENV} or [engine] netlogo_home in config.toml")
             import pynetlogo  # local import: optional dependency path, starts the JVM
 
-            _LINK = pynetlogo.NetLogoLink(gui=bool(cfg.engine.gui), netlogo_home=cfg.engine.netlogo_home)
+            _LINK = pynetlogo.NetLogoLink(gui=bool(cfg.engine.gui), netlogo_home=home_s,
+                                          jvmargs=list(NETLOGO_JVM_ARGS))
         return _LINK
 
 
@@ -394,15 +452,23 @@ class NetLogoEngine:
         p["agent_id"] = p["agent_id"].astype("int64")
         p["mode"] = p["mode"].astype(str)
         p = p.sort_values("agent_id", kind="stable")
-        for f in (outcomes_file(day), profile_file(day)):
+        for f in (outcomes_file(day), profile_file(day), road_file(day)):
             (d / f).unlink(missing_ok=True)
         p.to_csv(d / plans_file(day), index=False, lineterminator="\n")
         self.link.command(f"run-day {int(day)} {_nl_string(str(d))} {'true' if fee_active else 'false'}")
         out = pd.read_csv(d / outcomes_file(day), float_precision="round_trip")
         prof = pd.read_csv(d / profile_file(day), float_precision="round_trip")
+        rf = d / road_file(day)
+        if rf.exists():
+            road = typed_entries(pd.read_csv(rf, float_precision="round_trip"))
+        elif scen.road is not None:
+            raise RuntimeError(f"NetLogo wrote no {rf.name} although {d} has road files "
+                               "(congested roads): the model in use does not write road entries")
+        else:
+            road = _empty_road()     # free-flow roads: no road entries
         if len(out) != len(cars):
             raise RuntimeError(f"NetLogo returned {len(out)} outcomes for {len(cars)} cars")
-        return DayResult(outcomes=_typed_outcomes(out), profile=_typed_profile(prof))
+        return DayResult(outcomes=_typed_outcomes(out), profile=_typed_profile(prof), road=road)
 
     def close(self) -> None:
         """Forget the scenario; the shared JVM link stays up (see shutdown_netlogo_link)."""

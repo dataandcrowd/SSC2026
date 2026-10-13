@@ -24,16 +24,15 @@ import numpy as np
 ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH: Path = ROOT / "config.toml"
 
-# H-clock (cordonlite/planner.py): the LLM plans, the rule chooses the minute
-ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily", "H-clock")
+ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily", "H-clock")   # H-clock: thinker.py
 BACKENDS: tuple[str, ...] = ("mock", "anthropic")
 ENGINES: tuple[str, ...] = ("py", "netlogo")
 REGIMES: tuple[str, ...] = ("tou", "flat", "none")
 EFFORTS: tuple[str, ...] = ("low", "medium", "high", "xhigh", "max")
-TEMPLATE_ID: str = "cl-v1"
-# Implemented prompt templates: cl-v1 (default) and cl-v2 (adds the "you pay today" column and the
-# main_factor / second_factor reply; see cordonlite/llm.py).
-TEMPLATE_IDS: tuple[str, ...] = ("cl-v1", "cl-v2", "plan-v1", "plan-v2", "think-v1")   # plan-*, think-*: arm H-clock only (planner.py, thinker.py)
+TEMPLATE_ID: str = "cl-v3"   # cl-v3 (2026-10-09): no SKIP option, the willingness-to-pay sentence; cl-v2 added road traffic
+# Templates of earlier runs: their config_snapshot.toml still loads, but the LLM decider renders TEMPLATE_ID only.
+RETIRED_TEMPLATE_IDS: tuple[str, ...] = ("cl-v1", "cl-v2")
+WTT_VOT_REFS: tuple[str, ...] = ("distribution_median", "sample_median")
 # The server-side refusal fallback beta that accepts fallbacks="default".
 FALLBACK_BETAS: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
 N_ARCHETYPES: int = 5
@@ -58,6 +57,7 @@ class RunConfig:
     traits: str
     data_dir: str
     runs_dir: str
+    compress_csv_over_mb: float = 100.0   # 2026-10-09: road_entries.csv above this size is written as .csv.gz
 
 
 @dataclass(frozen=True)
@@ -79,9 +79,11 @@ class TimeConfig:
 class FeesConfig:
     regime: str
     fee_start_day: int
-    fee_flat: float
     tou_points: tuple[tuple[float, float], ...]
     round_dp: int
+    # 2026-10-09: NZ$ peak of the schedule (tou_points scaled to it; regime "flat" charges it all day);
+    # 0 = no charge (as regime "none"). Replaced fees.scale and fees.fee_flat (_migrate_fees)
+    peak_fee: float = 6.0
 
 
 @dataclass(frozen=True)
@@ -103,6 +105,22 @@ class PrepConfig:
     map_sample_origins: int
     gate_rule: str = "first_entry"
     seed: int = 11
+    # road congestion inputs (prep.build_roads, 2026-10-07)
+    roads_shp: str = "netlogo7/gis/tomtom_major_roads.shp"
+    adt_geojson: str = "../../SSC2026/netlogo/Data/Average_Daily_Traffic_Counts.geojson"
+    adt_match_m: float = 30.0
+    adt_propagate_m: float = 1000.0
+    road_inbound_share: float = 0.6
+    road_peak_ratio_default: float = 0.096
+    road_commuter_car_share: float = 0.8
+    road_tti_target: float = 1.714
+    road_tti_window: tuple[int, int] = (480, 540)
+    road_cap_k_bounds: tuple[float, float] = (0.02, 0.3)
+    road_adt_floor_pct: float = 5.0
+    road_tti_exclude_mwy: bool = True
+    road_profile_start_min: int = 360
+    road_profile: tuple[float, ...] = (0.32, 0.38, 0.46, 0.56, 0.67, 0.77, 0.87, 0.93, 1.01, 1.05,
+                                       1.00, 0.93, 0.81, 0.73, 0.69, 0.65, 0.62, 0.60)
 
 
 @dataclass(frozen=True)
@@ -114,6 +132,7 @@ class EngineConfig:
     rush_window_min: float
     agents_represented: float
     min_capacity_per_min: float
+    min_capacity_vph: float = 0.0             # 2026-10-08: floor in vehicles/h; 0 = use min_capacity_per_min
     # integrator additions (calibration of corridor capacity)
     capacity_scale: float = 1.0
     use_calibration: bool = True
@@ -125,6 +144,24 @@ class EngineConfig:
     calib_tol_min: float = 0.25
     calib_bin_min: int = 15
     calib_metric: str = "car_weighted_mean"   # final fixer: "car_weighted_mean", "worst" or "busiest"
+    calib_delay: str = "total"                # 2026-10-07: "total" (queue + road) or "queue"
+
+
+@dataclass(frozen=True)
+class RoadConfig:
+    """Road congestion on the way to the gate (2026-10-07); enabled = False gives free-flow roads."""
+
+    enabled: bool = True
+    bpr_alpha: float = 0.15
+    bpr_beta: int = 4
+    speed_floor: float = 0.18
+    flow_window_min: int = 15
+    # motorway flow breakdown (2026-10-08)
+    mwy_breakdown: bool = True
+    mwy_breakdown_vc: float = 1.0
+    mwy_recover_vc: float = 0.95
+    mwy_capacity_drop: float = 0.10
+    mwy_jam_speed: float = 0.45
 
 
 @dataclass(frozen=True)
@@ -175,15 +212,23 @@ class CostsConfig:
     pt_ratio_by_corridor: tuple[float, ...]
     pt_unavailable_corridors: tuple[int, ...]
     wfh_cost: float
-    skip_cost: float
     delay_bin_min: int
     pt_attitude_penalty: float = 0.0   # integrator addition (v3 PAP); 0 = specification GC
-    skip_vot_hours: float = 0.0        # final fixer: SKIP cost = skip_cost + skip_vot_hours * VoT
     pt_headway_min: int = 0            # final fixer: PT services on a headway grid (0 = exact t*)
     wfh_form: str = "spec"             # behaviour recalibration: "spec" (wfh_cost x phi) or "v3_relative"
     fuel_cost_per_km: float = 0.0      # fuel addition: NZ$/km of fuel; car fuel = 2 x path_km x this; 0 = no fuel cost
     early_start_min: int = 420         # early-start addition: start of the earlier working day (07:00)
     early_shift_cost: float = 0.0      # early-start addition: NZ$/day inconvenience of the early day, x phi(F)
+
+
+@dataclass(frozen=True)
+class WttConfig:
+    """Willingness to travel (2026-10-09): exponential-decay willingness to pay (persona.willingness_to_pay).
+    The defaults are the model before it (beta0 0 = no limit), so an older config_snapshot.toml loads."""
+
+    beta0: float = 0.0                 # price sensitivity at VoT_ref; 0 = off (no limit)
+    beta_clip: tuple[float, float] = (0.1, 2.0)   # bounds on beta = beta0 x VoT_ref / VoT
+    vot_ref: str = "distribution_median"          # "distribution_median" (exp(persona.vot_mu)) or "sample_median"
 
 
 @dataclass(frozen=True)
@@ -207,10 +252,16 @@ class ClockConfig:
 
 @dataclass(frozen=True)
 class EventsConfig:
-    pt_disruption_day: int
+    pt_disruption_day: int | tuple[int, ...]    # one day, or several (a list; 2026-10-13)
     pt_disruption_corridor: int
     pt_disruption_time_mult: float
     pt_disruption_announced: bool
+
+    @property
+    def disruption_days(self) -> tuple[int, ...]:
+        """The PT disruption days: pt_disruption_day as a tuple (one day or a list of days)."""
+        d = self.pt_disruption_day
+        return tuple(int(x) for x in d) if isinstance(d, tuple) else (int(d),)
 
 
 @dataclass(frozen=True)
@@ -226,7 +277,6 @@ class MockLLMConfig:
     w_parking: float
     w_pt: float
     w_wfh: float
-    w_skip: float
     w_habit: float
     noise_sigma: float
     w_fuel: float = 1.0                # fuel addition: weight on gc_parts["fuel"]
@@ -259,9 +309,11 @@ class Config:
     fees: FeesConfig
     prep: PrepConfig
     engine: EngineConfig
+    road: RoadConfig
     persona: PersonaConfig
     traits: TraitsConfig
     costs: CostsConfig
+    wtt: WttConfig
     memory: MemoryConfig
     clock: ClockConfig
     events: EventsConfig
@@ -294,9 +346,11 @@ _SECTIONS: dict[str, type] = {
     "fees": FeesConfig,
     "prep": PrepConfig,
     "engine": EngineConfig,
+    "road": RoadConfig,
     "persona": PersonaConfig,
     "traits": TraitsConfig,
     "costs": CostsConfig,
+    "wtt": WttConfig,
     "memory": MemoryConfig,
     "clock": ClockConfig,
     "events": EventsConfig,
@@ -304,6 +358,19 @@ _SECTIONS: dict[str, type] = {
     "llm": LLMConfig,
 }
 _NESTED: dict[tuple[str, str], type] = {("llm", "mock"): MockLLMConfig}
+# Keys added after the canonical runs were made (2026-10-09). A config_snapshot.toml written before then
+# lacks them; load_config reads them with their dataclass default (wtt.beta0 0 is no willingness-to-pay
+# limit). A section in _ADDED_SECTIONS may be missing as a whole. fees.peak_fee is derived from the
+# snapshot's own schedule instead (_migrate_fees). Every other key must be present.
+_ADDED_KEYS: tuple[tuple[str, str], ...] = (("run", "compress_csv_over_mb"),
+                                           ("wtt", "beta0"), ("wtt", "beta_clip"), ("wtt", "vot_ref"))
+_ADDED_SECTIONS: tuple[str, ...] = ("wtt",)
+# Keys retired since (section path, key). An older config_snapshot.toml still has them; load_config drops
+# them, so it loads. 2026-10-09: SKIP removed (costs.skip_cost, costs.skip_vot_hours, llm.mock.w_skip);
+# the charge multiplier fees.scale and fees.fee_flat replaced by fees.peak_fee (_migrate_fees).
+# An override of a retired key is an error (the key is not found).
+_RETIRED_KEYS: tuple[tuple[str, str], ...] = (("costs", "skip_cost"), ("costs", "skip_vot_hours"),
+                                             ("llm.mock", "w_skip"), ("fees", "scale"), ("fees", "fee_flat"))
 
 
 # --------------------------------------------------------------------------- loading
@@ -321,6 +388,29 @@ def _to_plain(v: Any) -> Any:
     if isinstance(v, dict):
         return {k: _to_plain(x) for k, x in v.items()}
     return v
+
+
+def _raw_table(raw: Mapping[str, Any], section: str) -> dict[str, Any] | None:
+    """The table at a dotted section path ("costs", "llm.mock") of a raw TOML dict, or None."""
+    node: Any = raw
+    for part in section.split("."):
+        node = node.get(part) if isinstance(node, dict) else None
+    return node if isinstance(node, dict) else None
+
+
+def _migrate_fees(raw: dict[str, Any]) -> None:
+    """fees.peak_fee for a config_snapshot.toml written before it existed (2026-10-09): the peak that run
+    charged, fees.scale (1 when absent, i.e. before the charge multiplier) x fees.fee_flat for regime
+    "flat", x the highest tou_points charge otherwise. A table that has peak_fee, or no fee_flat and no
+    scale (the current config.toml), is left alone; scale and fee_flat are dropped later (_RETIRED_KEYS)."""
+    f = raw.get("fees")
+    if not isinstance(f, dict) or "peak_fee" in f or not ({"scale", "fee_flat"} & set(f)):
+        return
+    scale = float(f.get("scale", 1.0))
+    if f.get("regime") == "flat" and "fee_flat" in f:
+        f["peak_fee"] = float(f["fee_flat"]) * scale
+    elif f.get("tou_points"):
+        f["peak_fee"] = max(float(x[1]) for x in f["tou_points"]) * scale
 
 
 def _build(cls: type, section: str, raw: Mapping[str, Any]) -> Any:
@@ -356,6 +446,10 @@ def _kind(v: Any) -> str:
     return type(v).__name__
 
 
+# keys that take one day or a list of days (--set events.pt_disruption_day=8 or =[3,8])
+_DAY_OR_DAYS: frozenset[str] = frozenset({"events.pt_disruption_day"})
+
+
 def _apply_overrides(raw: dict[str, Any], overrides: Mapping[str, Any]) -> None:
     """Apply dotted overrides; the value must have the same kind as the config value
     (bool, number, string, list), and an int config value only accepts an integral number."""
@@ -371,6 +465,12 @@ def _apply_overrides(raw: dict[str, Any], overrides: Mapping[str, Any]) -> None:
         old = node[parts[-1]]
         if isinstance(value, tuple):
             value = list(value)
+        if dotted in _DAY_OR_DAYS:      # an integral day or a non-empty list of them, whichever the config has
+            days = value if isinstance(value, list) else [value]
+            if not days or not all(_kind(x) == "number" and float(x).is_integer() for x in days):
+                raise ConfigError(f"override {dotted}={value!r}: expected a day or a list of days")
+            node[parts[-1]] = [int(x) for x in days] if isinstance(value, list) else int(value)
+            continue
         if _kind(old) != _kind(value):
             raise ConfigError(f"override {dotted}={value!r}: expected a {_kind(old)} "
                               f"(current value {old!r})")
@@ -393,6 +493,9 @@ def _validate(cfg: Config) -> None:
     check(cfg.run.engine in ENGINES, f"run.engine must be one of {ENGINES}")
     check(cfg.run.traits in ("on", "off"), "run.traits must be 'on' or 'off'")
     check(cfg.fees.regime in REGIMES, f"fees.regime must be one of {REGIMES}")
+    check(cfg.fees.peak_fee >= 0, "fees.peak_fee must be >= 0 (NZ$; 0 = no charge, as regime \"none\")")
+    check(len(cfg.fees.tou_points) >= 1 and max(float(x[1]) for x in cfg.fees.tou_points) > 0,
+          "fees.tou_points need a charge above 0 (fees.peak_fee scales them to the peak)")
     check(cfg.engine.capacity_mode in ("demand_share", "raw_scaled"), "engine.capacity_mode invalid")
     check(cfg.engine.capacity_scale > 0, "engine.capacity_scale must be > 0")
     lo, hi = cfg.engine.calib_scale_bounds
@@ -404,10 +507,9 @@ def _validate(cfg: Config) -> None:
     check(cfg.costs.wfh_form in ("spec", "v3_relative"), "costs.wfh_form must be spec or v3_relative")
     check(cfg.llm.model in cfg.llm.allowed_models, "llm.model not in llm.allowed_models")
     check(cfg.llm.effort in EFFORTS, f"llm.effort must be one of {EFFORTS}")
-    check(cfg.llm.template_id in TEMPLATE_IDS, f"llm.template_id must be one of {TEMPLATE_IDS} (the "
-          "implemented prompt templates)")
-    check(not (cfg.llm.template_id.startswith(("plan-", "think-")) and cfg.run.arm.startswith("L-")),
-          "llm.template_id plan-v1 / plan-v2 / think-v1 belongs to arm H-clock; the L arms use cl-v1 or cl-v2")
+    check(cfg.llm.template_id == TEMPLATE_ID or cfg.llm.template_id in RETIRED_TEMPLATE_IDS,
+          f"llm.template_id must be {TEMPLATE_ID!r} (the only implemented prompt template; an older run's "
+          f"snapshot may name one of {RETIRED_TEMPLATE_IDS})")
     check(cfg.llm.fallback_beta in FALLBACK_BETAS,
           f"llm.fallback_beta must be one of {FALLBACK_BETAS} (the beta that accepts fallbacks='default')")
     check(cfg.llm.replicate >= 0, "llm.replicate must be >= 0")
@@ -415,8 +517,16 @@ def _validate(cfg: Config) -> None:
     check(cfg.llm.max_tokens >= 1 and cfg.llm.max_concurrency >= 1, "llm.max_tokens and max_concurrency must be >= 1")
     check(cfg.engine.calib_metric in ("car_weighted_mean", "worst", "busiest"),
           "engine.calib_metric must be car_weighted_mean, worst or busiest")
-    check(cfg.costs.skip_vot_hours >= 0 and cfg.costs.pt_headway_min >= 0,
-          "costs.skip_vot_hours and costs.pt_headway_min must be >= 0")
+    check(cfg.engine.calib_delay in ("total", "queue"), "engine.calib_delay must be total or queue")
+    check(cfg.costs.pt_headway_min >= 0, "costs.pt_headway_min must be >= 0")
+    pd_ = cfg.events.pt_disruption_day
+    check(all(isinstance(x, int) and not isinstance(x, bool) for x in (pd_ if isinstance(pd_, tuple) else (pd_,)))
+          and pd_ != (), "events.pt_disruption_day must be a day or a non-empty list of days")
+    w = cfg.wtt
+    check(w.beta0 >= 0, "wtt.beta0 must be >= 0 (0 = no willingness-to-pay limit)")
+    check(len(w.beta_clip) == 2 and 0 < w.beta_clip[0] <= w.beta_clip[1],
+          "wtt.beta_clip must be [lo, hi] with 0 < lo <= hi")
+    check(w.vot_ref in WTT_VOT_REFS, f"wtt.vot_ref must be one of {WTT_VOT_REFS}")
     check(cfg.costs.fuel_cost_per_km >= 0, "costs.fuel_cost_per_km must be >= 0")
     check(cfg.costs.early_shift_cost >= 0, "costs.early_shift_cost must be >= 0")
     check(0 <= cfg.costs.early_start_min < 1440, "costs.early_start_min must be a minute of the day")
@@ -438,20 +548,54 @@ def _validate(cfg: Config) -> None:
     check(len(cfg.clock.late_tolerance_by_F) == N_LEVELS, "clock.late_tolerance_by_F needs 5 entries")
     check(cfg.prep.gate_rule in ("last_entry", "first_entry"), "prep.gate_rule must be last_entry or first_entry")
     check(len(cfg.prep.frc_capacity_vph) == 5, "prep.frc_capacity_vph needs 5 entries (frc 0..4)")
+    r = cfg.road
+    check(r.bpr_beta == 4, "road.bpr_beta must be 4 (the engines compute (x*x)*(x*x))")
+    check(r.bpr_alpha >= 0, "road.bpr_alpha must be >= 0")
+    check(0 < r.speed_floor <= 1, "road.speed_floor must be in (0, 1]")
+    check(r.flow_window_min >= 1, "road.flow_window_min must be >= 1")
+    check(0 < r.mwy_recover_vc <= r.mwy_breakdown_vc, "road.mwy_recover_vc must be in (0, mwy_breakdown_vc]")
+    check(0 <= r.mwy_capacity_drop < 1, "road.mwy_capacity_drop must be in [0, 1)")
+    check(r.speed_floor <= r.mwy_jam_speed <= 1, "road.mwy_jam_speed must be in [speed_floor, 1]")
+    check(cfg.engine.min_capacity_vph >= 0, "engine.min_capacity_vph must be >= 0")
+    pr = cfg.prep
+    check(0 < pr.road_inbound_share <= 1, "prep.road_inbound_share must be in (0, 1]")
+    check(0 < pr.road_commuter_car_share <= 1, "prep.road_commuter_car_share must be in (0, 1]")
+    check(len(pr.road_profile) >= 1 and all(x >= 0 for x in pr.road_profile),
+          "prep.road_profile needs non-negative entries")
+    k0, k1 = pr.road_cap_k_bounds
+    check(0 < k0 < k1, "prep.road_cap_k_bounds must satisfy 0 < lo < hi")
+    w0, w1 = pr.road_tti_window
+    check(0 <= w0 < w1 <= 1440, "prep.road_tti_window must be minutes with first < last")
     tm = cfg.time
     check(tm.sim_start_min <= tm.depart_earliest_min <= tm.depart_latest_min < tm.sim_end_cap_min,
           "time window inconsistent")
     check(p.n_twins >= 0, "persona.n_twins must be >= 0 (effective value is min(n_twins, n_agents // 2))")
     check(cfg.run.n_agents >= 1 and cfg.run.n_days >= 1, "run.n_agents and run.n_days must be >= 1")
+    check(cfg.run.compress_csv_over_mb >= 0, "run.compress_csv_over_mb must be >= 0")
 
 
 def load_config(path: str | Path | None = None,
                 overrides: Mapping[str, Any] | None = None) -> Config:
-    """Read config.toml (default: cordon_lite/config.toml), apply dotted overrides, validate."""
+    """Read config.toml (default: cordon_lite/config.toml), apply dotted overrides, validate.
+
+    Unknown and missing keys are errors, except the _ADDED_KEYS (and _ADDED_SECTIONS), which an
+    older run's config_snapshot.toml may lack (they take their dataclass default), fees.peak_fee,
+    which it may lack too (_migrate_fees: the peak of its own schedule), and the _RETIRED_KEYS, which
+    it may still have (they are dropped)."""
     path = Path(path) if path is not None else DEFAULT_CONFIG_PATH
     with open(path, "rb") as fh:
         raw = tomllib.load(fh)
     raw = copy.deepcopy(raw)
+    _migrate_fees(raw)
+    for section in _ADDED_SECTIONS:
+        raw.setdefault(section, {})
+    for section, key in _ADDED_KEYS:
+        if isinstance(raw.get(section), dict) and key not in raw[section]:
+            raw[section][key] = _to_plain({f.name: f.default for f in fields(_SECTIONS[section])}[key])
+    for section, key in _RETIRED_KEYS:
+        table = _raw_table(raw, section)
+        if table is not None:
+            table.pop(key, None)
     if overrides:
         _apply_overrides(raw, overrides)
     unknown = set(raw) - set(_SECTIONS)
