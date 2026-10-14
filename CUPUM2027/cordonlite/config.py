@@ -24,7 +24,7 @@ import numpy as np
 ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH: Path = ROOT / "config.toml"
 
-ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily")
+ARMS: tuple[str, ...] = ("R-daily", "R-clock", "L-clock", "L-daily", "H-clock")   # H-clock: thinker.py
 BACKENDS: tuple[str, ...] = ("mock", "anthropic")
 ENGINES: tuple[str, ...] = ("py", "netlogo")
 REGIMES: tuple[str, ...] = ("tou", "flat", "none")

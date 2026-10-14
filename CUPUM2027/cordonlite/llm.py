@@ -796,6 +796,10 @@ class LLMDecider:
         return cache_key(self.backend.model, self.backend.effort, self.template_id, self.system,
                          user, schema, self.key_extra)
 
+    def _validate(self, parsed: object, ids: Sequence[str], schema: dict) -> tuple[bool, str]:
+        """Validity of one parsed reply (a hook: thinker.ThinkLLM checks its own reply schema)."""
+        return validate_output(parsed, ids)
+
     async def _one(self, ctx: DecisionContext, user: str, schema: dict, key: str,
                    sem: asyncio.Semaphore) -> tuple[dict | None, list[dict]]:
         ids = list(ctx.option_ids)
@@ -821,7 +825,7 @@ class LLMDecider:
                     if self._aborted is not None:   # another call of this batch stopped the run
                         raise LLMFatalError(self._aborted)
                     parsed, meta = await self.backend.acomplete(self.system, user, schema)
-            valid, why = (validate_output(parsed, ids) if parsed is not None
+            valid, why = (self._validate(parsed, ids, schema) if parsed is not None
                           else (False, meta.get("error") or "no output"))
             if parsed is not None and not valid:
                 meta["error"], meta["error_kind"] = why, "invalid"

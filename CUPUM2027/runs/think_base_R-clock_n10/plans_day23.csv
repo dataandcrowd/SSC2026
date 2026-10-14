@@ -1,0 +1,11 @@
+agent_id,mode,depart_min
+0,CAR,450
+1,CAR,450
+2,CAR,405
+3,PT,-1
+4,PT,-1
+5,CAR,510
+6,CAR,555
+7,CAR,540
+8,CAR,525
+9,CAR,540

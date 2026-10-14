@@ -457,11 +457,11 @@ def test_build_request_default_model(tiny_cfg: Config) -> None:
     schema = llm.output_schema(["CAR_0730", "PT"])
     req = be.build_request("SYS", "USER", schema)
     assert req == {
-        "model": "claude-opus-5-5",
+        "model": "claude-sonnet-5-5",
         "max_tokens": 4000,
         "system": [{"type": "text", "text": "SYS", "cache_control": {"type": "ephemeral"}}],
         "messages": [{"role": "user", "content": "USER"}],
-        "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": schema}},
+        "output_config": {"effort": "medium", "format": {"type": "json_schema", "schema": schema}},
         "betas": ["server-side-fallback-2026-07-01"],
         "fallbacks": "default",
     }
@@ -476,7 +476,7 @@ def test_build_request_haiku_and_no_fallbacks() -> None:
     cfg2 = load_config(overrides={"llm.use_fallbacks": False})
     be2 = llm.AnthropicLLM(cfg2, client=object())
     req2 = be2.build_request("S", "U", llm.output_schema(["PT"]))
-    assert not be2.uses_beta and "betas" not in req2 and req2["output_config"]["effort"] == "low"
+    assert not be2.uses_beta and "betas" not in req2 and req2["output_config"]["effort"] == "medium"
 
 
 def test_anthropic_valid_call_uses_beta_endpoint_and_logs(ctxs: list[DecisionContext],
