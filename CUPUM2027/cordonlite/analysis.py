@@ -633,9 +633,11 @@ def table_who_adapts(run: dict, base: tuple[int, int] = (6, 10),
     return pd.DataFrame(rows)
 
 
-def twin_summary(run: dict, days: Sequence[int] = (1, 10, 11, 12, 20, 30)) -> dict:
-    """Twin pairs (identical Layer A): how many choose different options on each day, and on day
-    11 how many differ among the pairs that held the same option on day 10 (same starting state)."""
+def twin_summary(run: dict, days: Sequence[int] | None = None, charge_day: int = 11) -> dict:
+    """Twin pairs (identical Layer A): how many choose different options on each day, and on the
+    charge day how many differ among the pairs that held the same option the day before (same
+    starting state). days defaults to 1, the day before the charge, the charge day, the next day and
+    the last day (2026-10-15: windows follow the run's design instead of the 30-day days 10/11/30)."""
     per: pd.DataFrame = run["personas"]  # type: ignore[assignment]
     dec: pd.DataFrame = run["decisions"]  # type: ignore[assignment]
     from cordonlite.persona import TRAIT_NAMES
@@ -645,14 +647,17 @@ def twin_summary(run: dict, days: Sequence[int] = (1, 10, 11, 12, 20, 30)) -> di
     pairs = [(ids[0], j) for ids in groups if len(ids) > 1 for j in ids[1:]]
     opt = dec.set_index(["day", "agent_id"])["option_id"]
     last = int(dec["day"].max())
+    c = int(charge_day)
+    if days is None:
+        days = sorted({1, c - 1, c, c + 1, last})
     out: dict[str, object] = {"run": run["label"], "n_pairs": len(pairs)}
     for d in days:
-        if d <= last:
+        if 1 <= d <= last:
             out[f"differ_d{d}"] = int(sum(opt[(d, i)] != opt[(d, j)] for i, j in pairs))
-    if 11 <= last:
-        same10 = [(i, j) for i, j in pairs if opt[(10, i)] == opt[(10, j)]]
-        out["same_d10"] = len(same10)
-        out["differ_d11_given_same_d10"] = int(sum(opt[(11, i)] != opt[(11, j)] for i, j in same10))
+    if 2 <= c <= last:
+        same = [(i, j) for i, j in pairs if opt[(c - 1, i)] == opt[(c - 1, j)]]
+        out[f"same_d{c - 1}"] = len(same)
+        out[f"differ_d{c}_given_same_d{c - 1}"] = int(sum(opt[(c, i)] != opt[(c, j)] for i, j in same))
     return out
 
 
@@ -1201,14 +1206,14 @@ def fig_calls_per_day(runs: Mapping[str, dict], out: Path) -> Path:
     return _save(fig, out, "calls_per_day.png")
 
 
-def fig_who_adapts(runs: Mapping[str, dict], out: Path) -> Path:
-    """Share of drivers (modal mode CAR on days 6-10) not driving (modal mode, last 5 days), by
+def fig_who_adapts(runs: Mapping[str, dict], out: Path, base: tuple[int, int] = (6, 10)) -> Path:
+    """Share of drivers (modal mode CAR on the base days) not driving (modal mode, last 5 days), by
     group and level, per run, with 95% Wilson intervals; groups with n < 10 drivers are greyed
     out and annotated, structural zeros (car only) marked."""
     groups = ("archetype", "vot_quintile", "H", "F", "P", "S")
     titles = {"archetype": "archetype", "vot_quintile": "VoT quintile", "H": "habit H",
               "F": "flexibility F", "P": "PT openness P", "S": "cost salience S"}
-    tabs = {lab: table_who_adapts(r) for lab, r in runs.items()}
+    tabs = {lab: table_who_adapts(r, base) for lab, r in runs.items()}
     fig, axes = plt.subplots(2, 3, figsize=(11.5, 6.2))
     k = len(runs)
     w = 0.8 / max(k, 1)
@@ -1345,6 +1350,17 @@ def _write_fee_response(runs_dir: Path, out: Path, cfg: Config, seed: int | None
     return [out / "fee_response.csv", out / "fee_response_by_group.csv", fig_fee_response(fr, out)]
 
 
+def design_windows(cfg: Config) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
+    """Day windows of the study design (2026-10-15): base = the uncharged days of the capacity and behaviour
+    calibration (engine.calib_days), charged = the charge day to the last day, snap = the last uncharged day
+    and the last day (the two days the summary table and the crossing histograms compare). The 30-day design
+    gives (6, 10), (21, 30), (10, 30); the 10-day design (2, 5), (6, 10), (5, 10)."""
+    fs, n = int(cfg.fees.fee_start_day), int(cfg.run.n_days)
+    base = tuple(int(x) for x in cfg.engine.calib_days)
+    charged = (fs, n) if n - fs < 10 else (n - 9, n)   # the last 10 days of a long run (21-30 in the 30-day design)
+    return base, charged, (fs - 1, n)  # type: ignore[return-value]
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m cordonlite.analysis")
     ap.add_argument("--runs", default=None, help="runs folder (default run.runs_dir)")
@@ -1375,20 +1391,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
     runs = {lab: load_run(d) for lab, d in found.items()}
     main_runs = {k: v for k, v in runs.items() if "traits off" not in k} or runs
+    base, charged, snap = design_windows(cfg)
     out.mkdir(parents=True, exist_ok=True)
     written = [
         fig_mode_shares(runs, out),
-        fig_crossings_hist(main_runs, out, cfg=cfg),
+        fig_crossings_hist(main_runs, out, days=snap, cfg=cfg),
         fig_cordon_entries(main_runs, out, cfg=cfg),
         fig_queue_delay(runs, out),
-        fig_road_delay(main_runs, out),
-        fig_los(main_runs, out),
+        fig_road_delay(main_runs, out, pre=base, post=charged),
+        fig_los(main_runs, out, pre=base, post=charged),
         fig_calls_per_day(runs, out),
-        fig_who_adapts(runs, out),
+        fig_who_adapts(runs, out, base),
     ]
     ref = next((v for k, v in runs.items() if k.startswith("R-daily")), next(iter(runs.values())))
-    written.append(fig_vickrey_check(ref, cfg, out))
-    st = summary_table(runs)
+    written.append(fig_vickrey_check(ref, cfg, out, days=base))
+    st = summary_table(runs, days=snap, periods=(base, charged))
     st.to_csv(out / "summary_table.csv", index=False)
     (out / "summary_table.md").write_text(
         _md_table(st) + "\nShares are of all commuters. LoS over 07:00-09:00, mwy = motorways, other = other roads: "
@@ -1398,7 +1415,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     fr_seed = args.seed
     if fr_seed is None and not (args.all or args.run_dirs):
         fr_seed = int(next(iter(runs.values()))["summary"]["meta"]["seed"])  # type: ignore[index]
-    written += _write_fee_response(runs_dir, out, cfg, fr_seed, args.include_netlogo, runs)
+    written += _write_fee_response(runs_dir, out, cfg, fr_seed, args.include_netlogo, runs, base, charged)
     for stale in ("departure_hist.png",):  # renamed outputs of earlier versions
         (out / stale).unlink(missing_ok=True)
     for f in list(out.glob("who_adapts_*.csv")) + list(out.glob("twins_day11_*.csv")):
@@ -1408,10 +1425,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     for lab, r in runs.items():
         slug = (lab.replace(" ", "_").replace("(", "").replace(")", "").replace("[", "")
                 .replace("]", "").replace("{", "").replace("}", ""))
-        table_who_adapts(r).to_csv(out / f"who_adapts_{slug}.csv", index=False)
-        tw = table_twins(r)
+        table_who_adapts(r, base).to_csv(out / f"who_adapts_{slug}.csv", index=False)
+        tw = table_twins(r, charged[0])
         tw.to_csv(out / f"twins_day11_{slug}.csv", index=False)
-        twins.append(twin_summary(r))
+        twins.append(twin_summary(r, charge_day=charged[0]))
         dg = llm_diagnostics(r, rule_refs["traits off" in lab])
         if dg:
             diags.append(dg)

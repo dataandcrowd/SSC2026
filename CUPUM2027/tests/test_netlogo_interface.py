@@ -24,10 +24,10 @@ MODEL = Path(__file__).resolve().parents[1] / "netlogo7" / "cordon_lite.nlogox"
 DATA = Path(__file__).resolve().parents[1] / "data"
 # the experiment chooser, in this order: for each arm (who decides, when) the peak charges NZ$6 (the canonical
 # run, no peak suffix) and NZ$18 (fees.peak_fee, --peak-fee 18, folder suffix _peak18), seed 1, 10 days charged
-# from day 6 (--days 10 --fee-start 6, folder suffix _d10_fs6); its label is
+# from day 6 (the config.toml defaults since 2026-10-15, so no folder suffix; _d10_fs6 before); its label is
 # "<who decides, when>: $<peak> charge" and its run folder is relative to netlogo7/. The PT disruption chooser
 # adds none or two disruption days, 3 (before the charge) and 8 (with it): --set events.pt_disruption_day=[3,8],
-# folder suffix _pt3_pt8 (the default day, 20, is outside the 10 days: no disruption)
+# folder suffix _pt3_pt8 (the default, 0, is no disruption)
 ARM_LABELS = (("Rule, reacts to events", "R-clock"), ("Rule, decides every day", "R-daily"),
               ("LLM, reacts to events", "L-clock"), ("LLM, decides every day", "L-daily"))
 BASE_PEAK = 6        # NZ$ peak of the usual charge (no peak suffix in the folder name)
@@ -35,7 +35,7 @@ PEAKS = (6, 18)
 
 
 def _run_folder(arm: str, peak: int) -> str:
-    return f"{arm}_mock_py_s1_d10_fs6" + ("" if peak == BASE_PEAK else f"_peak{peak}")
+    return f"{arm}_mock_py_s1" + ("" if peak == BASE_PEAK else f"_peak{peak}")
 
 
 EXPERIMENTS = [(f"{label}: ${peak} charge", f"../runs/{_run_folder(arm, peak)}")
@@ -503,7 +503,7 @@ def test_experiment_chooser_lists_the_experiments() -> None:
             assert (run / "agents.csv").is_file(), f"make it with --set events.pt_disruption_day=[3,8]: {run}"
             meta = json.loads((run / "summary.json").read_text())["meta"]
             assert (run / "plans.csv").is_file() and meta["n_days"] == 10 and meta["fee_start_day"] == 6, run
-            assert meta["pt_disruption_day"] == (list(days) if days else 20), run
+            assert meta["pt_disruption_day"] == (list(days) if days else 0), run   # 0 = none (2026-10-15)
             if days:   # each disruption wakes the PT users of its corridor on the day (T4) and the day after
                 dec = pd.read_csv(run / "decisions.csv")
                 woken = sorted(dec[dec["triggers"].fillna("").str.contains("T4")]["day"].unique())

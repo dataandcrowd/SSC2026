@@ -923,7 +923,8 @@ def _toy_inputs(tmp: Path, nzta_sites: list[dict] | None = None, extra_counts: l
     _toy_nzta(data, nzta_sites)
     overrides = {"prep.roads_shp": str(roads_path), "prep.cordon_gpkg": str(cordon_path),
                  "prep.adt_geojson": str(adt_path), "run.data_dir": str(data),
-                 "prep.n_origin_points": 6, "prep.n_corridors": 2, "prep.density_radius_m": 600.0}
+                 "prep.n_origin_points": 6, "prep.n_corridors": 2, "prep.density_radius_m": 600.0,
+                 "prep.od_csv": "", "prep.origin_draw": "unique"}   # the toy network has no SA2s: proxy weights
     cfg = load_config(overrides=overrides)
     roads_l = br.load_roads_shp(cfg)
     cordon_g, _ = br.load_cordon_any(cfg)
@@ -1171,4 +1172,4 @@ def _overrides_of(cfg) -> dict:
     p = cfg.prep
     return {"prep.roads_shp": p.roads_shp, "prep.cordon_gpkg": p.cordon_gpkg, "prep.adt_geojson": p.adt_geojson,
             "prep.n_origin_points": p.n_origin_points, "prep.n_corridors": p.n_corridors,
-            "prep.density_radius_m": p.density_radius_m}
+            "prep.density_radius_m": p.density_radius_m, "prep.od_csv": p.od_csv, "prep.origin_draw": p.origin_draw}

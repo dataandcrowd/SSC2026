@@ -226,8 +226,22 @@ def test_local_road_length_radius() -> None:
     assert w.tolist() == [100.0, 50.0, 0.0]
 
 
+def test_sample_origins_iid_counts_reproduce_the_weights() -> None:
+    """origin_draw = "iid": independent draws by weight, repeats merged into one origin weighted by its draws, so
+    the origins' weights sum to the draws and drawing by them follows the candidate weights."""
+    cfg = load_config(overrides={"prep.n_origin_points": 4000, "prep.origin_draw": "iid"})
+    cand = pd.DataFrame({"node": [(float(i), 0.0) for i in range(4)], "x_nztm": np.arange(4.0),
+                         "y_nztm": np.zeros(4), "weight": [50.0, 30.0, 15.0, 5.0]})
+    a = bi.sample_origins(cand, cfg)
+    pd.testing.assert_frame_equal(a, bi.sample_origins(cand, cfg))
+    assert a["origin_id"].tolist() == list(range(len(a))) and a["node"].is_unique
+    assert a["weight"].sum() == 4000
+    share = a.set_index("x_nztm")["weight"] / 4000
+    assert share.loc[[0.0, 1.0, 2.0, 3.0]].tolist() == pytest.approx([0.5, 0.3, 0.15, 0.05], abs=0.03)
+
+
 def test_sample_origins_deterministic_and_weighted() -> None:
-    cfg = load_config(overrides={"prep.n_origin_points": 50})
+    cfg = load_config(overrides={"prep.n_origin_points": 50, "prep.origin_draw": "unique"})
     cand = pd.DataFrame({"node": [(float(i), 0.0) for i in range(200)], "x_nztm": np.arange(200.0),
                          "y_nztm": np.zeros(200), "weight": np.r_[np.full(100, 100.0), np.full(100, 1.0)]})
     a = bi.sample_origins(cand, cfg)
@@ -257,7 +271,11 @@ def test_real_outputs_consistent_if_present() -> None:
     assert list(o.columns) == list(bi.ORIGINS_COLUMNS)
     assert list(g.columns) == list(bi.GATES_COLUMNS)
     assert list(c.columns) == list(bi.CORRIDORS_COLUMNS)
-    assert len(o) == cfg.prep.n_origin_points
+    if cfg.prep.origin_draw == "iid":   # distinct nodes, each weighted by its draws
+        assert o["weight"].sum() == cfg.prep.n_origin_points and len(o) <= cfg.prep.n_origin_points
+        assert (o["weight"] == o["weight"].round()).all() and (o["weight"] >= 1).all()
+    else:
+        assert len(o) == cfg.prep.n_origin_points
     assert list(c["corridor_id"]) == list(range(len(c)))
     assert set(o["corridor_id"]) <= set(c["corridor_id"])
     assert set(o["gate_id"]) == set(g["gate_id"])

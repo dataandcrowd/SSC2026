@@ -499,7 +499,7 @@ def check_day(link, day: int, outcomes: pd.DataFrame, geo: dict, ctx: dict | Non
         done = car[(car.ga >= 0) & (car.ga <= clock)]
         want_mon = float(done.rd.mean()) if len(done) else 0.0
         bad_mon += int(abs(mon - want_mon) > 1e-9)
-        if table is not None and link.report("not empty? sec-feats"):
+        if table is not None and link.report("not empty? sec-links"):
             got = [int(g) for g in np.atleast_1d(link.report("speed-grade"))]
             want_g = speed_grades(table, 5 * int(clock // 5))
             bad_grade += sum(a != b for a, b in zip(got, want_g)) + abs(len(got) - len(want_g))
@@ -567,7 +567,7 @@ def check_day(link, day: int, outcomes: pd.DataFrame, geo: dict, ctx: dict | Non
     link.command("finish-day")
     if float(link.report("clock")) != day_end or float(link.report("ticks")) != (day_end - sim_start) * spm:
         errs.append(f"day {day}: finish-day stopped at minute {link.report('clock')} (ticks {link.report('ticks')})")
-    if table is not None and link.report("not empty? sec-feats"):
+    if table is not None and link.report("not empty? sec-links"):
         errs += check_los_plot(link, day, ttab, ctx["los_info"], day_start, day_end, rec)
     end = [str(s) for s in per_agent(link, "state-at clock")]
     want_state = [state_at(day_end, r.mode, r.dep, r.ga, r.gx, r.arr) for r in df.itertuples()]
@@ -702,7 +702,7 @@ def main(argv: list[str] | None = None) -> int:
         if ctx is not None:
             rd = ctx["road"]
             summary["sections"] = len(rd.section_ids)
-            summary["sections_drawn"] = int(link.report("length filter [ fs -> not empty? fs ] sec-feats"))
+            summary["sections_drawn"] = int(link.report("length filter [ fs -> not empty? fs ] sec-links"))
             summary["profiles"] = {str(k): int(sum(p_ == k for p_ in rd.profile_id)) for k in sorted(rd.profiles)}
             summary["cap_drops"] = {repr(d): int(sum(x == d for x in rd.cap_drop)) for d in sorted(set(rd.cap_drop))}
             if int(link.report("table:length road-profiles")) != len(rd.profiles):

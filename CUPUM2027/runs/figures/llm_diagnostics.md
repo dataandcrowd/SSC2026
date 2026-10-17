@@ -1,5 +1,5 @@
-| run | records | agent_days | cache_hit_rate | shared_answers | distinct_prompts_per_agent | distinct_prompts_per_agent_in_cell_d11 | within_cell_mode_entropy_d11 | within_cell_mode_entropy_d11_rule | entropy_ratio_llm_over_rule |
+| run | records | agent_days | cache_hit_rate | shared_answers | distinct_prompts_per_agent | distinct_prompts_per_agent_in_cell_d6 | within_cell_mode_entropy_d6 | within_cell_mode_entropy_d6_rule | entropy_ratio_llm_over_rule |
 |---|---|---|---|---|---|---|---|---|---|
-| L-clock (mock) | 2250 | 2250 | 0.0 | 0 | 1.0 | 1.0 | 0.9704 | 0.9404 | 1.0319 |
-| L-daily (mock) | 27300 | 27300 | 0.0 | 0 | 1.0 | 1.0 | 0.9799 | 0.9404 | 1.042 |
-| L-clock (mock) (traits off) | 2305 | 2305 | 0.0 | 137 | 0.9406 | 0.9701 | 0.9083 | 0.8788 | 1.0335 |
+| L-clock (mock) | 1905 | 1905 | 0.0 | 0 | 1.0 | 1.0 | 0.9447 | 0.8456 | 1.1171 |
+| L-daily (mock) | 9200 | 9200 | 0.0 | 0 | 1.0 | 1.0 | 0.9474 | 0.8456 | 1.1203 |
+| L-clock (mock) (traits off) | 1999 | 1999 | 0.0 | 121 | 0.9395 | 0.9677 | 0.8371 | 0.8228 | 1.0174 |

@@ -1958,3 +1958,72 @@ Nothing in the engines changed.
    capacity, WTT metrics, new sensitivities, report and figures; INTERFACES.md, "Behaviour calibration
    with the willingness to travel"). `tests/test_run.py`: the two calibration tests drop `base_skip`,
    and a new test covers the helpers of the search (anchors, references, stage rules, grid edge).
+
+## Origins from the 2023 Census OD, 2026-10-16
+
+The specification placed origins by a local-road density proxy, with an unused hook for Census SA2
+counts (`prep.od_csv`, [SPEC] empty). The origins now come from the Census.
+
+1. **Decisions** [author decisions 2026-10-16]. Origins from the 2023 Census origin-destination table;
+   only car drivers are counted; the destination stays the one node in the centre (origins only).
+2. **Data** [DATA]. Stats NZ, "2023 Census main means of travel to work by statistical area 2" (usual
+   residence SA2 x workplace SA2, counts by mode, CC BY 4.0), and Auckland SA2 2026 polygons, both from
+   the gtfs-isochrone repository (`prep.census_od_csv`, `prep.sa2_gpkg`). The workplace SA2s in the
+   cordon are the 17 whose representative point lies inside SA3 "Auckland City Centre" (they fill it
+   exactly). Drivers = `2023_Drive_a_private_car_truck_or_van` + `2023_Drive_a_company_car_truck_or_van`
+   (`prep.od_modes`), residence outside the cordon. 2023 codes are matched to the 2026 polygons by code;
+   14 residence SA2s without a polygon (Waiheke, Pokeno, Mangawhai and others; 114 drivers) are dropped.
+3. **Suppression** [A]. The table shows no zero: every count below 6 is -999, the others are multiples
+   of 3 (random rounding). Of 8,952 driver cells of outside-to-cordon pairs, 7,104 are suppressed, and so
+   are 1,049 of the 4,476 pair totals. A suppressed cell gets part of its pair's residual (Total_stated
+   minus the shown cells) in proportion to the shown mode shares of all outside-to-cordon pairs, at most
+   5 a cell (`prep.od_suppressed_cap`); a pair whose total is suppressed is given 3 commuters
+   (`prep.od_suppressed_total`, the middle of 1-5), split the same way. Drivers: 19,887 shown (a lower
+   bound), 27,215 filled. The shown cells alone would put 60% of the drivers within 10 km of the centre
+   and 5.4% beyond 20 km; filled, 56% and 8.7%.
+4. **Within an SA2** [A] (`prep.od_within_sa2 = "proxy"`). An SA2's drivers go to the candidate nodes
+   inside its polygon in proportion to the old proxy (frc 3-4 road within 500 m). 116 SA2s (2,355
+   drivers, 8.7%) have no candidate node inside and go to the node nearest their representative point;
+   92 of them (1,614 drivers, 6.0%) lie more than 2 km away, beyond the TomTom extent (Kumeū, Riverhead,
+   Millwater, Orewa, Karaka), so their trip starts at the network edge and their free-flow time is too
+   short.
+5. **Double weighting fixed** [A] (`prep.origin_draw = "iid"`). `sample_origins` drew 3,000 origins
+   without replacement in proportion to the weight, and each kept its candidate weight; `build_personas`
+   then drew agents by that weight again (and `prep.build_roads` weighted origins by it), so a node's
+   share went roughly with its weight squared. With the even proxy this mattered little; with the
+   Census weights (coefficient of variation 3.8 over the candidates) the seed-1 agents would have been
+   14.6% South-east (Census 20.1%) and 33.3% West (24.4%). The origins are now 3,000 independent draws in
+   proportion to the weight, a node drawn k times being one origin of weight k (2,361 origins, at most
+   57 draws on one). The expected agent shares by corridor are within 0.6 pp of the Census; seeds 1-3
+   differ from them by up to about 2 pp (sampling noise). `"unique"` keeps the old draw.
+6. **Prep results.** 23 gates (27 before), corridor shares of the draws E 6.6, SE 19.9, S 13.2, SW 35.7,
+   W 24.6% (before 2.3, 30.0, 24.1, 23.4, 20.2); 4,799 road sections (5,903), 752 km; k = 0.077563
+   (0.076999); motorway TTI 08:00-08:59 2.099 (2.032); 262 motorway sections (285); commuters 13% of the
+   counted volume on their routes (16%). The NetLogo Info tab's sentence on the floor-raised Upper
+   Harbour stretches was updated (seven, clearing 09:15-09:30). The engines, personas, clock, options
+   and deciders are unchanged.
+7. **Recalibration.** Capacity (days 2-5): 0.396105, 0.396105, 0.430292 (peaks 13.93, 13.35, 14.70
+   min). Behaviour: `scripts/calibrate_behaviour_d10.py`, same targets, seeds and selection rule; 46 of
+   1,085 points feasible on the NZ$1 grid (no stage 3), all at PAP 20 but one; chosen PAP 20 / k_WFH 16
+   / beta0 0.15 (previously 21.5 / 16 / 0.15). Seeds 1-3: base car 0.846, PT 0.154, response -22.2%;
+   seeds 4-12: base car 0.849, response -22.1%, in band. k_WFH sits at the top of its range, as before.
+8. **Runs.** The canonical runs, the charge-level runs, the traits-off runs, seeds 2-3, the GUI replays
+   and the MockLLM estimates were regenerated (README, "Census OD origins"). R-daily -20.9%, R-clock
+   -23.0%, L-clock (mock) -38.6%, L-daily (mock) -35.1% (days 6-10 vs 2-5). Not regenerated: the H-clock
+   pilot (`think_*`, live API) and the `_d10_fs6` runs of the proxy origins.
+9. **Archive.** `data/behaviour_calibration_proxy.json`, `data/calibration_proxy.json`,
+   `docs/calibration_report_proxy.md`; the proxy-origin `data/` and runs are in git history (commit
+   54bc265).
+10. **Limitations.**
+    - The Census table has no time of day: it counts drivers to a cordon workplace whenever they
+      travel, so it sets where commuters live, not how many enter in the charged hours (19,000 stays).
+    - It has no trip purpose other than work, and no students' trips to study.
+    - Suppressed cells are imputed, not observed: 27% of the 27,215 drivers.
+    - Origins beyond the TomTom extent start at its edge; within an SA2 the spread is the old proxy.
+    - The destination is still one node, although the table knows each driver's workplace SA2.
+11. **Code and tests.** `prep/build_od.py` (new), `prep/build_inputs.py` (`od_weights`, the `iid` draw,
+    report lines), `cordonlite/config.py` (nine `[prep]` keys, in `_ADDED_KEYS`, so older snapshots
+    load); `tests/test_od.py` (new: allocation with the cap, imputation, a toy Census table end to end,
+    the split within an SA2 and the snap), `tests/test_prep.py` (the `iid` draw; the shipped-data check
+    allows fewer distinct origins), `tests/test_prep_roads.py` (the toy networks keep the proxy and the
+    old draw).

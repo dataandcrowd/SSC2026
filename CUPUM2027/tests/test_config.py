@@ -11,11 +11,11 @@ from cordonlite.config import ConfigError, dump_toml, load_config, stream
 
 def test_loads_default() -> None:
     cfg = load_config()
-    assert cfg.run.n_agents == 950 and cfg.run.n_days == 30       # 5% of the 19,000 charged vehicles
+    assert cfg.run.n_agents == 950 and cfg.run.n_days == 10       # 10-day design since 2026-10-15; 5% of the 19,000 charged vehicles
     assert cfg.run.n_agents / cfg.engine.agents_represented == 0.05
     assert cfg.persona.n_twins == 95 == cfg.run.n_agents // 10      # twins stay 10% of the agents
     assert cfg.engine.min_capacity_vph == 950.0
-    assert cfg.fees.fee_start_day == 11
+    assert cfg.fees.fee_start_day == 6                       # 10-day design since 2026-10-15 (11 before)
     assert cfg.llm.mock.w_fee > 0
     assert cfg.resolve_path(cfg.prep.roads_gpkg).name == "tomtom_major_roads.gpkg"
 
@@ -32,7 +32,7 @@ def test_overrides_and_errors() -> None:
 def test_pt_disruption_day_takes_one_day_or_a_list() -> None:
     """events.pt_disruption_day is one day or a list of days (2026-10-13): disruption_days is the tuple,
     a list survives the config snapshot, and anything else is refused."""
-    assert load_config().events.disruption_days == (20,)
+    assert load_config().events.disruption_days == (0,)   # 0 = no disruption in the 10-day design (2026-10-15)
     one = load_config(overrides={"events.pt_disruption_day": 8})
     assert one.events.pt_disruption_day == 8 and one.events.disruption_days == (8,)
     two = load_config(overrides={"events.pt_disruption_day": [3, 8]})

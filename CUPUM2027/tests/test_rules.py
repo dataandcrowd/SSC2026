@@ -139,8 +139,10 @@ def test_paid_parking_split_and_early_start(cfg0) -> None:
         assert o.early_shift and o.start_used_min == 420 and o.late_min == 0.0 and o.fee == pytest.approx(4.0)
     assert run((5, 1, 1, 1), early=True)[:2] == ("CAR_0730", "CAR_0730")   # the payer is unchanged
     assert run((2, 3, 3, 4), early=True)[:2] == ("CAR_0730", "PT")
-    for early, want in ((False, {"keep": 317, "PT": 54, "retime": 4, "pt_before": 250}),
-                        (True, {"keep": 300, "PT": 53, "early_start": 22, "pt_before": 250})):
+    # counts at PAP 20 / k_WFH 16 (Census OD origins, 2026-10-16; PAP 21.5 / k_WFH 16 gave 307/64/4 and 290/64/21,
+    # PAP 22 / k_WFH 12 gave 317/54/4 and 300/53/22)
+    for early, want in ((False, {"keep": 278, "PT": 93, "retime": 4, "pt_before": 250}),
+                        (True, {"keep": 262, "PT": 93, "early_start": 20, "pt_before": 250})):
         kinds = Counter()
         for t in itertools.product(range(1, 6), repeat=4):
             d1, d11, o = run(t, early)

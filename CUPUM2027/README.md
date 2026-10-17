@@ -33,23 +33,197 @@ next to the canonical NZ$6 ("Charge levels" below). The behaviour calibration (P
 beta0 0.15), the capacity calibration and the canonical runs were regenerated for this state the
 same day. The NetLogo model got two choosers (the run and the days to watch) and a mean V/C plot.
 
+## Census OD origins (2026-10-16): current state
+
+**Commuters now live where the 2023 Census puts the city-centre car drivers** [author decision 2026-10-16:
+origins from the Census OD, car drivers only, destination unchanged]. `prep/build_od.py` takes from the Stats NZ
+table "2023 Census main means of travel to work by statistical area 2" the drivers (private or company car) who live
+outside the cordon and work in one of its 17 SA2s: 19,887 in the shown cells, 27,215 with the suppressed cells
+(counts below 6) filled from each pair's total, 27,101 in the 561 Auckland SA2s with a polygon (`data/od_report.md`).
+The shown cells alone would put 60% of the drivers within 10 km of the centre and 5.4% beyond 20 km; filled, 56% and
+8.7%. `prep/build_inputs.py` spreads each SA2's drivers over its road nodes by local road length (6.0% of the
+drivers live beyond the TomTom extent and start at the network edge) and draws 3,000 origins in proportion to them.
+The draws are now independent, a node drawn k times being one origin of weight k (`prep.origin_draw = "iid"`): the
+personas draw origins by weight, so the earlier sample without replacement that kept the candidate weights counted
+demand twice, which with the Census weights would have given 14.6% of the seed-1 agents to the South-east corridor
+(Census 20.1%) and 33.3% to the West (24.4%). Now the expected corridor shares are within 0.6 pp of the Census.
+The destination (one node in the centre), the 19,000 charged cars, the agents, roads, motorway rule, clock and
+deciders are unchanged; the road inputs were rebuilt on the new routes (`data/road_report.md`).
+
+| | Proxy origins (before) | Census OD origins |
+|---|---|---|
+| Origins (draws) | 3,000 (3,000) | 2,361 (3,000) |
+| Gates used | 27 | 23 |
+| Corridor shares E / SE / S / SW / W | 2.3 / 30.0 / 24.1 / 23.4 / 20.2% | 6.6 / 19.9 / 13.2 / 35.7 / 24.6% (draws) |
+| Road sections | 5,903 (849 km) | 4,799 (752 km) |
+| k (TTI 1.714, 08:00-08:59, non-motorway) | 0.076999 | 0.077563 |
+| Motorway TTI 08:00-08:59 / whole trip | 2.032 / 1.927 | 2.099 / 1.915 |
+| Commuters' share of the counted volume on their routes | 16% | 13% |
+
+**Capacity** (days 2-5, 15 +/- 2 min): scales 0.396105, 0.396105 and 0.430292 on seeds 1-3 (peaks 13.93, 13.35,
+14.70 min).
+
+**Behaviour**, recalibrated with the same script, targets, seeds and selection rule (`scripts/calibrate_behaviour_d10.py`,
+`docs/calibration_report.md`, `data/behaviour_calibration.json`): 46 of 1,085 points are feasible on the NZ$1 grid
+(no stage 3 needed), all at PAP 20 but one. Chosen **PAP 20, k_WFH 16, beta0 0.15** (previously 21.5 / 16 / 0.15);
+k_WFH is at the top of its searched range 2-16, as before.
+
+| Seeds | Base car | Base PT | Base WFH | Days 6-10 | Day 6 | Days 8-10 |
+|---|---|---|---|---|---|---|
+| 1-3 (mean) | 0.846 | 0.154 | 0.000 | -22.2% | -23.3% | -21.6% |
+| 4-12 (unseen, own capacity) | 0.849 | 0.151 | 0.000 | -22.1% (single seeds -23.8% to -20.0%) | | |
+
+Unlike the proxy calibration, base car on the unseen seeds is inside the band. Sensitivities (seeds 1-3, capacity
+recalibrated, never adopted), days 6-10: no willingness-to-pay limit -16.1%, SSC2026's beta0 0.5 -32.6%, VoT_ref as
+sample median -22.2%, no early start -23.5%, early day at NZ$1.5 / NZ$6 -21.4% / -23.3%, every eligible employer
+allows it -21.8%.
+
+**Canonical runs**, regenerated (`runs/<arm>_mock_py_s<seed>`, 950 agents, 10 days; columns as in the 10-day section
+below). "L" arms use MockLLM, a pipeline check, not an LLM.
+
+| Run | Car d5 -> d10 | PT d10 | WFH d10 | Response d6-10 | Day 6 | Peak (min) | Road (min) | Decider calls |
+|---|---|---|---|---|---|---|---|---|
+| R-daily | 0.843 -> 0.681 | 0.308 | 0.011 | -20.9% | -21.7% | 13.9 -> 8.4 | 6.16 -> 5.04 | 9,200 |
+| R-clock | 0.855 -> 0.658 | 0.326 | 0.016 | -23.0% | -23.0% | 14.6 -> 10.1 | 6.55 -> 5.13 | 1,931 |
+| L-clock (mock) | 0.796 -> 0.488 | 0.458 | 0.054 | -38.6% | -38.6% | 13.4 -> 8.7 | 6.37 -> 4.64 | 1,905 |
+| L-daily (mock) | 0.788 -> 0.535 | 0.428 | 0.037 | -35.1% | -38.8% | 11.9 -> 8.2 | 6.20 -> 4.67 | 9,200 |
+| R-clock, traits off | 0.925 -> 0.654 | 0.336 | 0.011 | -29.6% | -29.6% | 20.2 -> 10.7 | 6.62 -> 4.54 | 2,068 |
+| L-clock (mock), traits off | 0.855 -> 0.463 | 0.514 | 0.023 | -45.9% | -45.8% | 18.2 -> 7.9 | 6.50 -> 4.39 | 1,999 |
+| R-daily, seed 2 | 0.840 -> 0.664 | 0.320 | 0.016 | -22.1% | -23.8% | 13.3 -> 9.0 | 6.81 -> 5.35 | 9,250 |
+| R-clock, seed 2 | 0.844 -> 0.633 | 0.343 | 0.024 | -25.1% | -25.1% | 15.3 -> 9.2 | 7.13 -> 5.34 | 2,003 |
+| R-daily, seed 3 | 0.855 -> 0.657 | 0.326 | 0.017 | -23.7% | -24.5% | 14.7 -> 10.3 | 7.07 -> 5.52 | 9,255 |
+| R-clock, seed 3 | 0.860 -> 0.642 | 0.332 | 0.026 | -25.4% | -25.4% | 15.4 -> 9.8 | 7.45 -> 5.56 | 1,962 |
+
+Forced decisions (PT the only option left) are 60, 50 and 49 a charged day on seeds 1-3, as before. L-clock makes
+1,905 calls against L-daily's 9,200 (4.8 times fewer; MockLLM estimate about 2.22M against 11.18M input tokens,
+`runs/estimates/*_d10_s1.json`). Twins choosing differently on the charge day (day 6): R-daily 33, R-clock 34,
+L-clock (mock) 39, L-daily (mock) 36; with traits off R-clock 9, L-clock (mock) 16.
+
+Car crossings against the no-charge run of the same arm, days 6-10 (`runs/figures/fee_response.md`):
+
+| Peak NZ$ | R-daily | R-clock | L-clock (mock) | L-daily (mock) |
+|---|---|---|---|---|
+| 3 | -9.3% | -10.8% | -16.7% | -15.3% |
+| 6 | -20.8% | -23.0% | -38.6% | -35.2% |
+| 12 | -43.1% | -47.5% | -64.4% | -59.8% |
+| 18 | -58.6% | -62.2% | -73.3% | -70.8% |
+| 30 | -72.7% | -75.2% | -77.1% | -76.7% |
+
+The NetLogo GUI replays (`<arm>_mock_py_s1_pt3_pt8`, `_peak18_pt3_pt8`) were regenerated too. Not regenerated: the
+H-clock pilot runs `think_base_R-clock_n10` and `think_v1_anthropic_n10` (live API) and the old `_d10_fs6` runs,
+which belong to the proxy origins. The proxy-origin calibration is archived as `data/behaviour_calibration_proxy.json`,
+`data/calibration_proxy.json` and `docs/calibration_report_proxy.md`; its data and runs are in git history.
+
+## 10-day design (2026-10-16), proxy origins
+
+The numbers in this section are those of the proxy origins before the switch to the Census OD (above).
+
+**The study now runs 10 days, not 30** [author decision 2026-10-15]. Days 1-5 are uncharged, the time-of-use
+charge starts on day 6, and there is no PT disruption (`events.pt_disruption_day = 0`). Base shares and the
+capacity calibration use days 2-5 (day 1 is left out because commuters have no experience yet), and the response
+is the mean daily car cordon crossings of days 6-10 against days 2-5. Everything else (950 agents, roads, motorway
+breakdown, gates, personas, clock, options, willingness to pay) is unchanged. Sections further down that speak of
+days 6-10 / 11-13 / 21-30, a charge on day 11, the PT disruption on day 20 or PAP 22 / k_WFH 12 describe the
+30-day design and are kept as history; its calibration logs are archived as `data/behaviour_calibration_d30.json`
+and `data/calibration_d30.json`, its canonical runs in git history (commit 0f56569).
+
+**Capacity.** `engine.calib_days = [2, 5]`: the car-weighted peak 15-min road + queue delay of days 2-5 in the
+R-daily no-charge run is 15 +/- 2 min. Seeds 1-3 converge at scale 0.430292 (peaks 14.39, 13.57, 13.19 min).
+
+**Behaviour** (`scripts/calibrate_behaviour_d10.py`, report `docs/calibration_report.md`, log
+`data/behaviour_calibration.json`). R-daily, seeds 1-3, NZ$6 peak. Targets: base car 0.75-0.85, PT 0.08-0.15,
+WFH at most 0.10 (days 2-5), and a days 6-10 response of -15% to -30% (centre -20%) with no separate overshoot
+target, since five charged days hold the short-run response [author decision]. Single-seed tolerances as before
+(+/-0.028 in shares, +/-2.2 pp in the response). A staged grid over PAP x k_WFH x beta0 (NZ$1 steps, 827 points)
+found no feasible point: with WFH near 0, car + PT is about 1, so base car <= 0.85 and base PT <= 0.15 hold
+together only near 0.85 / 0.15, which fell between PAP 21 (PT 0.15-0.16) and PAP 22 (car 0.858). A third stage in
+NZ$0.25 steps (PAP 21.25-22.75) gave 85 feasible points of 1,487, all at PAP 21.25-21.75. The 30-day anchor rule
+(nearest PAP 8 / k_WFH 8 / beta0 0.5) would pick PAP 21.25 / k_WFH 11 / beta0 0.25 at the edge of the band
+(-29.1%), so the authors chose a new rule (2026-10-16): feasible, beta0 >= 0.15 (a working willingness-to-pay
+limit), the response nearest -20% at whole-percent precision, then the loss. It chose **PAP 21.5, k_WFH 16,
+beta0 0.15**, now in `config.toml`:
+
+| Seeds | Base car | Base PT | Base WFH | Days 6-10 | Day 6 | Days 8-10 |
+|---|---|---|---|---|---|---|
+| 1-3 (mean) | 0.852 | 0.148 | 0.000 | -21.9% | -22.7% | -21.5% |
+| 4-12 (unseen, own capacity) | 0.857 | 0.142 | 0.000 | -22.1% (single seeds -19.4% to -23.4%) | | |
+
+Base car on the unseen seeds rounds to 0.86, just above the band (the 30-day calibration had the same issue,
+0.863). Sensitivities (seeds 1-3, capacity recalibrated, never adopted), days 6-10 response: no willingness-to-pay
+limit -15.2%, SSC2026's beta0 0.5 -32.4%, VoT_ref as sample median -21.9%, no early start -23.6%, early day at
+NZ$1.5 / NZ$6 -21.5% / -23.2%, every eligible employer allows it -21.9%.
+
+**Canonical runs** (`runs/<arm>_mock_py_s<seed>`, 950 agents, 10 days; shares day 5 -> day 10; response = car
+crossings of days 6-10 vs days 2-5; peak = car-weighted peak 15-min road + queue delay; road = mean road delay of a
+car before its gate; both means of days 2-5 -> 6-10). "L" arms use MockLLM, a pipeline check, not an LLM.
+
+| Run | Car d5 -> d10 | PT d10 | WFH d10 | Response d6-10 | Day 6 | Peak (min) | Road (min) | Decider calls |
+|---|---|---|---|---|---|---|---|---|
+| R-daily | 0.849 -> 0.678 | 0.306 | 0.016 | -20.7% | -21.3% | 14.4 -> 9.6 | 6.90 -> 5.67 | 9,200 |
+| R-clock | 0.859 -> 0.664 | 0.317 | 0.019 | -22.7% | -22.7% | 15.8 -> 10.2 | 7.19 -> 5.66 | 2,018 |
+| L-clock (mock) | 0.808 -> 0.509 | 0.436 | 0.055 | -37.0% | -37.0% | 14.6 -> 11.0 | 7.06 -> 5.24 | 1,952 |
+| L-daily (mock) | 0.804 -> 0.560 | 0.409 | 0.031 | -33.3% | -35.4% | 14.0 -> 9.6 | 6.91 -> 5.23 | 9,200 |
+| R-clock, traits off | 0.945 -> 0.656 | 0.332 | 0.013 | -30.7% | -30.7% | 21.0 -> 10.7 | 7.65 -> 5.15 | 2,135 |
+| L-clock (mock), traits off | 0.847 -> 0.486 | 0.491 | 0.023 | -42.6% | -42.5% | 17.8 -> 10.8 | 7.44 -> 5.12 | 2,003 |
+| R-daily, seed 2 | 0.858 -> 0.663 | 0.321 | 0.016 | -23.4% | -23.8% | 13.6 -> 10.2 | 7.49 -> 6.03 | 9,250 |
+| R-clock, seed 2 | 0.865 -> 0.649 | 0.328 | 0.022 | -25.0% | -25.0% | 16.2 -> 10.8 | 7.90 -> 5.93 | 2,012 |
+| R-daily, seed 3 | 0.849 -> 0.672 | 0.308 | 0.020 | -21.7% | -23.0% | 13.2 -> 9.2 | 7.61 -> 6.14 | 9,255 |
+| R-clock, seed 3 | 0.862 -> 0.652 | 0.319 | 0.029 | -24.4% | -24.4% | 14.5 -> 9.5 | 8.04 -> 6.33 | 1,978 |
+
+Every arm makes 950 x 10 = 9,500 decisions; decider calls leave out standing decisions and the forced ones (60, 50
+and 49 commuters a charged day on seeds 1-3 have PT as their only option: 300, 250 and 245 decisions). The clock
+saves less in 10 days than in 30 (L-clock 1,952 against L-daily 9,200 calls, 4.7 times fewer; MockLLM estimate
+about 2.27M against 11.2M input tokens), because day 1 and the charge day, when nearly everyone is woken, are a
+larger part of a short run. Twins (95 pairs) choosing differently on the charge day (day 6): R-daily 41, R-clock
+42, L-clock (mock) 36, L-daily (mock) 42; with traits off R-clock 7, L-clock (mock) 14.
+
+Car crossings against the no-charge run of the same arm, days 6-10 (`runs/figures/fee_response.md`):
+
+| Peak NZ$ | R-daily | R-clock | L-clock (mock) | L-daily (mock) |
+|---|---|---|---|---|
+| 3 | -8.6% | -9.9% | -16.3% | -15.4% |
+| 6 | -20.7% | -22.7% | -36.9% | -32.8% |
+| 12 | -41.8% | -46.0% | -62.6% | -58.7% |
+| 18 | -58.0% | -61.6% | -73.5% | -70.1% |
+| 30 | -71.9% | -74.9% | -77.6% | -76.7% |
+
+The NetLogo GUI chooser now reads these runs (`<arm>_mock_py_s1[_peak18]`, and `_pt3_pt8` replays made with
+`--set events.pt_disruption_day=[3,8] --name <run>_pt3_pt8`); the runs of the old calibration that it read
+before (`_d10_fs6`) are kept locally in `runs_pre_d10calib/` (not in git). `cordonlite.analysis` takes its day
+windows from the config (`design_windows`: base `engine.calib_days`, charged = charge day to last day), and the
+Level of Service periods gained `d2-5`.
+
 ## Design
 
 ### City-wide demand, congested roads, gate queues
 
+**Where commuters live [DATA, A]** (author decision 2026-10-16). Demand comes from the 2023 Census
+(Stats NZ, main means of travel to work by statistical area 2, CC BY 4.0): the car drivers (private
+or company car) who live outside the cordon and work in one of its 17 SA2s, by home SA2
+(`prep/build_od.py` -> `data/od_sa2.csv`, `data/od_report.md`). The Census shows 19,887 such drivers;
+counts below 6 are suppressed, and filling those cells from each pair's total (at most 5 a cell)
+gives 27,215, of which 27,101 live in the 561 Auckland SA2s with a polygon. The AM total stays
+anchored to the 19,000 cars of the charged hours (the Census table has no time of day). Within an
+SA2 the drivers are spread over its road nodes by local road length (a residential-density proxy);
+an SA2 with no node inside goes to the nearest node, which puts 6.0% of the drivers, those living
+beyond the TomTom extent (Kumeū, Millwater, Orewa), at the network edge. Before 2026-10-16 the
+origins came from the local-road proxy alone.
+
 The TomTom major-road network (46,965 segments, about 28.5k nodes) is used **offline** in Python
-(`prep/build_inputs.py`). For 3,000 city-wide origins it finds:
+(`prep/build_inputs.py`). It draws 3,000 origins in proportion to the drivers (independent draws;
+a node drawn k times is one origin of weight k: 2,361 origins) and for each finds:
 
 - the shortest free-flow path into the cordon;
 - the gate where that path first enters the cordon;
 - the free-flow minutes to the gate and from the gate to the destination.
 
-The 27 gates used are grouped into 5 corridors by entry bearing. A car's morning then has three
-parts (user decision, 2026-10-07: roads are congested in both engines, with background traffic plus
-the commuters' own cars):
+The 23 gates used are grouped into 5 corridors by entry bearing (East 6.6% of the draws, South-east
+19.9%, South 13.2%, South-west 35.7%, West 24.6%; the Census drivers 6.1, 20.1, 12.9, 36.3 and
+24.4%). A car's morning then has three parts (user decision, 2026-10-07: roads are congested in both
+engines, with background traffic plus the commuters' own cars):
 
-1. **Roads to the gate, congested.** `prep/build_roads.py` cuts the pre-gate part of the 3,000
-   paths into 5,903 road sections (849 km, about 48 sections per path). Every minute a section
+1. **Roads to the gate, congested.** `prep/build_roads.py` cuts the pre-gate part of the 2,361
+   paths into 4,799 road sections (752 km, about 44 sections per path). Every minute a section
    carries background traffic from the traffic counts plus the commuters' cars that entered it in
    the last 15 minutes. Its speed follows the BPR curve of volume over capacity, so a car that
    leaves at 07:45 takes longer than one that leaves at 06:30. The car's road delay is its time
@@ -67,18 +241,19 @@ A charge that removes commuter cars therefore eases both the roads they used and
   within 30 m. A count holds along its street for up to 1 km; other roads take the median of
   their road class and speed band. Observed inbound peak-hour flow = 0.6 x AM peak ratio x
   two-way ADT, spread over the morning by a 15-min time profile (peak timing from the counts,
-  shape assumed). Of the origin-weighted pre-gate minutes, 25.6% are on sections with their own
-  count, 15.1% propagated, 3.7% default and 55.6% on motorway sections that take their values from
+  shape assumed). Of the origin-weighted pre-gate minutes, 31.8% are on sections with their own
+  count, 16.8% propagated, 3.2% default and 48.2% on motorway sections that take their values from
   the NZTA counts (below).
 - **Commuters [A].** The commuters' expected cars are netted out of the counts (car share 0.8 of
   19,000 cars), so background plus usual commuters equals the counts. In a run each agent adds its
-  20 cars to every section it enters, for 15 minutes. Commuters are about 16% of the counted
-  morning volume on their routes (origin-weighted mean over pre-gate minutes).
+  20 cars to every section it enters, for 15 minutes. Commuters are about 13% of the counted
+  morning volume on their routes (origin-weighted mean over pre-gate minutes; 16% with the proxy
+  origins).
 - **Speed [SSC].** BPR: time = free flow x (1 + 0.15 (V/C)^4), at least 0.18 of free-flow speed,
   as in SSC2026.
 - **Capacity [A, DATA].** Capacity = k x directional ADT (SSC2026's rule), with the directional
   ADT at least the 5th percentile of its road class, so that a tiny or stale count does not give a
-  near-zero capacity (280 sections raised, 1.4% of the minutes). k = 0.076999 is bisected so that
+  near-zero capacity (238 sections raised, 2.7% of the minutes). k = 0.077563 is bisected so that
   the origin-weighted travel time index (TTI) of departures 08:00-08:59 under usual traffic, on the
   non-motorway part of each trip, equals 1.714: the TomTom Traffic Index, Auckland 2025, morning
   rush-hour congestion level 71.4% (https://www.tomtom.com/traffic-index/auckland-traffic/).
@@ -88,10 +263,10 @@ Usual-traffic TTI to the gate by departure hour (`data/road_report.md`):
 
 | Departures | Non-motorway part | Motorway part | Whole trip to the gate |
 |---|---|---|---|
-| 06:00-06:59 | 1.042 | 1.410 | 1.239 |
-| 07:00-07:59 | 1.410 | 1.997 | 1.747 |
-| 08:00-08:59 | 1.714 (target) | 2.032 | 1.927 |
-| 09:00-09:59 | 1.205 | 1.774 | 1.529 |
+| 06:00-06:59 | 1.040 | 1.533 | 1.250 |
+| 07:00-07:59 | 1.396 | 2.077 | 1.714 |
+| 08:00-08:59 | 1.714 (target) | 2.099 | 1.915 |
+| 09:00-09:59 | 1.206 | 1.707 | 1.440 |
 
 ### Motorway flow breakdown
 
@@ -100,7 +275,7 @@ flow. SSC2026 never slowed its motorways (its high motorway LoS E/F shares were 
 so this rule is new in Cordon-Lite (2026-10-08).
 
 - **Motorway mainline sections**: frc 0 or a motorway name (the Harbour Bridge stretch has a lower
-  TomTom class), not a ramp, signed 70 km/h or more: 285 sections, 147 km, 56% of the
+  TomTom class), not a ramp, signed 70 km/h or more: 262 sections, 142 km, 49% of the
   origin-weighted pre-gate minutes.
 - **Rule [A, L].** A motorway section is broken down inside its breakdown window and at any other
   minute when today's V/C, with the commuters' cars, reaches 1. Broken-down flow loses capacity
@@ -112,7 +287,7 @@ so this rule is new in Cordon-Lite (2026-10-08).
   approaches into `data/nzta/`; 19 CBD-bound through-lane sites have enough valid weekdays. Their
   counts show when flow breaks down (it peaks at 06:00-06:30 and falls by 6-26% to a plateau), the
   pre-breakdown capacity and when flow recovers. Each motorway section of a corridor with sites
-  (232 sections, 99% of the origin-weighted motorway minutes) takes capacity, observed flow, time
+  (210 sections, 98% of the origin-weighted motorway minutes) takes capacity, observed flow, time
   profile, window and capacity drop from the nearest site of its corridor.
 
 | Motorway stretch | Usual breakdown window |
@@ -124,10 +299,10 @@ so this rule is new in Cordon-Lite (2026-10-08).
 | Southern, south of Mt Wellington | 07:15-09:45 |
 | Northwestern | from 06:30-07:15 until 09:30-09:45 |
 | Northwestern city end, Southwestern | none: the counts show no breakdown, so they break down only when today's traffic fills them |
-| No count site (Upper Harbour, George Bolt Memorial Drive, Airport) | 07:08-10:01, from usual V/C (six floor-raised Upper Harbour sections a little shorter) |
+| No count site (Upper Harbour, George Bolt Memorial Drive, Airport) | 07:08-09:58, from usual V/C (seven floor-raised Upper Harbour sections a little shorter) |
 
-Under usual traffic 81% of the motorway network (by free-flow minutes) is broken down from 07:30 to
-09:00 (36% at 07:00, 60% at 09:30, 31% at 10:00). The usual windows come from the counts, so fewer
+Under usual traffic 83% of the motorway network (by free-flow minutes) is broken down from 07:30 to
+09:00 (37% at 07:00, 62% at 09:30, 19% at 10:00). The usual windows come from the counts, so fewer
 commuter cars on charged days cannot shorten them; they can only prevent the breakdowns that
 today's traffic starts.
 
@@ -229,8 +404,9 @@ byte-identical run outputs apart from the engine label.
 
 ### Persona layers
 
-- **Layer A, constraints** (random stream "A"): origin (weighted city-wide sample, which fixes
-  the corridor, the road route and the free-flow times), value of time (lognormal, as in SSC2026),
+- **Layer A, constraints** (random stream "A"): origin (drawn by origin weight from the prep
+  origins, so in proportion to the 2023 Census drivers by home SA2; it fixes the corridor, the road
+  route and the free-flow times), value of time (lognormal, as in SSC2026),
   archetype (hybrid office, on-site office, shift/service, trades/work vehicle, tertiary student)
   conditioned on the VoT quintile, work start t*, company car, parking cost, PT and WFH
   feasibility, whether the employer allows an earlier working day (07:00 to 15:00), and the
@@ -451,6 +627,10 @@ The speed-based grade and the AT share of the other roads respond to the charge.
 - Input data, read only by the prep steps (`[prep]` in `config.toml`). Every prep output in
   `data/` and `netlogo7/gis/` is included, so everything from step 2 on and the NetLogo GUI run
   without these inputs.
+  - Step 0 (Census OD, 2026-10-16): the Stats NZ table "2023 Census main means of travel to work by
+    statistical area 2" (`prep.census_od_csv`) and Auckland SA2 polygons (`prep.sa2_gpkg`), both in
+    the gtfs-isochrone repository next to this one (`../../gtfs-isochrone/data/`), and the SA3 cordon
+    (`prep.cordon_gpkg`). `data/od_sa2.csv` is included, so step 1 runs without them.
   - Steps 1 and 1b: `../netlogo/Data/roads/tomtom_major_roads.gpkg` (TomTom major roads),
     `../netlogo/Data/roads/akl_CBD_SA3.gpkg` (SA3 polygons) and the LINZ building outlines in
     `../netlogo/Data/building_api/`. That folder was removed from this repository on 2026-10-06:
@@ -473,6 +653,9 @@ Run every command from this folder with the project interpreter.
 ```bash
 PY=.venv/bin/python               # Windows (Git Bash): PY=.venv/Scripts/python.exe
 
+# 0. Census OD: car drivers into the cordon by home SA2 -> data/od_sa2.csv, od_report.md (step 1 reads od_sa2.csv)
+$PY -m prep.build_od                # optional --out-dir FOLDER
+
 # 1. Prep: TomTom network -> data/origins.csv, gates.csv, corridors.csv, cordon.geojson, prep_map.png
 $PY -m prep.build_inputs            # optional --out-dir FOLDER; uses prep.seed = 11 (separate from run.seed), so it reproduces data/ byte for byte
 
@@ -490,34 +673,32 @@ $PY -m prep.fetch_nzta --cache CACHE_DIR   # --offline rebuilds from CACHE_DIR w
 #        writes byte-identical files
 $PY -m prep.build_roads             # optional --out-dir FOLDER
 
-# 2. Calibrate corridor capacity (R-daily, no charge, days 6-10) -> data/calibration.json
+# 2. Calibrate corridor capacity (R-daily, no charge, days 2-5 = engine.calib_days) -> data/calibration.json
 #    Target: car-weighted mean over corridors of the peak 15-min mean delay (gate queue + road
 #    delay, engine.calib_delay = "total") = 15 min. Seeds run in parallel (about 3 min at 950
 #    agents); each run uses the record of its own seed (by_seed).
 $PY -m cordonlite.run calibrate --seeds 1 2 3   # optional --jobs N (1 = one seed after another), --output FILE, --target MIN
 
-# 2b. Behaviour calibration of the rule decider (about 2.3 h on 14 workers at 950 agents). It never
+# 2b. Behaviour calibration of the rule decider, 10-day design (about 20-40 min on 14 workers; the 30-day
+#     script scripts/calibrate_behaviour.py is kept for the archived design). It never
 #     writes data/calibration.json or config.toml: put the chosen PAP, k_WFH and wtt.beta0 into
 #     config.toml by hand and rerun step 2
-$PY scripts/calibrate_behaviour.py --stage all --workers 14   # -> data/behaviour_calibration.json, docs/calibration_report.md, docs/figures/calib_*.png
-#     (stages search (staged grid over PAP x k_WFH x beta0: 171 capacity calibrations and 1,638
-#      charged runs), select, final, oos = out-of-sample seeds 4-12, neighbouring points and
-#      sensitivities to the fixed assumptions (never adopted), report; gap = optional local
-#      re-search, not part of the default; --stage report rebuilds the report from the JSON log
-#      without new runs; the search keeps a resumable checkpoint in the system temp folder and
-#      writes the log when it is done)
+$PY scripts/calibrate_behaviour_d10.py --stage all --workers 14   # -> data/behaviour_calibration.json, docs/calibration_report.md
+#     (stages: search = staged grid over PAP x k_WFH x beta0, NZ$1 steps, then NZ$0.25 PAP steps when no
+#      point is feasible; final = unseen seeds 4-12 and the sensitivities to the fixed assumptions;
+#      report rebuilds the report from the log; a resumable checkpoint stays in the system temp folder)
 
 # 3. Run the arms (950 agents by default; mock backend = deterministic stand-in, not an LLM)
 for ARM in R-daily R-clock L-clock L-daily; do
-  $PY -m cordonlite.run --arm $ARM --backend mock --engine py --days 30 --seed 1
+  $PY -m cordonlite.run --arm $ARM --backend mock --engine py --seed 1
 done
 # NetLogoEngine: the variable gives this machine's NetLogo folder (see Setup; not --set)
-CORDONLITE_NETLOGO_HOME="/Applications/NetLogo 7.0.4" $PY -m cordonlite.run --arm R-clock --backend mock --engine netlogo --days 30 --seed 1
-$PY -m cordonlite.run --arm R-clock --backend mock --engine py --days 30 --seed 1 --traits off
-$PY -m cordonlite.run --arm L-clock --backend mock --engine py --days 30 --seed 1 --traits off
+CORDONLITE_NETLOGO_HOME="/Applications/NetLogo 7.0.4" $PY -m cordonlite.run --arm R-clock --backend mock --engine netlogo --seed 1
+$PY -m cordonlite.run --arm R-clock --backend mock --engine py --seed 1 --traits off
+$PY -m cordonlite.run --arm L-clock --backend mock --engine py --seed 1 --traits off
 for SEED in 2 3; do   # seed robustness of the rule arms (calibrated capacity records exist for seeds 1-3)
   for ARM in R-daily R-clock; do
-    $PY -m cordonlite.run --arm $ARM --backend mock --engine py --days 30 --seed $SEED
+    $PY -m cordonlite.run --arm $ARM --backend mock --engine py --seed $SEED
   done
 done
 
@@ -525,7 +706,7 @@ done
 #     run), 3, 12, 18 and 30 -> runs/<arm>_mock_py_s1_peak0, _peak3, ... ("Charge levels" below)
 for ARM in R-daily R-clock L-clock L-daily; do
   for P in 0 3 12 18 30; do
-    $PY -m cordonlite.run --arm $ARM --backend mock --engine py --days 30 --seed 1 --peak-fee $P
+    $PY -m cordonlite.run --arm $ARM --backend mock --engine py --seed 1 --peak-fee $P
   done
 done
 # 3c. Periodic review (T7) sensitivity of the clock arm
@@ -536,8 +717,8 @@ for SEED in 1 2 3; do
 done
 
 # 4. Estimate LLM calls and input tokens (MockLLM run; approximate) -> runs/estimates/
-$PY -m cordonlite.run --arm L-clock --days 30 --seed 1 --estimate
-$PY -m cordonlite.run --arm L-daily --days 30 --seed 1 --estimate
+$PY -m cordonlite.run --arm L-clock --seed 1 --estimate
+$PY -m cordonlite.run --arm L-daily --seed 1 --estimate
 
 # 5. Figures and tables -> runs/figures/ (canonical runs of one seed; see below), and the
 #    fee-response outputs when the _peak runs of that seed exist
@@ -615,14 +796,15 @@ corridor, grey = works from home; commuters on public transport are drawn as gre
 `bus-riders`, one per PT rider of the day). The interface is about 970 px tall (five plots in the
 right-hand column).
 
-- **Road colours.** The road sections on the commuters' routes are drawn wider and coloured by
+- **Road colours.** The road network is drawn as NetLogo links (breed `roads`, one straight line per
+  network edge between its two end nodes, sharp at any zoom), in grey by road class. The road sections on the commuters' routes are drawn wider and coloured by
   how fast their traffic moves at the last 5-minute mark, as a share of free-flow speed (the
   engine's speed for a car entering at that minute): 80% or more keeps the road's grey, 60-80% is
   light yellow (slow), 40-60% orange (heavy) and below 40% purple (jammed). **A purple motorway is
   in stop-and-go flow:** a motorway section in flow breakdown is purple whatever its speed. The
   slower the traffic, the wider the line. Red stays for queued cars and green for PT. Every 5
-  minutes only the sections whose colour changed are redrawn (at most 60 a tick), so the map
-  catches up over a few simulated minutes when many change at once.
+  minutes the links of the sections whose colour changed are recoloured at once; a link carrying
+  both directions of a street shows the slower one.
 - **Monitors and plots.** "traffic delay (min)": mean road delay of today's cars that have reached their gate;
   "mean queue wait (min)": today's mean wait at the gates. Six Level of Service monitors show the
   last 5-minute mark for motorways and for other roads: "LoS E/F %" (by V/C), "mean V/C" and "LoS E/F by speed %". The plot "% traffic at LoS E/F"
@@ -1117,7 +1299,11 @@ list the network and road assumptions. `INTERFACES.md` documents the module cont
   breakdown windows ("Charge levels").
 - **A sample.** 950 agents (5%; see "950 agents" above for why that is enough); every arm runs on
   seed 1, and the rule arms R-daily and R-clock also on seeds 2 and 3. The East corridor holds
-  about 2% of agents and sits at the capacity floor.
+  about 6% of agents (2% with the proxy origins) and sits at the capacity floor.
+- **Census demand.** The Census table (2023) has no time of day and suppresses counts below 6
+  (27% of the drivers are imputed); 6.0% of the drivers live beyond the TomTom extent and start at
+  its edge; every commuter still drives to one destination node, although the table knows the
+  workplace SA2.
 - **Not from SSC2026.** SSC2026 had no motorway congestion dynamics (its motorway LoS E/F was a
   measurement that never slowed traffic), so the motorway rule has no precedent in that model; on
   the road side only its count file, BPR form, speed floor, k x ADT capacity rule and LoS bands are
@@ -1133,11 +1319,17 @@ Cordon-Lite는 CUPUM 2027 북챕터를 위한 단순화된 통근 시뮬레이�
 정체, 950명, LoS 출력, SKIP 제거, 통행 의향, 최고 요금 설정)를 설명하며, 행동 보정(PAP 22, k_WFH 12, beta0 0.15), 용량
 보정, 표준 run은 이 상태에서 2026-10-09에 다시 만들었습니다.
 
-- **수요와 도로:** TomTom 도로망은 Python에서 오프라인으로만 사용해 도시 전체 출발지 3,000곳의 최단경로, 코든
-  진입 게이트, 자유통행시간을 계산합니다. 도로는 양쪽 엔진 모두에서 혼잡합니다(사용자 결정 2026-10-07). 게이트까지의
-  경로를 도로 구간 5,903개로 나누고, 각 구간에는 매 분 교통량 측정값(SSC2026의 AT/NZTA ADT)에서 온 배경 교통과
+- **센서스 OD 출발지(2026-10-16, 저자 결정):** 통근자의 집은 Stats NZ 2023 센서스 SA2 통근 수단 OD에서 코든 밖에
+  살고 코든 안 SA2 17개로 자가용·회사차를 운전해 출근하는 사람의 분포를 따릅니다(공개 셀 19,887명, 6 미만 억제 셀을
+  쌍별 합계로 채우면 27,215명; `prep/build_od.py`). 목적지는 그대로 도심 노드 하나입니다. 출발지는 가중치 비례 독립
+  추출 3,000회(같은 노드는 한 출발지, 가중치 = 추출 횟수)로 바꿔, 에이전트 배정에서 가중치를 두 번 쓰던 문제를
+  고쳤습니다. 행동 재보정: PAP 20, k_WFH 16, beta0 0.15(시드 1-3 반응 −22.2%). 표준 run은 이 상태로 다시 만들었고
+  수치는 위 "Census OD origins"에 있습니다. 아래 요약의 수치는 대부분 그 이전 상태입니다.
+- **수요와 도로:** TomTom 도로망은 Python에서 오프라인으로만 사용해 출발지(센서스 OD 기준 2,361곳)의 최단경로, 코든
+  진입 게이트(23개), 자유통행시간을 계산합니다. 도로는 양쪽 엔진 모두에서 혼잡합니다(사용자 결정 2026-10-07). 게이트까지의
+  경로를 도로 구간 4,799개(이전 5,903개)로 나누고, 각 구간에는 매 분 교통량 측정값(SSC2026의 AT/NZTA ADT)에서 온 배경 교통과
   지난 15분 동안 들어온 통근자 차량(에이전트 하나 = 20대)이 실립니다. 속도는 BPR(0.15, 4, 하한 0.18)을 따르고,
-  용량은 k x 방향별 ADT(도로 등급별 5백분위 하한)입니다. k = 0.076999는 평소 교통에서 08:00-08:59 출발의 비고속도로
+  용량은 k x 방향별 ADT(도로 등급별 5백분위 하한)입니다. k = 0.077563(이전 0.076999)은 평소 교통에서 08:00-08:59 출발의 비고속도로
   구간 TTI가 TomTom 2025 오클랜드 출근 혼잡 지수 1.714가 되도록 맞췄습니다. 게이트에서는 5개 corridor의 Vickrey
   점대기행렬이 있고, 게이트 이후 구간은 자유통행입니다.
 - **고속도로 정체(2026-10-08):** 고속도로 본선 구간은 정체 시간대 안에서, 또는 그날 교통량으로 V/C가 1에 도달하면

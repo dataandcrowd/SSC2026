@@ -1,0 +1,256 @@
+{
+ "capacity_scale": 0.430292,
+ "target_peak_delay_min": 15.0,
+ "achieved_peak_delay_min": 14.3866,
+ "busiest_corridor": 1,
+ "peak_by_corridor": {
+  "0": 10.75,
+  "1": 11.4,
+  "2": 13.6041,
+  "3": 9.821,
+  "4": 26.1953
+ },
+ "calib_metric": "car_weighted_mean",
+ "calib_delay": "total",
+ "status": "converged",
+ "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue + road delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 2-5",
+ "seed": 1,
+ "n_agents": 950,
+ "capacity_mode": "demand_share",
+ "rush_window_min": 60.0,
+ "traits": "on",
+ "road": {
+  "enabled": true,
+  "bpr_alpha": 0.15,
+  "bpr_beta": 4,
+  "speed_floor": 0.18,
+  "flow_window_min": 15,
+  "k": 0.076999,
+  "mwy_breakdown": true,
+  "mwy_breakdown_vc": 1.0,
+  "mwy_recover_vc": 0.95,
+  "mwy_capacity_drop": 0.1,
+  "mwy_jam_speed": 0.45
+ },
+ "history": [
+  {
+   "capacity_scale": 0.05,
+   "peak_delay_min": 122.2967,
+   "busiest_corridor": 1,
+   "mean_cars": 630.75,
+   "mean_pt": 289.25,
+   "mean_wfh": 30.0,
+   "mean_queue_delay": 54.1697,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 145.1677,
+    "2": 128.6089,
+    "3": 114.0617,
+    "4": 98.7121
+   }
+  },
+  {
+   "capacity_scale": 10.0,
+   "peak_delay_min": 11.2823,
+   "busiest_corridor": 1,
+   "mean_cars": 811.5,
+   "mean_pt": 138.5,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 0.0,
+   "peak_by_corridor": {
+    "0": 10.5,
+    "1": 11.5036,
+    "2": 13.6454,
+    "3": 7.9466,
+    "4": 11.5315
+   }
+  },
+  {
+   "capacity_scale": 0.707107,
+   "peak_delay_min": 11.4288,
+   "busiest_corridor": 1,
+   "mean_cars": 811.5,
+   "mean_pt": 138.5,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 0.1547,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 11.5036,
+    "2": 13.6554,
+    "3": 8.0753,
+    "4": 12.1238
+   }
+  },
+  {
+   "capacity_scale": 0.18803,
+   "peak_delay_min": 111.2224,
+   "busiest_corridor": 1,
+   "mean_cars": 655.0,
+   "mean_pt": 273.0,
+   "mean_wfh": 22.0,
+   "mean_queue_delay": 48.6044,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 113.923,
+    "2": 125.253,
+    "3": 114.0617,
+    "4": 98.7121
+   }
+  },
+  {
+   "capacity_scale": 0.364633,
+   "peak_delay_min": 20.2061,
+   "busiest_corridor": 1,
+   "mean_cars": 798.5,
+   "mean_pt": 151.5,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 3.5649,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 12.0865,
+    "2": 14.9999,
+    "3": 21.1874,
+    "4": 42.2979
+   }
+  },
+  {
+   "capacity_scale": 0.507774,
+   "peak_delay_min": 12.519,
+   "busiest_corridor": 1,
+   "mean_cars": 810.25,
+   "mean_pt": 139.75,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 0.5738,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 11.4136,
+    "2": 13.93,
+    "3": 9.0464,
+    "4": 16.6018
+   }
+  },
+  {
+   "capacity_scale": 0.430292,
+   "peak_delay_min": 14.3866,
+   "busiest_corridor": 1,
+   "mean_cars": 806.5,
+   "mean_pt": 143.5,
+   "mean_wfh": 0.0,
+   "mean_queue_delay": 1.2538,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 11.4,
+    "2": 13.6041,
+    "3": 9.821,
+    "4": 26.1953
+   }
+  }
+ ],
+ "by_seed": {
+  "1": {
+   "capacity_scale": 0.430292,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 14.3866,
+   "busiest_corridor": 1,
+   "peak_by_corridor": {
+    "0": 10.75,
+    "1": 11.4,
+    "2": 13.6041,
+    "3": 9.821,
+    "4": 26.1953
+   },
+   "calib_metric": "car_weighted_mean",
+   "calib_delay": "total",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue + road delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 2-5",
+   "seed": 1,
+   "n_agents": 950,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on",
+   "road": {
+    "enabled": true,
+    "bpr_alpha": 0.15,
+    "bpr_beta": 4,
+    "speed_floor": 0.18,
+    "flow_window_min": 15,
+    "k": 0.076999,
+    "mwy_breakdown": true,
+    "mwy_breakdown_vc": 1.0,
+    "mwy_recover_vc": 0.95,
+    "mwy_capacity_drop": 0.1,
+    "mwy_jam_speed": 0.45
+   }
+  },
+  "2": {
+   "capacity_scale": 0.430292,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 13.5722,
+   "busiest_corridor": 1,
+   "peak_by_corridor": {
+    "0": 8.5,
+    "1": 13.7999,
+    "2": 13.754,
+    "3": 13.9232,
+    "4": 13.1154
+   },
+   "calib_metric": "car_weighted_mean",
+   "calib_delay": "total",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue + road delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 2-5",
+   "seed": 2,
+   "n_agents": 950,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on",
+   "road": {
+    "enabled": true,
+    "bpr_alpha": 0.15,
+    "bpr_beta": 4,
+    "speed_floor": 0.18,
+    "flow_window_min": 15,
+    "k": 0.076999,
+    "mwy_breakdown": true,
+    "mwy_breakdown_vc": 1.0,
+    "mwy_recover_vc": 0.95,
+    "mwy_capacity_drop": 0.1,
+    "mwy_jam_speed": 0.45
+   }
+  },
+  "3": {
+   "capacity_scale": 0.430292,
+   "target_peak_delay_min": 15.0,
+   "achieved_peak_delay_min": 13.1872,
+   "busiest_corridor": 1,
+   "peak_by_corridor": {
+    "0": 10.8542,
+    "1": 14.4975,
+    "2": 14.3206,
+    "3": 9.4732,
+    "4": 14.0958
+   },
+   "calib_metric": "car_weighted_mean",
+   "calib_delay": "total",
+   "status": "converged",
+   "method": "bisection on log(capacity_scale); R-daily, fee regime none, PyEngine; per day and corridor the peak is the max over 15-min gate-arrival bins of the mean queue + road delay of served cars; metric 'car_weighted_mean' over corridors, averaged over days 2-5",
+   "seed": 3,
+   "n_agents": 950,
+   "capacity_mode": "demand_share",
+   "rush_window_min": 60.0,
+   "traits": "on",
+   "road": {
+    "enabled": true,
+    "bpr_alpha": 0.15,
+    "bpr_beta": 4,
+    "speed_floor": 0.18,
+    "flow_window_min": 15,
+    "k": 0.076999,
+    "mwy_breakdown": true,
+    "mwy_breakdown_vc": 1.0,
+    "mwy_recover_vc": 0.95,
+    "mwy_capacity_drop": 0.1,
+    "mwy_jam_speed": 0.45
+   }
+  }
+ }
+}

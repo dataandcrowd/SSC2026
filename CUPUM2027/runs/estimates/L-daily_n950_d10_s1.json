@@ -1,0 +1,27 @@
+{
+ "arm": "L-daily",
+ "n_agents": 950,
+ "n_days": 10,
+ "seed": 1,
+ "model": "claude-sonnet-5-5",
+ "capacity_scale": 0.396105,
+ "capacity_scale_source": "calibration:calibration.json[seed 1]",
+ "n_llm_calls": 9200,
+ "n_shared_answers": 0,
+ "calls_by_day": {
+  "1": 950,
+  "2": 950,
+  "3": 950,
+  "4": 950,
+  "5": 950,
+  "6": 890,
+  "7": 890,
+  "8": 890,
+  "9": 890,
+  "10": 890
+ },
+ "prompt_chars": 44705319,
+ "mean_prompt_chars": 4859.3,
+ "approx_input_tokens": 11176330,
+ "note": "APPROXIMATE: call count from a MockLLM run (a real LLM may wake agents on other days); tokens = prompt characters / 4, input only, excluding schema, adaptive thinking and output tokens. Cost all input as uncached: the system prompt is below the minimum cacheable prefix and the json_schema differs per agent"
+}

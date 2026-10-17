@@ -436,7 +436,7 @@ def test_roads_on_end_to_end(tmp_path: Path, road_data_dir: Path) -> None:
     # V/C and Level of Service (SPEC4 B): computed after the run from the scenario and road_entries.csv
     rl, ls = pd.read_csv(a / "road_los.csv"), pd.read_csv(a / "los_summary.csv")
     assert list(rl.columns) == list(roadsmod.ROAD_LOS_COLUMNS) and list(ls.columns) == list(roadsmod.LOS_SUMMARY_COLUMNS)
-    assert set(rl["section_id"]) == set(road.section_ids) and set(rl["period"]) == {"all"}   # 6 days
+    assert set(rl["section_id"]) == set(road.section_ids) and set(rl["period"]) == {"d2-5"}   # 6 days: days 2-5 (since 2026-10-15)
     assert len(rl) == len(road.section_ids) * len(roadsmod.LOS_BINS)
     assert len(ls) == 6 * len(roadsmod.LOS_BINS) * len(set(ls["group"]))
     assert {"motorway", "other", "all"} <= set(ls["group"]) and any(g.startswith("corridor") for g in ls["group"])
@@ -451,10 +451,10 @@ def test_roads_on_end_to_end(tmp_path: Path, road_data_dir: Path) -> None:
         assert day["los_ef_speed_share_other"] == round(float(pk.loc[(day["day"], "other"), "share_EF_speed"]), 4)
         assert day["congested_at_share_other"] == round(float(pk.loc[(day["day"], "other"), "share_congested_AT"]), 4)
         assert day["vc_mean_other"] == pytest.approx(pk.loc[(day["day"], "other"), "vc_mean"], abs=1e-4)
-    # commuter vehicles: entries x vehicles_per_agent, mean per day of the period
-    e0 = ent[(ent["minute"] >= 420) & (ent["minute"] < 540)]
+    # commuter vehicles: entries x vehicles_per_agent, mean per day of the period (days 2-5)
+    e0 = ent[(ent["minute"] >= 420) & (ent["minute"] < 540) & ent["day"].between(2, 5)]
     tot = rl[rl["bin"] == roadsmod.LOS_PEAK_BIN]["commuter_veh"].sum()
-    assert tot == pytest.approx(e0["entries"].sum() * road.vehicles_per_agent / 6, rel=1e-6)
+    assert tot == pytest.approx(e0["entries"].sum() * road.vehicles_per_agent / 4, rel=1e-6)
 
 
 def test_public_road_information(tmp_path: Path, road_data_dir: Path) -> None:

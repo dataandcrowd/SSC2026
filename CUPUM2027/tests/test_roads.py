@@ -754,9 +754,11 @@ def test_los_grade_bands_and_breakdown():
 
 
 def test_los_periods_and_bins():
-    assert R.los_periods(range(1, 6)) == [("all", [1, 2, 3, 4, 5])]
-    assert R.los_periods(range(1, 13)) == [("d6-10", [6, 7, 8, 9, 10])]
-    assert R.los_periods(range(1, 31)) == [("d6-10", list(range(6, 11))), ("d21-30", list(range(21, 31)))]
+    assert R.los_periods(range(1, 2)) == [("all", [1])]
+    assert R.los_periods(range(1, 6)) == [("d2-5", [2, 3, 4, 5])]       # d2-5 since 2026-10-15 (10-day design)
+    assert R.los_periods(range(1, 13)) == [("d2-5", [2, 3, 4, 5]), ("d6-10", [6, 7, 8, 9, 10])]
+    assert R.los_periods(range(1, 31)) == [("d2-5", [2, 3, 4, 5]), ("d6-10", list(range(6, 11))),
+                                           ("d21-30", list(range(21, 31)))]
     assert [b[0] for b in R.LOS_BINS] == ["06:00-07:00", "07:00-08:00", "08:00-09:00", "09:00-10:00",
                                           "07:00-09:00"]
     assert [(a, b) for _l, a, b in R.LOS_BINS] == [(360, 420), (420, 480), (480, 540), (540, 600), (420, 540)]
@@ -879,9 +881,9 @@ def test_los_outputs_hand_computed(tmp_path):
     assert set(k) == set(R.LOS_DAY_KEYS)
     assert k["los_ef_share_mwy"] == round((2400 + 1900) / 4800, 4) and k["los_ef_share_other"] == 0.0
     assert k["vc_mean_other"] == 0.7 and k["vc_mean_mwy"] == pytest.approx((1900 * 0.95 + 500 * 0.5) / 2400, abs=1e-4)
-    # periods: 12 days -> days 6-10 only
+    # periods: 12 days -> days 2-5 and 6-10
     out12 = R.los_outputs(road, ent, info, list(range(1, 13)))
-    assert set(out12.road_los["period"]) == {"d6-10"} and len(out12.summary) == 12 * 5 * 5
+    assert set(out12.road_los["period"]) == {"d2-5", "d6-10"} and len(out12.summary) == 12 * 5 * 5
 
 
 def test_los_at_minute_matches_los_outputs(tmp_path):

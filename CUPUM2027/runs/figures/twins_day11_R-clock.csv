@@ -1,191 +1,191 @@
-pair,role,agent_id,archetype,vot,tstar,HFPS,option_d10,option_d11,decider,reason,pair_differs
-86-941,original,86,2,6.82,08:00,4323,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$17.53 vs NZ$18.73), mainly changing routine.",False
-86-941,twin,941,2,6.82,08:00,5332,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$16.48 vs NZ$18.72), mainly changing routine.",False
-83-938,original,83,2,12.83,08:45,4233,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:15: lowest total cost (NZ$28.61 vs NZ$30.21), mainly the charge.",False
-83-938,twin,938,2,12.83,08:45,4234,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:15: lowest total cost (NZ$29.54 vs NZ$32.66), mainly the charge.",False
-27-882,original,27,5,13.56,09:30,4143,PT,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$29.17 vs NZ$48.98), mainly fuel.",False
-27-882,twin,882,5,13.56,09:30,1444,PT,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$28.62 vs NZ$47.37), mainly fuel.",False
-28-883,original,28,1,18.59,08:45,2233,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$34.89 vs NZ$36.01), mainly arrival time.",False
-28-883,twin,883,1,18.59,08:45,4332,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$32.29 vs NZ$33.78), mainly arrival time.",False
-38-893,original,38,4,8.16,07:30,4123,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$4.11 vs NZ$7.94), mainly changing routine.",False
-38-893,twin,893,4,8.16,07:30,5325,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$3.92 vs NZ$7.83), mainly changing routine.",False
-25-880,original,25,2,5.96,08:45,3343,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$24.06 vs NZ$38.50), mainly parking.",True
-25-880,twin,880,2,5.96,08:45,5415,CAR_0800,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:00: lowest total cost (NZ$41.33 vs NZ$41.68), mainly the charge.",True
-72-927,original,72,3,4.41,07:15,5432,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over take PT: lowest total cost (NZ$33.94 vs NZ$34.54), mainly the PT trip.",True
-72-927,twin,927,3,4.41,07:15,4433,CAR_0645,PT,rule,"Chose to take PT over drive at 06:45: lowest total cost (NZ$33.54 vs NZ$34.95), mainly parking.",True
-91-946,original,91,4,4.46,07:15,2542,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$1.23 vs NZ$1.55), mainly changing routine.",False
-91-946,twin,946,4,4.46,07:15,5541,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$1.23 vs NZ$4.05), mainly changing routine.",False
+pair,role,agent_id,archetype,vot,tstar,HFPS,option_d5,option_d6,decider,reason,pair_differs
+86-941,original,86,2,6.82,08:00,4323,CAR_0730,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:30: lowest total cost (NZ$27.83 vs NZ$28.51), mainly the charge.",False
+86-941,twin,941,2,6.82,08:00,5332,CAR_0730,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:30: lowest total cost (NZ$27.83 vs NZ$27.43), mainly the charge.",False
+83-938,original,83,2,12.83,08:45,4233,CAR_0800,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:00: lowest total cost (NZ$33.16 vs NZ$32.89), mainly travel time.",False
+83-938,twin,938,2,12.83,08:45,4234,CAR_0800,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:00: lowest total cost (NZ$34.22 vs NZ$34.46), mainly travel time.",False
+27-882,original,27,5,13.56,09:30,4143,PT,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$26.52 vs NZ$43.43), mainly fuel.",False
+27-882,twin,882,5,13.56,09:30,1444,PT,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$26.52 vs NZ$41.73), mainly fuel.",False
+28-883,original,28,1,18.59,08:45,2233,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$24.48 vs NZ$24.45), mainly the charge.",True
+28-883,twin,883,1,18.59,08:45,4332,CAR_0815,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:15: lowest total cost (NZ$22.47 vs NZ$23.04), mainly travel time.",True
+25-880,original,25,2,5.96,08:45,3343,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$23.32 vs NZ$43.05), mainly parking.",True
+25-880,twin,880,2,5.96,08:45,5415,CAR_0800,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:00: lowest total cost (NZ$45.84 vs NZ$46.55), mainly the charge.",True
+38-893,original,38,4,8.16,07:30,4123,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$3.97 vs NZ$7.91), mainly changing routine.",False
+38-893,twin,893,4,8.16,07:30,5325,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$3.47 vs NZ$7.41), mainly changing routine.",False
+72-927,original,72,3,4.41,07:15,5432,CAR_0645,PT,rule,"Chose to take PT over drive at 06:45: lowest total cost (NZ$32.52 vs NZ$33.67), mainly parking.",False
+72-927,twin,927,3,4.41,07:15,4433,CAR_0645,PT,rule,"Chose to take PT over drive at 06:45: lowest total cost (NZ$31.52 vs NZ$34.67), mainly parking.",False
+91-946,original,91,4,4.46,07:15,2542,CAR_0645,CAR_0615,rule,"Chose to drive at 06:15 over drive at 06:45: lowest total cost (NZ$2.33 vs NZ$1.41), mainly travel time.",True
+91-946,twin,946,4,4.46,07:15,5541,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$1.42 vs NZ$4.53), mainly changing routine.",True
 49-904,original,49,2,6.75,08:15,5414,CAR_0730,PT,forced,Only feasible option.,False
 49-904,twin,904,2,6.75,08:15,5331,CAR_0745,PT,forced,Only feasible option.,False
-48-903,original,48,1,5.32,08:45,1354,CAR_0615,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$19.94 vs NZ$30.87), mainly working from home.",False
-48-903,twin,903,1,5.32,08:45,5352,CAR_0615,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$21.44 vs NZ$32.37), mainly working from home.",False
-79-934,original,79,2,14.13,08:45,5335,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$33.42 vs NZ$37.94), mainly arrival time.",False
-79-934,twin,934,2,14.13,08:45,3332,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$29.15 vs NZ$31.48), mainly arrival time.",False
-64-919,original,64,5,8.39,09:45,3243,CAR_0915,PT,rule,"Chose to take PT over drive at 09:15: lowest total cost (NZ$25.75 vs NZ$28.24), mainly parking.",False
-64-919,twin,919,5,8.39,09:45,1153,CAR_0915,PT,rule,"Chose to take PT over drive at 09:15: lowest total cost (NZ$20.58 vs NZ$28.58), mainly parking.",False
-47-902,original,47,4,15.67,08:30,2325,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 06:30 for the early start: lowest total cost (NZ$7.58 vs NZ$9.58), mainly arrival time.",False
-47-902,twin,902,4,15.67,08:30,1343,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 06:30 for the early start: lowest total cost (NZ$7.54 vs NZ$9.08), mainly arrival time.",False
-13-868,original,13,4,12.23,08:00,3533,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$5.17 vs NZ$6.13), mainly changing routine.",False
-13-868,twin,868,4,12.23,08:00,3332,CAR_0715,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$6.66 vs NZ$6.35), mainly arrival time.",False
-34-889,original,34,5,7.63,08:45,4223,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 08:15: lowest total cost (NZ$33.11 vs NZ$34.28), mainly changing routine.",False
-34-889,twin,889,5,7.63,08:45,3523,CAR_0830,CAR_0800,rule,"Chose to drive at 08:00 over drive at 08:30: lowest total cost (NZ$33.06 vs NZ$32.39), mainly travel time.",False
-33-888,original,33,1,28.16,08:15,5141,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$32.70 vs NZ$34.06), mainly parking.",True
-33-888,twin,888,1,28.16,08:15,5312,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:30: lowest total cost (NZ$36.27 vs NZ$39.60), mainly arrival time.",True
-18-873,original,18,2,17.93,08:30,5442,PT,PT,rule,"Chose to take PT over drive at 06:45 for the early start: lowest total cost (NZ$27.51 vs NZ$36.59), mainly parking.",True
-18-873,twin,873,2,17.93,08:30,4532,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 06:30 for the early start: lowest total cost (NZ$33.02 vs NZ$35.97), mainly changing routine.",True
-80-935,original,80,1,5.56,08:45,4323,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 over drive at 08:30: lowest total cost (NZ$37.00 vs NZ$36.40), mainly the charge.",False
-80-935,twin,935,1,5.56,08:45,2431,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 over drive at 08:30: lowest total cost (NZ$32.37 vs NZ$33.11), mainly the charge.",False
-9-864,original,9,2,8.07,08:30,5332,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$23.59 vs NZ$27.73), mainly changing routine.",True
-9-864,twin,864,2,8.07,08:30,4215,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 06:30 for the early start: lowest total cost (NZ$30.15 vs NZ$30.53), mainly arrival time.",True
-81-936,original,81,5,13.53,09:00,4245,PT,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$27.50 vs NZ$45.92), mainly parking.",True
-81-936,twin,936,5,13.53,09:00,4424,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 08:15: lowest total cost (NZ$42.20 vs NZ$44.44), mainly changing routine.",True
-24-879,original,24,1,17.22,09:00,4233,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 06:30 for the early start: lowest total cost (NZ$27.17 vs NZ$29.31), mainly arrival time.",True
-24-879,twin,879,1,17.22,09:00,4335,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:30: lowest total cost (NZ$29.26 vs NZ$30.08), mainly the charge.",True
-56-911,original,56,1,14.9,09:00,3154,PT,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$23.19 vs NZ$44.61), mainly parking.",False
-56-911,twin,911,1,14.9,09:00,5333,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$40.33 vs NZ$41.93), mainly parking.",False
-57-912,original,57,1,8.49,09:00,3145,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 08:15: lowest total cost (NZ$23.89 vs NZ$26.18), mainly arrival time.",True
-57-912,twin,912,1,8.49,09:00,2423,CAR_0845,CAR_0615,rule,"Chose to drive at 06:15 for the early start over drive at 08:45: lowest total cost (NZ$19.26 vs NZ$20.76), mainly the charge.",True
-78-933,original,78,1,3.32,08:45,2333,PT,PT,rule,"Chose to take PT over drive at 07:00: lowest total cost (NZ$31.12 vs NZ$39.54), mainly parking.",False
-78-933,twin,933,1,3.32,08:45,5433,PT,PT,rule,"Chose to take PT over drive at 07:00: lowest total cost (NZ$31.07 vs NZ$41.58), mainly parking.",False
-59-914,original,59,1,21.38,07:45,2333,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$14.42 vs NZ$15.79), mainly arrival time.",False
-59-914,twin,914,1,21.38,07:45,4432,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$13.43 vs NZ$15.54), mainly changing routine.",False
-0-855,original,0,4,2.79,08:15,3313,CAR_0645,CAR_0730,rule,"Chose to drive at 07:30 over drive at 06:45: lowest total cost (NZ$2.62 vs NZ$2.35), mainly arrival time.",True
-0-855,twin,855,4,2.79,08:15,4133,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$2.64 vs NZ$4.02), mainly changing routine.",True
-73-928,original,73,1,19.25,09:00,4231,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 06:45 for the early start: lowest total cost (NZ$33.12 vs NZ$36.82), mainly arrival time.",True
-73-928,twin,928,1,19.25,09:00,2453,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$22.43 vs NZ$33.89), mainly working from home.",True
-36-891,original,36,4,12.99,07:30,3544,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$5.88 vs NZ$6.28), mainly changing routine.",True
-36-891,twin,891,4,12.99,07:30,5252,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$6.12 vs NZ$11.07), mainly changing routine.",True
-37-892,original,37,2,6.8,08:45,4334,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 06:45 for the early start: lowest total cost (NZ$14.47 vs NZ$15.79), mainly arrival time.",True
-37-892,twin,892,2,6.8,08:45,2423,CAR_0845,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:45: lowest total cost (NZ$12.13 vs NZ$14.43), mainly the charge.",True
-62-917,original,62,2,24.49,08:30,4332,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$31.00 vs NZ$36.10), mainly arrival time.",False
-62-917,twin,917,2,24.49,08:30,3223,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 07:45: lowest total cost (NZ$34.27 vs NZ$40.11), mainly travel time.",False
-8-863,original,8,2,7.6,08:30,4334,CAR_0715,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$31.24 vs NZ$31.17), mainly the charge.",False
-8-863,twin,863,2,7.6,08:30,5423,CAR_0715,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$29.83 vs NZ$29.12), mainly the charge.",False
-94-949,original,94,1,63.77,08:00,5553,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$42.14 vs NZ$48.77), mainly working from home.",True
-94-949,twin,949,1,63.77,08:00,4233,CAR_0615,WFH,rule,"Chose to work from home over drive at 06:15 for the early start: lowest total cost (NZ$59.77 vs NZ$62.71), mainly travel time.",True
-82-937,original,82,2,6.02,08:00,5443,CAR_0745,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:45: lowest total cost (NZ$16.64 vs NZ$16.62), mainly the charge.",True
-82-937,twin,937,2,6.02,08:00,5311,CAR_0745,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:45: lowest total cost (NZ$15.04 vs NZ$14.20), mainly the charge.",True
-35-890,original,35,2,15.32,08:15,5133,CAR_0745,PT,rule,"Chose to take PT over drive at 07:45: lowest total cost (NZ$41.44 vs NZ$45.03), mainly parking.",False
-35-890,twin,890,2,15.32,08:15,4333,CAR_0645,PT,rule,"Chose to take PT over drive at 06:45 for the early start: lowest total cost (NZ$39.04 vs NZ$39.60), mainly parking.",False
-65-920,original,65,1,18.76,08:30,3315,CAR_0745,WFH,rule,"Chose to work from home over drive at 07:45: lowest total cost (NZ$32.19 vs NZ$37.97), mainly fuel.",True
-65-920,twin,920,1,18.76,08:30,5553,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$23.96 vs NZ$28.19), mainly working from home.",True
-45-900,original,45,2,6.19,07:30,5422,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$15.72 vs NZ$18.32), mainly changing routine.",True
-45-900,twin,900,2,6.19,07:30,1331,CAR_0715,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$14.57 vs NZ$15.35), mainly arrival time.",True
-14-869,original,14,2,12.75,08:45,4342,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$26.71 vs NZ$44.38), mainly parking.",False
-14-869,twin,869,2,12.75,08:45,4234,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$38.42 vs NZ$45.95), mainly parking.",False
-10-865,original,10,3,11.37,07:30,2433,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$18.49 vs NZ$20.49), mainly arrival time.",False
-10-865,twin,865,3,11.37,07:30,4334,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$19.97 vs NZ$24.51), mainly arrival time.",False
-69-924,original,69,5,19.98,08:30,4331,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over take PT: lowest total cost (NZ$40.40 vs NZ$42.60), mainly the PT trip.",True
-69-924,twin,924,5,19.98,08:30,3244,PT,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$30.19 vs NZ$45.95), mainly parking.",True
-63-918,original,63,2,16.39,08:15,5353,PT,PT,rule,"Chose to take PT over drive at 07:45: lowest total cost (NZ$23.05 vs NZ$40.72), mainly parking.",True
-63-918,twin,918,2,16.39,08:15,5332,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 08:00: lowest total cost (NZ$36.23 vs NZ$39.48), mainly changing routine.",True
-68-923,original,68,2,11.41,09:00,4353,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 06:45 for the early start: lowest total cost (NZ$12.95 vs NZ$14.78), mainly arrival time.",True
-68-923,twin,923,2,11.41,09:00,5433,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:45 for the early start: lowest total cost (NZ$12.68 vs NZ$14.41), mainly changing routine.",True
-4-859,original,4,4,9.9,07:15,2434,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$2.84 vs NZ$3.79), mainly arrival time.",False
-4-859,twin,859,4,9.9,07:15,4123,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$4.00 vs NZ$6.72), mainly changing routine.",False
-92-947,original,92,1,13.07,08:30,2235,CAR_0800,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:00: lowest total cost (NZ$23.66 vs NZ$24.89), mainly the charge.",True
-92-947,twin,947,1,13.07,08:30,1433,CAR_0715,WFH,rule,"Chose to work from home over drive at 07:15: lowest total cost (NZ$16.29 vs NZ$18.64), mainly fuel.",True
-50-905,original,50,1,19.44,08:45,2335,CAR_0645,CAR_0815,rule,"Chose to drive at 08:15 over drive at 06:45 for the early start: lowest total cost (NZ$7.60 vs NZ$7.72), mainly arrival time.",False
-50-905,twin,905,1,19.44,08:45,3254,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 06:45 for the early start: lowest total cost (NZ$7.64 vs NZ$10.27), mainly arrival time.",False
-22-877,original,22,1,21.96,09:30,4311,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 09:15: lowest total cost (NZ$40.98 vs NZ$43.82), mainly arrival time.",False
-22-877,twin,877,1,21.96,09:30,4124,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 09:15: lowest total cost (NZ$45.31 vs NZ$49.87), mainly arrival time.",False
-20-875,original,20,1,16.43,09:15,2323,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:45 for the early start: lowest total cost (NZ$42.28 vs NZ$42.36), mainly arrival time.",True
-20-875,twin,875,1,16.43,09:15,5333,CAR_0900,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$42.50 vs NZ$42.28), mainly parking.",True
-53-908,original,53,4,18.36,07:15,5444,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$6.63 vs NZ$9.71), mainly changing routine.",False
-53-908,twin,908,4,18.36,07:15,4342,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$7.17 vs NZ$9.27), mainly changing routine.",False
-31-886,original,31,1,15.07,08:45,5133,PT,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$39.32 vs NZ$52.54), mainly parking.",False
-31-886,twin,886,1,15.07,08:45,4344,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$28.42 vs NZ$48.53), mainly working from home.",False
-74-929,original,74,4,19.27,07:15,3333,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$8.49 vs NZ$8.55), mainly changing routine.",True
-74-929,twin,929,4,19.27,07:15,3335,CAR_0700,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$8.61 vs NZ$9.28), mainly arrival time.",True
-44-899,original,44,2,9.98,08:30,5333,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$36.96 vs NZ$38.35), mainly parking.",False
-44-899,twin,899,2,9.98,08:30,4432,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$35.93 vs NZ$36.73), mainly parking.",False
-42-897,original,42,1,24.15,09:00,3152,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 06:45 for the early start: lowest total cost (NZ$15.57 vs NZ$19.99), mainly arrival time.",False
-42-897,twin,897,1,24.15,09:00,2324,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over work from home: lowest total cost (NZ$17.70 vs NZ$17.65), mainly working from home.",False
-23-878,original,23,4,12.46,08:00,4122,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$6.14 vs NZ$10.99), mainly arrival time.",False
-23-878,twin,878,4,12.46,08:00,4335,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$5.42 vs NZ$8.73), mainly changing routine.",False
-51-906,original,51,5,6.39,08:15,4134,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:30: lowest total cost (NZ$28.60 vs NZ$29.80), mainly changing routine.",True
-51-906,twin,906,5,6.39,08:15,4244,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$25.45 vs NZ$28.53), mainly parking.",True
-52-907,original,52,2,5.2,08:15,3341,CAR_0815,PT,forced,Only feasible option.,False
-52-907,twin,907,2,5.2,08:15,5232,CAR_0800,PT,forced,Only feasible option.,False
-1-856,original,1,2,9.33,08:30,5131,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$26.52 vs NZ$30.55), mainly changing routine.",True
-1-856,twin,856,2,9.33,08:30,2322,CAR_0745,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 07:45: lowest total cost (NZ$26.98 vs NZ$27.72), mainly the charge.",True
+48-903,original,48,1,5.32,08:45,1354,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$19.00 vs NZ$35.92), mainly working from home.",False
+48-903,twin,903,1,5.32,08:45,5352,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$19.00 vs NZ$38.92), mainly working from home.",False
+79-934,original,79,2,14.13,08:45,5335,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$31.74 vs NZ$36.01), mainly arrival time.",False
+79-934,twin,934,2,14.13,08:45,3332,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$27.44 vs NZ$29.59), mainly arrival time.",False
+64-919,original,64,5,8.39,09:45,3243,CAR_0915,PT,rule,"Chose to take PT over drive at 09:15: lowest total cost (NZ$24.41 vs NZ$27.72), mainly parking.",False
+64-919,twin,919,5,8.39,09:45,1153,PT,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$19.58 vs NZ$26.16), mainly parking.",False
+47-902,original,47,4,15.67,08:30,2325,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 08:00: lowest total cost (NZ$4.13 vs NZ$6.29), mainly arrival time.",False
+47-902,twin,902,4,15.67,08:30,1343,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 08:00: lowest total cost (NZ$4.86 vs NZ$5.96), mainly arrival time.",False
+13-868,original,13,4,12.23,08:00,3533,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$4.53 vs NZ$6.07), mainly changing routine.",False
+13-868,twin,868,4,12.23,08:00,3332,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$4.97 vs NZ$7.28), mainly arrival time.",False
+34-889,original,34,5,7.63,08:45,4223,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 07:15: lowest total cost (NZ$35.83 vs NZ$37.52), mainly arrival time.",True
+34-889,twin,889,5,7.63,08:45,3523,CAR_0815,CAR_0715,rule,"Chose to drive at 07:15 over drive at 08:15: lowest total cost (NZ$33.92 vs NZ$35.85), mainly the charge.",True
+33-888,original,33,1,28.16,08:15,5141,PT,PT,rule,"Chose to take PT over drive at 07:30: lowest total cost (NZ$34.39 vs NZ$63.00), mainly travel time.",True
+33-888,twin,888,1,28.16,08:15,5312,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:00: lowest total cost (NZ$60.35 vs NZ$61.95), mainly arrival time.",True
+18-873,original,18,2,17.93,08:30,5442,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$28.82 vs NZ$34.14), mainly parking.",True
+18-873,twin,873,2,17.93,08:30,4532,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$32.13 vs NZ$34.48), mainly travel time.",True
+80-935,original,80,1,5.56,08:45,4323,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 over drive at 08:30: lowest total cost (NZ$34.56 vs NZ$34.05), mainly the charge.",False
+80-935,twin,935,1,5.56,08:45,2431,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 over drive at 08:30: lowest total cost (NZ$29.89 vs NZ$30.89), mainly the charge.",False
+9-864,original,9,2,8.07,08:30,5332,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$25.29 vs NZ$29.41), mainly changing routine.",True
+9-864,twin,864,2,8.07,08:30,4215,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 06:30 for the early start: lowest total cost (NZ$31.43 vs NZ$32.04), mainly arrival time.",True
+81-936,original,81,5,13.53,09:00,4245,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$26.78 vs NZ$37.02), mainly parking.",True
+81-936,twin,936,5,13.53,09:00,4424,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 07:30: lowest total cost (NZ$35.86 vs NZ$36.56), mainly arrival time.",True
+24-879,original,24,1,17.22,09:00,4233,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 06:45 for the early start: lowest total cost (NZ$19.26 vs NZ$22.54), mainly arrival time.",True
+24-879,twin,879,1,17.22,09:00,4335,CAR_0845,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:45: lowest total cost (NZ$23.03 vs NZ$22.75), mainly the charge.",True
+56-911,original,56,1,14.9,09:00,3154,PT,PT,rule,"Chose to take PT over drive at 06:45 for the early start: lowest total cost (NZ$22.19 vs NZ$40.78), mainly parking.",False
+56-911,twin,911,1,14.9,09:00,5333,CAR_0845,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$38.33 vs NZ$38.77), mainly parking.",False
+57-912,original,57,1,8.49,09:00,3145,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 06:45 for the early start: lowest total cost (NZ$20.36 vs NZ$21.75), mainly arrival time.",True
+57-912,twin,912,1,8.49,09:00,2423,CAR_0845,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:45: lowest total cost (NZ$15.11 vs NZ$18.05), mainly the charge.",True
+78-933,original,78,1,3.32,08:45,2333,CAR_0745,PT,rule,"Chose to take PT over drive at 07:15: lowest total cost (NZ$28.97 vs NZ$32.00), mainly parking.",False
+78-933,twin,933,1,3.32,08:45,5433,CAR_0745,PT,rule,"Chose to take PT over drive at 07:15: lowest total cost (NZ$30.18 vs NZ$32.84), mainly parking.",False
+59-914,original,59,1,21.38,07:45,2333,CAR_0730,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$19.95 vs NZ$20.41), mainly the charge.",False
+59-914,twin,914,1,21.38,07:45,4432,CAR_0730,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$19.90 vs NZ$19.05), mainly the charge.",False
+0-855,original,0,4,2.79,08:15,3313,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$1.55 vs NZ$2.71), mainly changing routine.",False
+0-855,twin,855,4,2.79,08:15,4133,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$1.65 vs NZ$4.03), mainly changing routine.",False
+73-928,original,73,1,19.25,09:00,4231,CAR_0845,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$38.52 vs NZ$41.22), mainly parking.",False
+73-928,twin,928,1,19.25,09:00,2453,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$21.75 vs NZ$40.06), mainly parking.",False
+36-891,original,36,4,12.99,07:30,3544,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$4.96 vs NZ$5.48), mainly changing routine.",False
+36-891,twin,891,4,12.99,07:30,5252,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$6.51 vs NZ$8.66), mainly changing routine.",False
+37-892,original,37,2,6.8,08:45,4334,CAR_0830,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:30: lowest total cost (NZ$20.43 vs NZ$20.78), mainly the charge.",False
+37-892,twin,892,2,6.8,08:45,2423,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:45 for the early start: lowest total cost (NZ$15.96 vs NZ$16.01), mainly changing routine.",False
+62-917,original,62,2,24.49,08:30,4332,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 06:30 for the early start: lowest total cost (NZ$29.60 vs NZ$30.59), mainly arrival time.",False
+62-917,twin,917,2,24.49,08:30,3223,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 06:45 for the early start: lowest total cost (NZ$31.77 vs NZ$33.78), mainly arrival time.",False
+8-863,original,8,2,7.6,08:30,4334,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:15: lowest total cost (NZ$24.55 vs NZ$27.08), mainly arrival time.",False
+8-863,twin,863,2,7.6,08:30,5423,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:00: lowest total cost (NZ$23.08 vs NZ$25.65), mainly arrival time.",False
+94-949,original,94,1,63.77,08:00,5553,CAR_0630,WFH,rule,"Chose to work from home over drive at 06:30 for the early start: lowest total cost (NZ$37.46 vs NZ$39.28), mainly travel time.",True
+94-949,twin,949,1,63.77,08:00,4233,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 06:30 for the early start: lowest total cost (NZ$45.32 vs NZ$47.85), mainly arrival time.",True
+82-937,original,82,2,6.02,08:00,5443,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$12.60 vs NZ$14.67), mainly changing routine.",False
+82-937,twin,937,2,6.02,08:00,5311,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$10.09 vs NZ$12.93), mainly changing routine.",False
+35-890,original,35,2,15.32,08:15,5133,PT,PT,rule,"Chose to take PT over drive at 07:30: lowest total cost (NZ$38.66 vs NZ$55.09), mainly parking.",False
+35-890,twin,890,2,15.32,08:15,4333,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$38.19 vs NZ$51.29), mainly parking.",False
+65-920,original,65,1,18.76,08:30,3315,CAR_0800,CAR_0700,rule,"Chose to drive at 07:00 over drive at 08:00: lowest total cost (NZ$34.69 vs NZ$37.72), mainly travel time.",True
+65-920,twin,920,1,18.76,08:30,5553,CAR_0745,PT,rule,"Chose to take PT over drive at 07:45: lowest total cost (NZ$25.76 vs NZ$31.69), mainly fuel.",True
+45-900,original,45,2,6.19,07:30,5422,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$9.65 vs NZ$13.25), mainly changing routine.",False
+45-900,twin,900,2,6.19,07:30,1331,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$8.76 vs NZ$9.72), mainly arrival time.",False
+14-869,original,14,2,12.75,08:45,4342,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$25.84 vs NZ$32.22), mainly parking.",False
+14-869,twin,869,2,12.75,08:45,4234,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$34.14 vs NZ$36.34), mainly parking.",False
+10-865,original,10,3,11.37,07:30,2433,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$25.43 vs NZ$27.37), mainly arrival time.",False
+10-865,twin,865,3,11.37,07:30,4334,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$26.59 vs NZ$30.97), mainly arrival time.",False
+69-924,original,69,5,19.98,08:30,4331,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 07:45: lowest total cost (NZ$33.65 vs NZ$36.42), mainly changing routine.",True
+69-924,twin,924,5,19.98,08:30,3244,PT,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$27.07 vs NZ$39.55), mainly parking.",True
+63-918,original,63,2,16.39,08:15,5353,PT,PT,rule,"Chose to take PT over drive at 07:30: lowest total cost (NZ$23.17 vs NZ$58.85), mainly fuel.",False
+63-918,twin,918,2,16.39,08:15,5332,PT,PT,rule,"Chose to take PT over drive at 07:30: lowest total cost (NZ$39.35 vs NZ$57.35), mainly fuel.",False
+68-923,original,68,2,11.41,09:00,4353,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 06:45 for the early start: lowest total cost (NZ$13.84 vs NZ$15.59), mainly arrival time.",True
+68-923,twin,923,2,11.41,09:00,5433,CAR_0900,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 09:00: lowest total cost (NZ$15.27 vs NZ$14.78), mainly the charge.",True
+4-859,original,4,4,9.9,07:15,2434,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 over drive at 06:45: lowest total cost (NZ$4.32 vs NZ$4.41), mainly changing routine.",True
+4-859,twin,859,4,9.9,07:15,4123,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$4.91 vs NZ$7.57), mainly changing routine.",True
+92-947,original,92,1,13.07,08:30,2235,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 06:45 for the early start: lowest total cost (NZ$19.94 vs NZ$20.62), mainly arrival time.",True
+92-947,twin,947,1,13.07,08:30,1433,CAR_0815,CAR_0615,rule,"Chose to drive at 06:15 for the early start over drive at 08:15: lowest total cost (NZ$16.59 vs NZ$17.44), mainly the charge.",True
+50-905,original,50,1,19.44,08:45,2335,CAR_0830,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:30: lowest total cost (NZ$7.50 vs NZ$9.84), mainly travel time.",True
+50-905,twin,905,1,19.44,08:45,3254,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 06:45 for the early start: lowest total cost (NZ$7.81 vs NZ$9.71), mainly arrival time.",True
+22-877,original,22,1,21.96,09:30,4311,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 06:45 for the early start: lowest total cost (NZ$29.72 vs NZ$34.25), mainly arrival time.",False
+22-877,twin,877,1,21.96,09:30,4124,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$33.66 vs NZ$40.82), mainly arrival time.",False
+20-875,original,20,1,16.43,09:15,2323,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:45 for the early start: lowest total cost (NZ$35.95 vs NZ$37.50), mainly arrival time.",False
+20-875,twin,875,1,16.43,09:15,5333,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over take PT: lowest total cost (NZ$35.98 vs NZ$37.87), mainly the PT trip.",False
+53-908,original,53,4,18.36,07:15,5444,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$4.20 vs NZ$8.25), mainly changing routine.",False
+53-908,twin,908,4,18.36,07:15,4342,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$4.29 vs NZ$8.09), mainly arrival time.",False
+31-886,original,31,1,15.07,08:45,5133,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$36.03 vs NZ$38.81), mainly parking.",False
+31-886,twin,886,1,15.07,08:45,4344,PT,PT,rule,"Chose to take PT over drive at 06:45 for the early start: lowest total cost (NZ$24.39 vs NZ$37.00), mainly parking.",False
+74-929,original,74,4,19.27,07:15,3333,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$5.86 vs NZ$8.33), mainly arrival time.",False
+74-929,twin,929,4,19.27,07:15,3335,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$6.52 vs NZ$8.66), mainly changing routine.",False
+44-899,original,44,2,9.98,08:30,5333,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$34.67 vs NZ$35.19), mainly parking.",True
+44-899,twin,899,2,9.98,08:30,4432,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$32.68 vs NZ$33.53), mainly the charge.",True
+42-897,original,42,1,24.15,09:00,3152,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$27.33 vs NZ$41.61), mainly fuel.",True
+42-897,twin,897,1,24.15,09:00,2324,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$39.23 vs NZ$40.62), mainly arrival time.",True
+23-878,original,23,4,12.46,08:00,4122,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$5.10 vs NZ$7.95), mainly changing routine.",False
+23-878,twin,878,4,12.46,08:00,4335,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$4.40 vs NZ$6.43), mainly changing routine.",False
+51-906,original,51,5,6.39,08:15,4134,CAR_0745,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:45: lowest total cost (NZ$33.78 vs NZ$33.72), mainly the charge.",True
+51-906,twin,906,5,6.39,08:15,4244,CAR_0645,PT,rule,"Chose to take PT over drive at 06:45: lowest total cost (NZ$25.38 vs NZ$32.48), mainly parking.",True
+52-907,original,52,2,5.2,08:15,3341,CAR_0745,PT,forced,Only feasible option.,False
+52-907,twin,907,2,5.2,08:15,5232,CAR_0745,PT,forced,Only feasible option.,False
+1-856,original,1,2,9.33,08:30,5131,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 06:45 for the early start: lowest total cost (NZ$16.04 vs NZ$20.60), mainly arrival time.",True
+1-856,twin,856,2,9.33,08:30,2322,CAR_0800,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:00: lowest total cost (NZ$15.73 vs NZ$16.67), mainly the charge.",True
 2-857,original,2,5,4.39,08:45,3435,CAR_0745,PT,forced,Only feasible option.,False
-2-857,twin,857,5,4.39,08:45,2233,CAR_0745,PT,forced,Only feasible option.,False
-6-861,original,6,5,23.43,10:00,3232,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$33.51 vs NZ$36.54), mainly arrival time.",False
-6-861,twin,861,5,23.43,10:00,5333,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$34.34 vs NZ$38.80), mainly changing routine.",False
-39-894,original,39,1,24.22,08:30,3433,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over work from home: lowest total cost (NZ$43.17 vs NZ$42.04), mainly working from home.",False
-39-894,twin,894,1,24.22,08:30,5322,CAR_0800,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:00: lowest total cost (NZ$46.61 vs NZ$48.20), mainly travel time.",False
-26-881,original,26,1,22.25,08:45,2243,PT,PT,rule,"Chose to take PT over work from home: lowest total cost (NZ$32.63 vs NZ$54.78), mainly working from home.",False
-26-881,twin,881,1,22.25,08:45,5234,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$47.83 vs NZ$56.17), mainly parking.",False
-88-943,original,88,5,6.86,09:45,3212,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$31.79 vs NZ$34.11), mainly changing routine.",True
-88-943,twin,943,5,6.86,09:45,3443,CAR_0915,PT,rule,"Chose to take PT over drive at 09:15: lowest total cost (NZ$25.19 vs NZ$32.61), mainly parking.",True
-77-932,original,77,2,28.61,08:30,2144,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$28.50 vs NZ$38.41), mainly parking.",False
-77-932,twin,932,2,28.61,08:30,3243,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$29.00 vs NZ$36.09), mainly parking.",False
-60-915,original,60,4,9.95,07:00,4435,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 over drive at 06:15: lowest total cost (NZ$23.18 vs NZ$25.86), mainly changing routine.",False
-60-915,twin,915,4,9.95,07:00,5534,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 over drive at 06:15: lowest total cost (NZ$22.10 vs NZ$25.49), mainly changing routine.",False
-41-896,original,41,5,9.59,09:00,5433,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over take PT: lowest total cost (NZ$35.63 vs NZ$37.44), mainly the PT trip.",True
-41-896,twin,896,5,9.59,09:00,4343,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$27.60 vs NZ$35.72), mainly parking.",True
-93-948,original,93,2,21.31,08:30,4333,CAR_0630,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$43.89 vs NZ$45.13), mainly parking.",False
-93-948,twin,948,2,21.31,08:30,4542,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$30.05 vs NZ$43.53), mainly parking.",False
-54-909,original,54,1,15.35,09:00,4233,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over take PT: lowest total cost (NZ$32.61 vs NZ$36.02), mainly the PT trip.",False
-54-909,twin,909,1,15.35,09:00,4331,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 08:30: lowest total cost (NZ$29.40 vs NZ$32.61), mainly changing routine.",False
-21-876,original,21,1,16.79,08:30,4341,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:45 for the early start: lowest total cost (NZ$20.12 vs NZ$23.10), mainly changing routine.",False
-21-876,twin,876,1,16.79,08:30,5442,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over work from home: lowest total cost (NZ$19.66 vs NZ$22.61), mainly working from home.",False
-89-944,original,89,4,5.63,07:45,3353,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$20.99 vs NZ$21.60), mainly changing routine.",False
-89-944,twin,944,4,5.63,07:45,5424,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$22.16 vs NZ$24.34), mainly changing routine.",False
-84-939,original,84,2,30.19,08:45,3223,CAR_0800,CAR_0800,rule,"Chose to drive at 08:00 over drive at 08:15: lowest total cost (NZ$41.12 vs NZ$42.07), mainly travel time.",True
-84-939,twin,939,2,30.19,08:45,4542,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$35.36 vs NZ$38.14), mainly travel time.",True
-87-942,original,87,1,20.0,09:15,5533,CAR_0900,WFH,rule,"Chose to work from home over drive at 09:00: lowest total cost (NZ$28.67 vs NZ$29.55), mainly parking.",True
-87-942,twin,942,1,20.0,09:15,3234,CAR_0900,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$31.89 vs NZ$32.07), mainly the charge.",True
-12-867,original,12,1,13.78,09:15,2233,CAR_0900,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$29.63 vs NZ$29.63), mainly the charge.",True
-12-867,twin,867,1,13.78,09:15,3444,CAR_0900,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$25.69 vs NZ$30.49), mainly parking.",True
-15-870,original,15,2,21.73,08:15,2333,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$24.67 vs NZ$25.61), mainly arrival time.",False
-15-870,twin,870,2,21.73,08:15,3233,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$25.58 vs NZ$29.52), mainly arrival time.",False
-85-940,original,85,1,9.59,08:30,4431,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$28.60 vs NZ$31.06), mainly changing routine.",True
-85-940,twin,940,1,9.59,08:30,3135,CAR_0745,PT,rule,"Chose to take PT over drive at 07:45: lowest total cost (NZ$34.33 vs NZ$38.69), mainly parking.",True
-67-922,original,67,1,18.81,09:00,4245,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$29.50 vs NZ$48.02), mainly parking.",True
-67-922,twin,922,1,18.81,09:00,5533,CAR_0630,WFH,rule,"Chose to work from home over drive at 06:30 for the early start: lowest total cost (NZ$39.60 vs NZ$39.68), mainly parking.",True
-61-916,original,61,1,39.16,09:00,5423,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over work from home: lowest total cost (NZ$33.39 vs NZ$33.52), mainly working from home.",False
-61-916,twin,916,1,39.16,09:00,4313,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over work from home: lowest total cost (NZ$33.98 vs NZ$36.48), mainly working from home.",False
-66-921,original,66,2,8.86,08:15,2333,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$29.66 vs NZ$30.12), mainly the charge.",True
-66-921,twin,921,2,8.86,08:15,2354,PT,PT,rule,"Chose to take PT over drive at 07:30: lowest total cost (NZ$19.09 vs NZ$30.56), mainly parking.",True
-29-884,original,29,5,5.07,10:00,3354,CAR_0930,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$19.80 vs NZ$22.59), mainly parking.",False
-29-884,twin,884,5,5.07,10:00,4353,CAR_0930,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$20.80 vs NZ$21.62), mainly parking.",False
-11-866,original,11,5,32.03,09:30,3332,CAR_0915,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$23.28 vs NZ$23.35), mainly the charge.",True
-11-866,twin,866,5,32.03,09:30,4334,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:30: lowest total cost (NZ$25.91 vs NZ$27.16), mainly changing routine.",True
-90-945,original,90,4,3.7,07:45,5125,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$19.21 vs NZ$22.63), mainly changing routine.",False
-90-945,twin,945,4,3.7,07:45,4244,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:00: lowest total cost (NZ$18.04 vs NZ$20.29), mainly changing routine.",False
-17-872,original,17,1,20.83,08:45,4342,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 06:15 for the early start: lowest total cost (NZ$28.54 vs NZ$31.89), mainly changing routine.",True
-17-872,twin,872,1,20.83,08:45,3143,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$33.09 vs NZ$35.81), mainly fuel.",True
+2-857,twin,857,5,4.39,08:45,2233,CAR_0830,PT,forced,Only feasible option.,False
+6-861,original,6,5,23.43,10:00,3232,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$24.04 vs NZ$27.78), mainly arrival time.",False
+6-861,twin,861,5,23.43,10:00,5333,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$24.45 vs NZ$29.29), mainly changing routine.",False
+39-894,original,39,1,24.22,08:30,3433,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$32.41 vs NZ$33.60), mainly the charge.",True
+39-894,twin,894,1,24.22,08:30,5322,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 06:45 for the early start: lowest total cost (NZ$32.41 vs NZ$34.88), mainly arrival time.",True
+26-881,original,26,1,22.25,08:45,2243,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$26.85 vs NZ$38.75), mainly parking.",False
+26-881,twin,881,1,22.25,08:45,5234,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$38.54 vs NZ$41.17), mainly parking.",False
+88-943,original,88,5,6.86,09:45,3212,CAR_0915,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$22.22 vs NZ$23.18), mainly the charge.",True
+88-943,twin,943,5,6.86,09:45,3443,CAR_0915,PT,rule,"Chose to take PT over drive at 09:15: lowest total cost (NZ$22.94 vs NZ$23.69), mainly parking.",True
+77-932,original,77,2,28.61,08:30,2144,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$32.26 vs NZ$38.19), mainly parking.",False
+77-932,twin,932,2,28.61,08:30,3243,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$31.74 vs NZ$39.14), mainly parking.",False
+60-915,original,60,4,9.95,07:00,4435,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 over drive at 06:45: lowest total cost (NZ$16.36 vs NZ$17.72), mainly changing routine.",True
+60-915,twin,915,4,9.95,07:00,5534,CAR_0615,CAR_0615,rule,"Chose to drive at 06:15 over drive at 06:45: lowest total cost (NZ$15.42 vs NZ$17.70), mainly changing routine.",True
+41-896,original,41,5,9.59,09:00,5433,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 09:00: lowest total cost (NZ$27.90 vs NZ$31.47), mainly changing routine.",True
+41-896,twin,896,5,9.59,09:00,4343,CAR_0845,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$25.18 vs NZ$27.90), mainly parking.",True
+93-948,original,93,2,21.31,08:30,4333,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$40.86 vs NZ$50.57), mainly parking.",False
+93-948,twin,948,2,21.31,08:30,4542,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$29.58 vs NZ$46.77), mainly parking.",False
+54-909,original,54,1,15.35,09:00,4233,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$38.40 vs NZ$42.96), mainly parking.",False
+54-909,twin,909,1,15.35,09:00,4331,CAR_0830,PT,rule,"Chose to take PT over drive at 08:30: lowest total cost (NZ$38.17 vs NZ$40.29), mainly parking.",False
+21-876,original,21,1,16.79,08:30,4341,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$17.06 vs NZ$20.86), mainly travel time.",False
+21-876,twin,876,1,16.79,08:30,5442,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$17.93 vs NZ$21.79), mainly travel time.",False
+89-944,original,89,4,5.63,07:45,3353,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$11.64 vs NZ$12.50), mainly changing routine.",False
+89-944,twin,944,4,5.63,07:45,5424,CAR_0715,CAR_0715,rule,"Chose to drive at 07:15 over drive at 07:30: lowest total cost (NZ$12.39 vs NZ$15.50), mainly changing routine.",False
+84-939,original,84,2,30.19,08:45,3223,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 08:15: lowest total cost (NZ$24.46 vs NZ$28.11), mainly arrival time.",False
+84-939,twin,939,2,30.19,08:45,4542,CAR_0830,CAR_0830,rule,"Chose to drive at 08:30 over drive at 08:15: lowest total cost (NZ$20.62 vs NZ$22.10), mainly changing routine.",False
+87-942,original,87,1,20.0,09:15,5533,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over work from home: lowest total cost (NZ$35.16 vs NZ$36.45), mainly working from home.",True
+87-942,twin,942,1,20.0,09:15,3234,CAR_0900,PT,rule,"Chose to take PT over drive at 09:00: lowest total cost (NZ$36.28 vs NZ$37.23), mainly parking.",True
+12-867,original,12,1,13.78,09:15,2233,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$37.38 vs NZ$52.60), mainly fuel.",False
+12-867,twin,867,1,13.78,09:15,3444,PT,PT,rule,"Chose to take PT over drive at 06:15 for the early start: lowest total cost (NZ$27.36 vs NZ$51.42), mainly fuel.",False
+15-870,original,15,2,21.73,08:15,2333,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$25.52 vs NZ$27.96), mainly arrival time.",False
+15-870,twin,870,2,21.73,08:15,3233,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$26.81 vs NZ$31.22), mainly arrival time.",False
+85-940,original,85,1,9.59,08:30,4431,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$34.22 vs NZ$37.49), mainly parking.",False
+85-940,twin,940,1,9.59,08:30,3135,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$33.80 vs NZ$43.74), mainly parking.",False
+67-922,original,67,1,18.81,09:00,4245,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$28.69 vs NZ$49.95), mainly parking.",True
+67-922,twin,922,1,18.81,09:00,5533,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over take PT: lowest total cost (NZ$42.09 vs NZ$42.21), mainly the PT trip.",True
+61-916,original,61,1,39.16,09:00,5423,CAR_0845,WFH,rule,"Chose to work from home over drive at 08:45: lowest total cost (NZ$41.30 vs NZ$48.83), mainly parking.",True
+61-916,twin,916,1,39.16,09:00,4313,CAR_0845,CAR_0830,rule,"Chose to drive at 08:30 over drive at 08:45: lowest total cost (NZ$47.45 vs NZ$52.87), mainly arrival time.",True
+66-921,original,66,2,8.86,08:15,2333,CAR_0800,CAR_0730,rule,"Chose to drive at 07:30 over drive at 08:00: lowest total cost (NZ$31.87 vs NZ$31.37), mainly the charge.",True
+66-921,twin,921,2,8.86,08:15,2354,PT,PT,rule,"Chose to take PT over drive at 06:45 for the early start: lowest total cost (NZ$18.93 vs NZ$32.62), mainly parking.",True
+29-884,original,29,5,5.07,10:00,3354,CAR_0930,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$18.81 vs NZ$24.10), mainly parking.",False
+29-884,twin,884,5,5.07,10:00,4353,CAR_0930,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$19.81 vs NZ$23.10), mainly parking.",False
+11-866,original,11,5,32.03,09:30,3332,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:30: lowest total cost (NZ$29.48 vs NZ$33.67), mainly arrival time.",False
+11-866,twin,866,5,32.03,09:30,4334,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:30: lowest total cost (NZ$31.74 vs NZ$36.67), mainly arrival time.",False
+90-945,original,90,4,3.7,07:45,5125,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$14.27 vs NZ$16.91), mainly changing routine.",False
+90-945,twin,945,4,3.7,07:45,4244,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 07:15: lowest total cost (NZ$13.09 vs NZ$14.63), mainly changing routine.",False
+17-872,original,17,1,20.83,08:45,4342,CAR_0830,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:30: lowest total cost (NZ$22.95 vs NZ$27.41), mainly travel time.",False
+17-872,twin,872,1,20.83,08:45,3143,CAR_0815,CAR_0645,rule,"Chose to drive at 06:45 for the early start over drive at 08:15: lowest total cost (NZ$26.36 vs NZ$25.82), mainly travel time.",False
 43-898,original,43,2,6.34,08:15,5251,CAR_0745,PT,forced,Only feasible option.,False
 43-898,twin,898,2,6.34,08:15,3312,CAR_0745,PT,forced,Only feasible option.,False
-19-874,original,19,5,6.85,09:45,3214,CAR_0930,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$31.81 vs NZ$32.57), mainly changing routine.",False
-19-874,twin,874,5,6.85,09:45,4232,CAR_0930,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$29.83 vs NZ$31.57), mainly changing routine.",False
-76-931,original,76,1,16.15,09:15,5221,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 08:45: lowest total cost (NZ$19.37 vs NZ$24.43), mainly changing routine.",False
-76-931,twin,931,1,16.15,09:15,5324,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:45 for the early start: lowest total cost (NZ$22.88 vs NZ$26.51), mainly changing routine.",False
-75-930,original,75,4,12.8,08:00,3123,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$12.08 vs NZ$14.56), mainly arrival time.",False
-75-930,twin,930,4,12.8,08:00,4232,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$10.51 vs NZ$13.42), mainly arrival time.",False
-5-860,original,5,5,9.01,10:00,5225,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$28.34 vs NZ$32.52), mainly changing routine.",True
-5-860,twin,860,5,9.01,10:00,5255,PT,PT,rule,"Chose to take PT over drive at 09:45: lowest total cost (NZ$20.21 vs NZ$31.34), mainly parking.",True
-7-862,original,7,1,17.34,09:15,4343,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:30 for the early start: lowest total cost (NZ$20.36 vs NZ$23.60), mainly arrival time.",False
-7-862,twin,862,1,17.34,09:15,4325,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over work from home: lowest total cost (NZ$22.93 vs NZ$23.94), mainly working from home.",False
-30-885,original,30,3,6.73,07:15,5313,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$19.45 vs NZ$23.37), mainly changing routine.",False
-30-885,twin,885,3,6.73,07:15,1233,CAR_0645,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$20.01 vs NZ$21.37), mainly arrival time.",False
-3-858,original,3,2,10.25,08:45,4253,PT,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$21.06 vs NZ$44.95), mainly parking.",False
-3-858,twin,858,2,10.25,08:45,3334,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$35.91 vs NZ$44.52), mainly parking.",False
-55-910,original,55,5,3.86,08:45,2554,PT,PT,rule,"Chose to take PT over drive at 07:00: lowest total cost (NZ$19.23 vs NZ$35.12), mainly parking.",False
-55-910,twin,910,5,3.86,08:45,4334,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$33.47 vs NZ$38.01), mainly parking.",False
-70-925,original,70,1,8.71,09:15,5223,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 09:00: lowest total cost (NZ$40.56 vs NZ$44.45), mainly changing routine.",True
-70-925,twin,925,1,8.71,09:15,5343,PT,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$25.60 vs NZ$43.52), mainly parking.",True
-58-913,original,58,1,25.13,09:30,5224,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 09:15: lowest total cost (NZ$46.61 vs NZ$51.06), mainly arrival time.",False
-58-913,twin,913,1,25.13,09:30,3322,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over drive at 06:30 for the early start: lowest total cost (NZ$43.83 vs NZ$45.27), mainly arrival time.",False
-71-926,original,71,5,16.49,09:30,5422,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 09:00: lowest total cost (NZ$40.85 vs NZ$41.67), mainly changing routine.",True
-71-926,twin,926,5,16.49,09:30,5332,CAR_0900,CAR_0900,rule,"Chose to drive at 09:00 over take PT: lowest total cost (NZ$38.67 vs NZ$42.48), mainly the PT trip.",True
-32-887,original,32,3,13.52,07:15,3354,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 06:45: lowest total cost (NZ$20.14 vs NZ$22.02), mainly arrival time.",True
-32-887,twin,887,3,13.52,07:15,2253,CAR_0700,CAR_0645,rule,"Chose to drive at 06:45 over drive at 07:00: lowest total cost (NZ$21.97 vs NZ$21.29), mainly travel time.",True
-46-901,original,46,2,18.42,08:00,5332,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 06:45 for the early start: lowest total cost (NZ$37.39 vs NZ$39.99), mainly changing routine.",False
-46-901,twin,901,2,18.42,08:00,5221,CAR_0730,CAR_0730,rule,"Chose to drive at 07:30 over drive at 06:45 for the early start: lowest total cost (NZ$37.59 vs NZ$42.08), mainly arrival time.",False
-16-871,original,16,1,13.53,09:45,1144,CAR_0930,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$25.49 vs NZ$30.25), mainly parking.",True
-16-871,twin,871,1,13.53,09:45,4211,CAR_0930,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$27.11 vs NZ$30.98), mainly changing routine.",True
-40-895,original,40,1,7.68,09:00,4151,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$22.59 vs NZ$26.29), mainly fuel.",False
-40-895,twin,895,1,7.68,09:00,3353,CAR_0800,PT,rule,"Chose to take PT over drive at 08:00: lowest total cost (NZ$21.59 vs NZ$28.59), mainly fuel.",False
+19-874,original,19,5,6.85,09:45,3214,CAR_0930,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$26.76 vs NZ$24.51), mainly overall cost.",True
+19-874,twin,874,5,6.85,09:45,4232,CAR_0930,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:45: lowest total cost (NZ$22.51 vs NZ$25.76), mainly changing routine.",True
+76-931,original,76,1,16.15,09:15,5221,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$7.86 vs NZ$12.10), mainly changing routine.",False
+76-931,twin,931,1,16.15,09:15,5324,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 07:00 for the early start: lowest total cost (NZ$11.08 vs NZ$15.46), mainly arrival time.",False
+75-930,original,75,4,12.8,08:00,3123,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$15.76 vs NZ$18.16), mainly arrival time.",False
+75-930,twin,930,4,12.8,08:00,4232,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 07:30: lowest total cost (NZ$14.35 vs NZ$17.10), mainly arrival time.",False
+5-860,original,5,5,9.01,10:00,5225,CAR_0945,CAR_0945,rule,"Chose to drive at 09:45 over drive at 09:30: lowest total cost (NZ$27.42 vs NZ$31.55), mainly changing routine.",True
+5-860,twin,860,5,9.01,10:00,5255,PT,PT,rule,"Chose to take PT over drive at 09:45: lowest total cost (NZ$19.23 vs NZ$30.42), mainly parking.",True
+7-862,original,7,1,17.34,09:15,4343,CAR_0845,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:45: lowest total cost (NZ$27.24 vs NZ$25.94), mainly the charge.",False
+7-862,twin,862,1,17.34,09:15,4325,CAR_0845,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 08:45: lowest total cost (NZ$29.24 vs NZ$28.70), mainly the charge.",False
+30-885,original,30,3,6.73,07:15,5313,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$9.51 vs NZ$13.48), mainly changing routine.",False
+30-885,twin,885,3,6.73,07:15,1233,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$10.03 vs NZ$11.49), mainly arrival time.",False
+3-858,original,3,2,10.25,08:45,4253,PT,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$20.63 vs NZ$40.12), mainly parking.",False
+3-858,twin,858,2,10.25,08:45,3334,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$33.38 vs NZ$39.46), mainly parking.",False
+55-910,original,55,5,3.86,08:45,2554,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$18.25 vs NZ$28.54), mainly parking.",True
+55-910,twin,910,5,3.86,08:45,4334,CAR_0815,CAR_0815,rule,"Chose to drive at 08:15 over drive at 07:15: lowest total cost (NZ$28.65 vs NZ$27.74), mainly changing routine.",True
+70-925,original,70,1,8.71,09:15,5223,CAR_0815,PT,rule,"Chose to take PT over drive at 08:15: lowest total cost (NZ$49.56 vs NZ$51.58), mainly fuel.",False
+70-925,twin,925,1,8.71,09:15,5343,PT,PT,rule,"Chose to take PT over drive at 06:30 for the early start: lowest total cost (NZ$24.69 vs NZ$50.67), mainly fuel.",False
+58-913,original,58,1,25.13,09:30,5224,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 09:00: lowest total cost (NZ$54.41 vs NZ$56.73), mainly changing routine.",False
+58-913,twin,913,1,25.13,09:30,3322,CAR_0630,CAR_0630,rule,"Chose to drive at 06:30 for the early start over drive at 09:00: lowest total cost (NZ$50.81 vs NZ$51.99), mainly travel time.",False
+71-926,original,71,5,16.49,09:30,5422,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$31.12 vs NZ$35.35), mainly changing routine.",False
+71-926,twin,926,5,16.49,09:30,5332,CAR_0915,CAR_0915,rule,"Chose to drive at 09:15 over drive at 09:00: lowest total cost (NZ$31.45 vs NZ$35.66), mainly changing routine.",False
+32-887,original,32,3,13.52,07:15,3354,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$11.78 vs NZ$15.73), mainly arrival time.",False
+32-887,twin,887,3,13.52,07:15,2253,CAR_0700,CAR_0700,rule,"Chose to drive at 07:00 over drive at 07:15: lowest total cost (NZ$11.81 vs NZ$16.64), mainly arrival time.",False
+46-901,original,46,2,18.42,08:00,5332,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 06:45 for the early start: lowest total cost (NZ$33.63 vs NZ$37.44), mainly arrival time.",False
+46-901,twin,901,2,18.42,08:00,5221,CAR_0745,CAR_0745,rule,"Chose to drive at 07:45 over drive at 06:45 for the early start: lowest total cost (NZ$32.42 vs NZ$38.22), mainly arrival time.",False
+16-871,original,16,1,13.53,09:45,1144,PT,PT,rule,"Chose to take PT over drive at 09:30: lowest total cost (NZ$27.02 vs NZ$39.41), mainly parking.",True
+16-871,twin,871,1,13.53,09:45,4211,CAR_0930,CAR_0930,rule,"Chose to drive at 09:30 over drive at 09:15: lowest total cost (NZ$36.01 vs NZ$38.36), mainly changing routine.",True
+40-895,original,40,1,7.68,09:00,4151,CAR_0845,CAR_0845,rule,"Chose to drive at 08:45 over drive at 08:30: lowest total cost (NZ$17.23 vs NZ$19.04), mainly changing routine.",True
+40-895,twin,895,1,7.68,09:00,3353,CAR_0845,PT,rule,"Chose to take PT over drive at 08:45: lowest total cost (NZ$19.84 vs NZ$19.59), mainly the charge.",True

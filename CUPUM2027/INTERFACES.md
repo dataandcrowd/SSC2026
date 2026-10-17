@@ -132,8 +132,9 @@ build_graph(roads, cfg) -> nx.Graph       # undirected, endpoints rounded to nod
     # edge attrs: minutes, segment_id, frc, speed_limit, street_name, distance_m
     # minutes = distance_m / (speedLimit * 1000 / 60) * ff_factor
 destination_node(G, cordon) -> tuple[float, float]   # node inside cordon nearest its centroid
-candidate_origins(G, roads, cordon, cfg) -> pd.DataFrame   # node, x_nztm, y_nztm, weight
-sample_origins(candidates, cfg) -> pd.DataFrame            # n_origin_points, weighted, with replacement allowed only if needed
+od_weights(xy, roads, od, cfg) -> (np.ndarray, dict)          # Census drivers per SA2 -> candidate nodes
+candidate_origins(G, roads, cordon, cfg) -> pd.DataFrame   # node, x_nztm, y_nztm, weight (attrs["od"] with od_csv)
+sample_origins(candidates, cfg) -> pd.DataFrame            # origin_draw "iid": n_origin_points draws by weight, repeats merged (weight = draws); "unique": without replacement unless needed, candidate weights kept
 trace_paths(G, dest, origins, cordon) -> pd.DataFrame      # one single-source Dijkstra from dest
 group_corridors(gates, cordon, cfg) -> tuple[pd.DataFrame, pd.DataFrame]
 write_outputs(...) -> None
@@ -142,8 +143,38 @@ main(argv=None) -> int
 
 Gate = the first edge on the origin-to-destination path whose far end is inside the cordon.
 `fftt_to_gate_min` = path minutes up to the gate node (the far end); `fftt_gate_to_dest_min`
-= remaining minutes. Optional OD hook: if `cfg.prep.od_csv` is set, it has columns
-`sa2_code, x_nztm, y_nztm, commuters_to_cordon` and replaces the proxy weights.
+= remaining minutes. Origin weights (2026-10-16): with `cfg.prep.od_csv` set (the default,
+`data/od_sa2.csv` from `prep/build_od.py`), it has columns `sa2_code, x_nztm, y_nztm, drivers_to_cordon`
+(`sa2_name` optional) and the weights are Census car drivers into the cordon by home SA2: with
+`prep.od_within_sa2 = "proxy"` an SA2's drivers are split over the candidate nodes inside its polygon
+(`prep.sa2_gpkg`) by the local-road proxy (equally when the proxy is 0 on all of them), and an SA2 with no
+candidate node inside goes to the node nearest its point; `"snap"` puts every SA2 on that nearest node.
+With `od_csv = ""` the weight is the local-road proxy (frc `local_frc` road within `density_radius_m`), the
+model before 2026-10-16.
+
+## Census OD: `prep/build_od.py`
+
+CLI: `python -m prep.build_od [--config config.toml] [--out-dir data]`; run before `prep.build_inputs`.
+
+```python
+load_od(cfg) -> pd.DataFrame          # prep.census_od_csv, columns res, res_name, work, work_name, 2023_*
+load_sa2(cfg) -> gpd.GeoDataFrame     # prep.sa2_gpkg with code (sa2_code_field), name (sa2_name_field)
+cordon_sa2(sa2, cordon) -> set[str]   # SA2s whose representative point is inside the cordon
+impute_pairs(pairs, modes, shares, cap, total_if_suppressed) -> pd.DataFrame
+build_od(cfg) -> tuple[pd.DataFrame, dict]
+main(argv=None) -> int
+```
+
+Commuters = usual residence outside the cordon, workplace in a cordon SA2; drivers = the sum of
+`prep.od_modes`. A suppressed cell (-999, 0 to 5) gets part of its pair's residual (Total_stated minus the
+shown cells) by the shown mode shares of all outside-to-cordon pairs, at most `prep.od_suppressed_cap`; a
+pair whose total is suppressed is given `prep.od_suppressed_total` commuters. Residence SA2s without a
+polygon are dropped (reported).
+
+| File | Columns |
+|---|---|
+| `od_sa2.csv` | `sa2_code, sa2_name, x_nztm, y_nztm, drivers_shown, drivers_imputed, drivers_to_cordon, commuters_shown` (one row per home SA2 with drivers, by code) |
+| `od_report.md` | definitions, totals (shown and imputed), unmatched SA2s, commuters by mode, drivers by distance |
 
 Outputs in `data/` (exact columns):
 
@@ -915,19 +946,22 @@ literal rule of the 2026-10-08 design (SPEC3); road_meta.json and road_report.md
 literal-rule window next to the one used.
 
 Current data (`data/road_meta.json`, `data/road_report.md`; fixed by the data and the prep):
-- 5,903 sections on the pre-gate routes of the 3,000 prep origins (count 1,953, propagated 3,460,
-  default 258, nzta 232); 142,470 `origin_sections.csv` rows (47.5 sections per origin, max 124);
-  19,517 `section_segments.csv` rows; 20 profiles (0 default, 1 to 19 sites).
+- Origins from the 2023 Census OD (2026-10-16), 2,361 distinct origins from 3,000 draws. 4,799 sections
+  on their pre-gate routes (count 1,723, propagated 2,683, default 183, nzta 210); 102,922
+  `origin_sections.csv` rows (43.6 sections per origin, max 99); 16,842 `section_segments.csv` rows; 20
+  profiles (0 default, 1 to 19 sites).
 - Counts: 13,835 points, 13,717 with ADT > 0; 3,179 matched (AT 2,741, SH carriageway 230, SH
   ramp 208); 66 stale AT counts and 8 bus-ramp records not used.
-- k = 0.076999. Usual-traffic TTI, departures 08:00-08:59: non-motorway 1.714 (achieved 1.713983,
-  `tti_match = "non_motorway"`), motorway 2.032, whole trip 1.927.
-- Capacity floor (adt_dir / veh/h): frc 0 15,989.75 / 1,231.2; frc 1 6,432 / 495.3; frc 2 4,627.5 /
-  356.3; frc 3 2,566.5 / 197.6; frc 4 1,851 / 142.5. 280 sections raised (1.39% of origin-weighted
+- k = 0.077563. Usual-traffic TTI, departures 08:00-08:59: non-motorway 1.714 (achieved 1.713987,
+  `tti_match = "non_motorway"`), motorway 2.099, whole trip 1.915.
+- Capacity floor (adt_dir / veh/h): frc 0 16,386 / 1,270.9; frc 1 5,085.4 / 394.4; frc 2 3,891.7 / 301.9;
+  frc 3 2,503.2 / 194.2; frc 4 1,861.8 / 144.4. 238 sections raised (2.67% of origin-weighted
   pre-gate minutes).
-- Motorway mainline: 285 sections, 147.05 km, 230 with a usual window. NZTA: 36 sites, 19 valid, 12
-  with breakdown; 232 sections take a site's values (98.9% of origin-weighted motorway minutes).
+- Motorway mainline: 262 sections, 142.25 km, 220 with a usual window. NZTA: 36 sites, 19 valid, 12
+  with breakdown; 210 sections take a site's values (98.1% of origin-weighted motorway minutes).
   Site windows: `road_meta.json` `nzta.sites`.
+- Before 2026-10-16 (local-road proxy origins): 5,903 sections, k = 0.076999, 285 motorway sections
+  (git history).
 
 ### Run scenario files (road)
 
@@ -1237,8 +1271,11 @@ GUI part:
   the engine's speed factor at that minute with today's window counts (`section-grade`,
   `grade-bands`, `grade-colors`): normal f >= 0.80 keeps the road's grey, slow 0.60 to 0.80 light
   yellow, heavy 0.40 to 0.60 amber orange, jammed below 0.40 bright purple; a motorway section in
-  breakdown is jammed at any speed. No red (queued cars), no green (PT). Only sections whose grade
-  changed are redrawn, at most `road-redraw-budget` (60) per tick; a view change redraws all.
+  breakdown is jammed at any speed. No red (queued cars), no green (PT). The map is the `roads`
+  links themselves (`seg-road`: TomTom segment -> link; `sec-links`: the links of each section;
+  `style-road`: colour and thickness, the slowest grade of the sections on a link). Only sections
+  whose grade changed are recoloured, all at the mark; a view change re-places the nodes
+  (`place-network`, roads with an end outside the view hidden) and restyles every road.
 - Monitors: "traffic delay (min)" (`traffic-delay-now`: mean road delay of today's cars with
   `gate-arr <= clock`); at the last 5-minute mark ("-" without roads) "LoS E/F % motorways" and "LoS
   E/F % other roads" (`los-ef-pct`), "mean V/C motorways" and "mean V/C other roads" (`los-vc`),

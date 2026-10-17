@@ -13,6 +13,7 @@ Public API:
     load_roads(cfg) -> gpd.GeoDataFrame
     build_graph(roads, cfg) -> nx.Graph       # giant component
     destination_node(G, cordon) -> tuple[float, float]
+    od_weights(xy, roads, od, cfg) -> (np.ndarray, dict)          # Census drivers per SA2 -> candidate nodes
     candidate_origins(G, roads, cordon, cfg) -> pd.DataFrame   # node, x_nztm, y_nztm, weight
     sample_origins(candidates, cfg) -> pd.DataFrame
     trace_paths(G, dest, origins, cordon) -> pd.DataFrame
@@ -208,14 +209,55 @@ def local_road_length(points_xy: np.ndarray, roads: gpd.GeoDataFrame, local_frc:
     return np.array([lens[i].sum() if len(i) else 0.0 for i in idx])
 
 
+def od_weights(xy: np.ndarray, roads: gpd.GeoDataFrame, od: pd.DataFrame,
+               cfg: Config) -> tuple[np.ndarray, dict[str, Any]]:
+    """Census drivers per home SA2 (od_csv) given to the candidate nodes ``xy``.
+
+    ``prep.od_within_sa2`` = "proxy" [A]: an SA2's drivers are split over the candidate nodes inside its
+    polygon (``prep.sa2_gpkg``) in proportion to the local-road proxy (equally if every one of them has
+    none); an SA2 with no candidate node inside (a small SA2 between major roads, or one beyond the TomTom
+    extent) goes whole to the candidate node nearest its representative point. "snap": every SA2 to the
+    node nearest its point. Returns the weights and statistics for the report.
+    """
+    p = cfg.prep
+    drivers = od["drivers_to_cordon"].to_numpy(dtype=float)
+    dist, near = cKDTree(xy).query(od[["x_nztm", "y_nztm"]].to_numpy(dtype=float))
+    w = np.zeros(len(xy))
+    snapped = np.ones(len(od), dtype=bool)
+    if p.od_within_sa2 == "proxy":
+        sa2 = gpd.read_file(cfg.resolve_path(p.sa2_gpkg)).to_crs(epsg=p.crs_epsg)
+        pos = {c: i for i, c in enumerate(sa2[p.sa2_code_field].astype(str))}
+        node_i, poly_i = shapely.STRtree(sa2.geometry.values).query(
+            shapely.points(xy[:, 0], xy[:, 1]), predicate="within")
+        members: dict[int, list[int]] = {}
+        for n, j in zip(node_i.tolist(), poly_i.tolist()):
+            members.setdefault(j, []).append(n)
+        proxy = local_road_length(xy, roads, p.local_frc, p.density_radius_m)
+        for k, code in enumerate(od["sa2_code"].astype(str)):
+            m = np.asarray(members.get(pos.get(code, -1), []), dtype=int)
+            if len(m) == 0:
+                continue
+            pr = proxy[m]
+            w[m] += drivers[k] * (pr / pr.sum() if pr.sum() > 0 else np.full(len(m), 1.0 / len(m)))
+            snapped[k] = False
+    np.add.at(w, near[snapped], drivers[snapped])
+    info = {"n_sa2": len(od), "drivers": float(drivers.sum()), "n_snapped": int(snapped.sum()),
+            "drivers_snapped": float(drivers[snapped].sum()),
+            "snap_far": od.assign(snap_m=dist)[snapped & (dist > 2000.0)][["sa2_name", "drivers_to_cordon", "snap_m"]]
+            if "sa2_name" in od.columns else pd.DataFrame(),
+            "drivers_snapped_over_2km": float(drivers[snapped & (dist > 2000.0)].sum())}
+    return w, info
+
+
 def candidate_origins(G: nx.Graph, roads: gpd.GeoDataFrame, cordon: BaseGeometry,
                       cfg: Config) -> pd.DataFrame:
     """Candidate origin nodes outside the cordon with their demand weight.
 
-    Proxy (default): weight = local (frc in local_frc) road length within density_radius_m [A].
-    Nodes whose incident edges are all motorway (frc 0) are excluded [A]: trips do not start
-    on a motorway carriageway. With ``prep.od_csv`` set, each SA2 point is snapped to the
-    nearest such node and weight = commuters_to_cordon (summed per node).
+    Nodes whose incident edges are all motorway (frc 0) are excluded [A]: trips do not start on a motorway
+    carriageway. With ``prep.od_csv`` set (2026-10-16), weight = the Census car drivers into the cordon of
+    the node's home SA2, spread over the SA2's nodes (od_weights). Without it, weight = local (frc in
+    local_frc) road length within density_radius_m, a residential-density proxy [A]. The OD statistics are
+    in ``df.attrs["od"]``.
     """
     nodes, xy = node_array(G)
     outside = ~inside_mask(cordon, xy)
@@ -223,33 +265,47 @@ def candidate_origins(G: nx.Graph, roads: gpd.GeoDataFrame, cordon: BaseGeometry
     keep = outside & non_motorway
     nodes_k = [n for n, k in zip(nodes, keep) if k]
     xy_k = xy[keep]
+    info = None
     if cfg.prep.od_csv:
-        od = pd.read_csv(cfg.resolve_path(cfg.prep.od_csv))
-        need = {"sa2_code", "x_nztm", "y_nztm", "commuters_to_cordon"}
+        od = pd.read_csv(cfg.resolve_path(cfg.prep.od_csv), dtype={"sa2_code": str})
+        need = {"sa2_code", "x_nztm", "y_nztm", "drivers_to_cordon"}
         if not need.issubset(od.columns):
             raise ValueError(f"od_csv needs columns {sorted(need)}")
-        _, j = cKDTree(xy_k).query(od[["x_nztm", "y_nztm"]].to_numpy(dtype=float))
-        w = np.zeros(len(nodes_k))
-        np.add.at(w, j, od["commuters_to_cordon"].to_numpy(dtype=float))
+        w, info = od_weights(xy_k, roads, od, cfg)
     else:
         w = local_road_length(xy_k, roads, cfg.prep.local_frc, cfg.prep.density_radius_m)
     df = pd.DataFrame({"node": nodes_k, "x_nztm": xy_k[:, 0], "y_nztm": xy_k[:, 1], "weight": w})
-    return df[df["weight"] > 0].reset_index(drop=True)
+    df = df[df["weight"] > 0].reset_index(drop=True)
+    if info is not None:
+        df.attrs["od"] = info
+    return df
 
 
 def sample_origins(candidates: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     """Weighted sample of n_origin_points candidates on stream(seed, "prep").
 
-    Without replacement unless there are fewer positive-weight candidates than requested.
+    ``prep.origin_draw`` = "unique" (the model before 2026-10-16): without replacement (unless there are
+    fewer positive-weight candidates than requested), each origin keeping its candidate weight. The personas
+    then draw origins by weight again, so a node's agent share goes roughly with its weight squared.
+    "iid" (2026-10-16): n_origin_points independent draws in proportion to the weight; a node drawn more than
+    once is one origin whose weight is its number of draws (in order of first draw), so drawing agents by
+    weight reproduces the candidate weights (the Census drivers) in expectation.
     """
     n = int(cfg.prep.n_origin_points)
     w = candidates["weight"].to_numpy(dtype=float)
     p = w / w.sum()
     rng = stream(cfg.prep.seed, "prep")
-    replace = n > int((w > 0).sum())
-    idx = rng.choice(len(candidates), size=n, replace=replace, p=p)
-    out = candidates.iloc[idx].reset_index(drop=True)
-    out.insert(0, "origin_id", np.arange(n, dtype=int))
+    if cfg.prep.origin_draw == "iid":
+        idx = rng.choice(len(candidates), size=n, replace=True, p=p)
+        uniq, first, counts = np.unique(idx, return_index=True, return_counts=True)
+        order = np.argsort(first, kind="stable")
+        out = candidates.iloc[uniq[order]].reset_index(drop=True)
+        out["weight"] = counts[order].astype(float)
+    else:
+        replace = n > int((w > 0).sum())
+        idx = rng.choice(len(candidates), size=n, replace=replace, p=p)
+        out = candidates.iloc[idx].reset_index(drop=True)
+    out.insert(0, "origin_id", np.arange(len(out), dtype=int))
     return out
 
 
@@ -577,6 +633,24 @@ def write_outputs(out_dir: Path, cfg: Config, roads: gpd.GeoDataFrame, G: nx.Gra
         encoding="utf-8")
 
 
+def _od_lines(info: dict[str, Any] | None) -> list[str]:
+    """Report lines on how the Census drivers reached the candidate nodes (empty without od_csv)."""
+    if not info:
+        return []
+    far = info["snap_far"]
+    lines = [f"- Census OD: {info['n_sa2']} home SA2s, {info['drivers']:.0f} drivers; {info['n_snapped']} SA2s "
+             f"({info['drivers_snapped']:.0f} drivers, {info['drivers_snapped'] / info['drivers']:.1%}) have no "
+             "candidate node inside and go to the node nearest their representative point; of these, "
+             f"{len(far)} lie more than 2 km from it ({info['drivers_snapped_over_2km']:.0f} drivers, "
+             f"{info['drivers_snapped_over_2km'] / info['drivers']:.1%}, beyond the TomTom extent: their trip "
+             "starts at the network edge)."]
+    if len(far):
+        top = far.sort_values("drivers_to_cordon", ascending=False).head(8)
+        lines.append("  Largest: " + ", ".join(f"{r.sa2_name} {r.drivers_to_cordon:.0f} drivers, {r.snap_m / 1000:.1f} km"
+                                               for r in top.itertuples()) + ".")
+    return lines
+
+
 def render_report(cfg: Config, roads: gpd.GeoDataFrame, G: nx.Graph, cordon: BaseGeometry, dest: Node,
                   candidates: pd.DataFrame, paths: pd.DataFrame, origins: pd.DataFrame,
                   gates: pd.DataFrame, corridors: pd.DataFrame, stats: dict[str, Any]) -> str:
@@ -597,16 +671,25 @@ def render_report(cfg: Config, roads: gpd.GeoDataFrame, G: nx.Graph, cordon: Bas
           f"{Point(dest).distance(cordon.centroid):.0f} m from the centroid.",
           f"- Candidate origins: {len(candidates)} nodes outside the cordon, not motorway-only, with "
           f"positive weight ({stats['weight_source']}).",
-          f"- Sampled origins: {len(origins)} (distinct nodes {paths['node'].nunique()}), "
-          f"seed {cfg.prep.seed}, stream ('prep',), replacement {stats['replace']}.",
+          *_od_lines(candidates.attrs.get("od")),
+          (f"- Sampled origins: {len(origins)} distinct nodes from {p.n_origin_points} independent draws in "
+           f"proportion to the weight (`prep.origin_draw = \"iid\"`; weight = draws per node, max "
+           f"{origins['weight'].max():.0f}), seed {cfg.prep.seed}, stream ('prep',)."
+           if p.origin_draw == "iid" else
+           f"- Sampled origins: {len(origins)} (distinct nodes {paths['node'].nunique()}), "
+           f"seed {cfg.prep.seed}, stream ('prep',), replacement {stats['replace']}."),
           f"- Gates used: {len(gates)} distinct segments; corridors: {len(corridors)}.", ""]
+    iid = p.origin_draw == "iid"
     L += ["## Corridors", "",
-          "| id | name | gates | raw capacity veh/h | bearing | origins | share | median fftt total (min) |",
-          "|---|---|---|---|---|---|---|---|"]
+          "| id | name | gates | raw capacity veh/h | bearing | origins | "
+          + ("draws | share of draws |" if iid else "share |") + " median fftt total (min) |",
+          "|---|---|---|---|---|---|---|" + ("---|" if iid else "") + "---|"]
     for r in corridors.itertuples():
         m = origins["corridor_id"] == r.corridor_id
+        share = (f"{origins.loc[m, 'weight'].sum():.0f} | {origins.loc[m, 'weight'].sum() / origins['weight'].sum():.1%}"
+                 if iid else f"{m.mean():.1%}")
         L.append(f"| {r.corridor_id} | {r.name} | {r.n_gates} | {r.capacity_vph_raw:.0f} | "
-                 f"{r.bearing_deg:.0f} | {int(m.sum())} | {m.mean():.1%} | {tot[m].median():.1f} |")
+                 f"{r.bearing_deg:.0f} | {int(m.sum())} | {share} | {tot[m].median():.1f} |")
     L += ["", "Gates (most used first, top 15):", "",
           "| gate | corridor | street | frc | speed | origins |", "|---|---|---|---|---|---|"]
     for r in gates.sort_values(["n_origins", "gate_id"], ascending=[False, True]).head(15).itertuples():
@@ -647,9 +730,15 @@ def render_report(cfg: Config, roads: gpd.GeoDataFrame, G: nx.Graph, cordon: Bas
           "the fastest.",
           "- [A] Origins are graph nodes (TomTom extent = Auckland urban extent), outside the cordon, "
           "excluding nodes whose incident segments are all motorway (frc 0).",
-          f"- [A] Residential-density proxy: length of frc {list(p.local_frc)} road whose segment "
-          f"midpoint lies within {p.density_radius_m:g} m of the node. With `prep.od_csv` set, SA2 "
-          "commuter counts snapped to the nearest candidate node replace the proxy.",
+          (f"- [DATA] Origin weights: 2023 Census car drivers (`prep.od_modes`) who live outside the cordon "
+           f"and work in it, by home SA2 (`{p.od_csv}`, written by `prep.build_od`; see `od_report.md`). "
+           f"[A] Within an SA2 ({p.od_within_sa2}): its drivers are split over its candidate nodes in "
+           f"proportion to the length of frc {list(p.local_frc)} road whose segment midpoint lies within "
+           f"{p.density_radius_m:g} m of the node; an SA2 with no candidate node inside goes to the node "
+           "nearest its representative point."
+           if p.od_csv else
+           f"- [A] Residential-density proxy: length of frc {list(p.local_frc)} road whose segment "
+           f"midpoint lies within {p.density_radius_m:g} m of the node."),
           "- [SPEC] Destination = the graph node inside the cordon nearest to the cordon centroid; "
           "every commuter drives to this one node, so fftt gate-to-destination is a city-centre "
           "internal leg.",
@@ -711,7 +800,8 @@ def run_prep(cfg: Config, out_dir: Path | None = None) -> dict[str, Any]:
         "n_segments": len(roads), "n_nodes_all": H.number_of_nodes(), "n_edges_all": H.number_of_edges(),
         "n_components": nx.number_connected_components(H), "n_self_loops": self_loops,
         "n_parallel": n_parallel, "n_nodes_inside": int(inside_mask(cordon, xy).sum()),
-        "weight_source": f"od_csv {cfg.prep.od_csv}" if cfg.prep.od_csv else
+        "weight_source": f"2023 Census car drivers into the cordon by home SA2, {cfg.prep.od_csv}, "
+        f"within SA2: {cfg.prep.od_within_sa2}" if cfg.prep.od_csv else
         f"local road length proxy, frc {list(cfg.prep.local_frc)}, {cfg.prep.density_radius_m:g} m",
         "replace": cfg.prep.n_origin_points > len(candidates),
         "n_origins_inside": int(inside_mask(cordon, paths[["x_nztm", "y_nztm"]].to_numpy()).sum()),

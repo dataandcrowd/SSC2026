@@ -1,0 +1,6 @@
+corridor_id,name,capacity_per_min,x,y
+0,"East (The Strand, Gladstone Road)",0.791667,1758860.1,5920404.3
+1,"South-east (Alten Road, Parnell Rise)",1.35542,1758168.9,5920088.9
+2,South (Wellesley Street ramp),0.846241,1757376.6,5919261.4
+3,"South-west (Northern Motorway ramp, Helensville ramp)",2.560237,1756390.3,5919580.2
+4,"West (Fanshawe Street ramp, Beaumont Street)",1.627938,1756268.0,5920628.9

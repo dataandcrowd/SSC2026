@@ -20,8 +20,9 @@
 ;; same minutes); arrival = gate exit + free-flow minutes from the gate. The network only says where
 ;; a car is between those minutes (before the gate it follows its section times from road-arrivals,
 ;; plan-drives). PT riders leave home and appear at their building at the PT arrival minute of the
-;; run (outcomes.csv); WFH commuters stay at home. The roads on the commuters' routes are coloured by
-;; how fast their traffic moves, every 5 minutes (update-road-colours). Nothing here feeds back into
+;; run (outcomes.csv); WFH commuters stay at home. The road network is drawn as its links (roads), and
+;; the roads on the commuters' routes are coloured by how fast their traffic moves, every 5 minutes
+;; (update-road-colours). Nothing here feeds back into
 ;; a Cordon-Lite run.
 ;;
 ;; Inputs, relative to this model:
@@ -105,15 +106,14 @@ globals [
   mwy-jam             ;; highest speed factor in broken-down flow
   today-road          ;; road-arrivals result of the day on screen ([] before the first day)
   ;; road colours (GUI): traffic speed on the sections of the commuters' routes
-  sec-feats           ;; road features (TomTom segments) of each section, sec-ids order
-  sec-feats-cc        ;; the same, only those near the cordon (City centre view)
+  sec-links           ;; road links (TomTom segments) of each section, sec-ids order
   sec-frc             ;; TomTom frc of each section (0 = motorway)
   sec-order           ;; section positions in drawing order: local roads first, motorways last
   speed-grade         ;; grade of each section at grade-minute, from its speed (section-grade):
                       ;; 0 = normal, 1 = slow, 2 = heavy, 3 = jammed (or a broken-down motorway)
   grade-minute        ;; minute of those grades (a multiple of 5; -1 = grade again)
   grade-shown         ;; grade each section is drawn in on the map
-  grade-pending       ;; sections whose colour on the map is not their grade's yet (redrawn by ticks)
+  grade-pending       ;; sections whose colour on the map is not their grade's yet (recoloured on the next tick)
   grade-entries       ;; today's commuter entries by minute: item (m - grade-first-min) = [[i n] ...],
                       ;; n entries of the section at position i at minute m
   grade-first-min     ;; minute of the first item of grade-entries
@@ -135,15 +135,13 @@ globals [
   ;; map and network
   map-view            ;; "Auckland" | "City centre"
   map-env             ;; [minx maxx miny maxy] NZTM of the world edges (gis:world-envelope)
-  net-env             ;; map-env of the Auckland view, where the (hidden) nodes are placed
   roads-ds            ;; GIS datasets
   cordon-ds
   buildings-ds
-  road-classes        ;; road features by TomTom frc 0..4 (drawing style)
-  road-classes-cc     ;; the same, only features near the cordon (City centre view)
   main-inner          ;; the largest connected set of cordon nodes (roads with both ends inside)
   node-at             ;; table "X Y" (NZTM rounded to 1 m) -> node
   seg-ends            ;; table gate segment_id -> [node node]
+  seg-road            ;; table segment_id -> the road link it is drawn as (nobody: not in the network)
   route-cache         ;; table "who who" -> list of nodes
 ]
 
@@ -157,10 +155,12 @@ breed [ bus-riders bus-rider ]   ;; today's public transport riders, drawn as bu
 breed [ tags tag ]               ;; corridor labels, drawn above gates and cars
 bus-riders-own [ rider ]          ;; the commuter this bus stands for today
 tags-own [ tag-cid ]             ;; the corridor a tag labels
-nodes-own [ node-x node-y in-cordon? ]   ;; NZTM metres rounded to 1 m, as the prep graph
+nodes-own [ node-x node-y in-cordon? in-view? ]   ;; NZTM metres rounded to 1 m, as the prep graph; in the current view
 roads-own [
   free-flow-minutes                  ;; free-flow minutes = distance / speed limit (the prep weight)
   cordon-routing-minutes               ;; free-flow-minutes + cordon-exit-penalty on a road with an end outside the cordon
+  road-frc                           ;; TomTom frc (0 motorway .. 4 local), the highest class of its segments
+  road-secs                          ;; positions of the sections on it (both directions of a street), [] = none
 ]
 buildings-own [ building-id building-x building-y bnode ]   ;; point inside the footprint; nearest node in the cordon
 gates-own [ gate-id corridor-id gate-x gate-y outside-node inside-node ]   ;; gate point; outside and inside end node
@@ -345,14 +345,14 @@ to-report experiment-labels
 end
 
 to-report experiment-folders
-  report [ "../runs/R-clock_mock_py_s1_d10_fs6"
-           "../runs/R-clock_mock_py_s1_d10_fs6_peak18"
-           "../runs/R-daily_mock_py_s1_d10_fs6"
-           "../runs/R-daily_mock_py_s1_d10_fs6_peak18"
-           "../runs/L-clock_mock_py_s1_d10_fs6"
-           "../runs/L-clock_mock_py_s1_d10_fs6_peak18"
-           "../runs/L-daily_mock_py_s1_d10_fs6"
-           "../runs/L-daily_mock_py_s1_d10_fs6_peak18" ]
+  report [ "../runs/R-clock_mock_py_s1"
+           "../runs/R-clock_mock_py_s1_peak18"
+           "../runs/R-daily_mock_py_s1"
+           "../runs/R-daily_mock_py_s1_peak18"
+           "../runs/L-clock_mock_py_s1"
+           "../runs/L-clock_mock_py_s1_peak18"
+           "../runs/L-daily_mock_py_s1"
+           "../runs/L-daily_mock_py_s1_peak18" ]
 end
 
 ;; The PT disruption chooser: none, or a disruption on day 3 and another on day 8, on each of which the
@@ -721,25 +721,24 @@ to load-map
   set roads-ds gis:load-dataset roads-file
   set cordon-ds gis:load-dataset path-join map-dir "cordon.shp"
   set buildings-ds gis:load-dataset path-join map-dir "cbd_buildings.shp"
-  set road-classes map [ k -> filter [ f -> gis:property-value f "frc" = k ] gis:feature-list-of roads-ds ]
-                       [ 0 1 2 3 4 ]
-  ;; the City centre view draws only the roads near the cordon
-  let near near-cordon-envelope
-  set road-classes-cc map [ fs -> filter [ f -> envelopes-overlap? gis:envelope-of f near ] fs ] road-classes
   ;; the network is built (and nodes placed) in the Auckland view
   apply-envelope view-envelope "Auckland"
   set map-view "Auckland"
-  set net-env map-env
 end
 
 ;; Nodes and roads from the TomTom shapefile, as the prep graph (prep/build_inputs.py, build_graph):
 ;; a node per segment end, NZTM rounded to 1 m; segments whose ends coincide are dropped; of
 ;; parallel segments between the same two nodes the fastest is kept (28,520 nodes, 30,846 roads);
 ;; then only the giant component is kept: 28,507 nodes and 30,835 roads, the graph prep routes on.
+;; The roads are the map: every segment is drawn as the road between its two ends (seg-road), a
+;; straight line, in the style of the highest frc of the segments between them.
 to build-network
   reset-timer
   set node-at table:make
   set seg-ends table:make
+  set seg-road table:make
+  let seg-pair table:make          ;; segment_id -> "who who" of its ends
+  let pair-frc table:make          ;; "who who" -> lowest frc of the segments between them
   let gate-segs table:make
   let grows read-rows prep-dir "gates.csv"
   let iseg col first grows "segment_id"
@@ -755,11 +754,22 @@ to build-network
       let minutes (gis:property-value road-feature "distance") / 1000 / (gis:property-value road-feature "speedLimit") * 60
       let pair-key ifelse-value ([who] of first-node < [who] of second-node) [ (word [who] of first-node " " [who] of second-node) ] [ (word [who] of second-node " " [who] of first-node) ]
       if (not table:has-key? fastest-between pair-key) or (minutes < item 2 table:get fastest-between pair-key) [ table:put fastest-between pair-key (list first-node second-node minutes) ]
+      table:put seg-pair segment-id pair-key
+      table:put pair-frc pair-key min (list (gis:property-value road-feature "frc") (table:get-or-default pair-frc pair-key 4))
     ]
   ]
-  foreach table:values fastest-between [ node-pair-and-minutes ->
-    ask item 0 node-pair-and-minutes [ create-road-with item 1 node-pair-and-minutes [ set free-flow-minutes item 2 node-pair-and-minutes  set hidden? true ] ]
+  let road-of table:make           ;; "who who" -> road
+  foreach table:keys fastest-between [ pair-key ->
+    let node-pair-and-minutes table:get fastest-between pair-key
+    ask item 0 node-pair-and-minutes [ create-road-with item 1 node-pair-and-minutes [
+      set free-flow-minutes item 2 node-pair-and-minutes
+      set road-frc table:get pair-frc pair-key
+      set road-secs []
+      set hidden? true
+      table:put road-of pair-key self
+    ] ]
   ]
+  foreach table:keys seg-pair [ segment-id -> table:put seg-road segment-id table:get road-of table:get seg-pair segment-id ]
   nw:set-context nodes roads
   ;; the two small fragments (13 nodes, none in the cordon) cannot be reached from anywhere else
   let components sort-by [ [larger smaller] -> count larger > count smaller ] nw:weak-component-clusters
@@ -779,22 +789,12 @@ to build-network
               count nodes with [ in-cordon? ] " nodes in the cordon (" precision timer 1 " s)")
 end
 
-;; [minx maxx miny maxy] NZTM: a square around the City centre view envelope (the roads drawn there)
-to-report near-cordon-envelope
-  let ve view-envelope "City centre"
-  let half 0.5 * max (list ((item 1 ve) - (item 0 ve)) ((item 3 ve) - (item 2 ve)))
-  let cx ((item 0 ve) + (item 1 ve)) / 2
-  let cy ((item 2 ve) + (item 3 ve)) / 2
-  report (list (cx - half) (cx + half) (cy - half) (cy + half))
-end
-
-;; The road features of every section of this run (road_sections.csv), from the prep file
-;; ../data/section_segments.csv (section_id, seq, segment_id: the TomTom segments of each section),
-;; and each section's frc. Sections are then graded at the clock (before the first day: background
+;; The road links of every section of this run (road_sections.csv), from the prep file
+;; ../data/section_segments.csv (section_id, seq, segment_id: the TomTom segments of each section,
+;; through seg-road), and each section's frc. Sections are then graded at the clock (before the first day: background
 ;; traffic only). Without road files, or without that file, roads keep their grey.
 to read-section-map
-  set sec-feats []
-  set sec-feats-cc []
+  set sec-links []
   set sec-frc []
   set sec-order []
   set speed-grade []
@@ -825,25 +825,21 @@ to read-section-map
   let rows read-rows prep-dir "section_segments.csv"
   let isec col first rows "section_id"
   let iseg col first rows "segment_id"
-  let pos-of table:make        ;; segment_id -> section position
+  let found table:make         ;; section position -> its road links
   foreach but-first rows [ r ->
-    if table:has-key? sec-index item isec r [ table:put pos-of (word item iseg r) (table:get sec-index item isec r) ]
-  ]
-  let found table:make         ;; section position -> its features
-  foreach gis:feature-list-of roads-ds [ ft ->
-    let sid (word gis:property-value ft "segment_id")
-    if table:has-key? pos-of sid [
-      let i table:get pos-of sid
-      table:put found i (lput ft (table:get-or-default found i []))
+    let sid (word item iseg r)
+    if (table:has-key? sec-index item isec r) and (table:has-key? seg-road sid) [
+      let i table:get sec-index item isec r
+      let l table:get seg-road sid
+      if (l != nobody) and (not member? l table:get-or-default found i []) [ table:put found i (lput l (table:get-or-default found i [])) ]
     ]
   ]
-  set sec-feats map [ i -> table:get-or-default found i [] ] range length sec-ids
-  set sec-frc map [ fs -> ifelse-value (empty? fs) [ 4 ] [ gis:property-value first fs "frc" ] ] sec-feats
-  let near near-cordon-envelope
-  set sec-feats-cc map [ fs -> filter [ ft -> envelopes-overlap? gis:envelope-of ft near ] fs ] sec-feats
+  set sec-links map [ i -> table:get-or-default found i [] ] range length sec-ids
+  set sec-frc map [ ls -> ifelse-value (empty? ls) [ 4 ] [ min map [ l -> [road-frc] of l ] ls ] ] sec-links
+  foreach range length sec-ids [ i -> foreach item i sec-links [ l -> ask l [ set road-secs lput i road-secs ] ] ]
   set sec-order sort-by [ [a b] -> ((item a sec-frc) > (item b sec-frc)) or (((item a sec-frc) = (item b sec-frc)) and (a < b)) ]
                         range length sec-ids
-  let n-missing length filter empty? sec-feats
+  let n-missing length filter empty? sec-links
   if n-missing > 0 [ print (word n-missing " road sections have no segment in section_segments.csv and are not coloured") ]
   set grade-shown n-values length sec-ids [ 0 ]
   read-los-sections
@@ -907,11 +903,6 @@ to-report region-of [ street-name mid-x mid-y ]
 end
 
 ;; NetLogo [x y] -> NZTM [X Y]: inverse of the linear map of the current world envelope
-to-report envelopes-overlap? [ a b ]
-  report ((item 0 a) <= (item 1 b)) and ((item 1 a) >= (item 0 b)) and
-         ((item 2 a) <= (item 3 b)) and ((item 3 a) >= (item 2 b))
-end
-
 to-report nztm-of [ p ]
   report (list ((item 0 map-env) + ((item 0 p) - (min-pxcor - 0.5)) * ((item 1 map-env) - (item 0 map-env)) / world-width)
                ((item 2 map-env) + ((item 1 p) - (min-pycor - 0.5)) * ((item 3 map-env) - (item 2 map-env)) / world-height))
@@ -1138,7 +1129,7 @@ end
 ;; ------------------------------------------------------------------ views
 
 to set-map-view [ v ]
-  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not is-list? map-env [ user-message "Press setup first." stop ]
   if not member? v [ "Auckland" "City centre" ] [ error (word "unknown map view " v) ]
   set map-view v
   apply-envelope view-envelope v
@@ -1186,15 +1177,11 @@ to draw-map
     gis:set-drawing-color gray - 3.5
     gis:fill buildings-ds 0
   ]
-  ;; local roads first, motorways last so they stay on top
-  foreach [ 4 3 2 1 0 ] [ k ->
-    gis:set-drawing-color road-color k
-    let w road-width k cc?
-    foreach item k (ifelse-value cc? [ road-classes-cc ] [ road-classes ]) [ f -> gis:draw f w ]
-  ]
-  draw-sections sec-order false
-  set grade-pending []
   draw-cordon
+  place-network
+  ask roads [ style-road cc? ]
+  if not empty? sec-links [ set grade-shown speed-grade ]
+  set grade-pending []
 end
 
 to draw-cordon
@@ -1202,55 +1189,50 @@ to draw-cordon
   gis:draw cordon-ds ifelse-value (map-view = "City centre") [ 2 ] [ 1.5 ]
 end
 
-;; draw the road sections at positions ids in the colour of their speed grade: normal in the road's
-;; grey, slow, heavy and jammed in grade-colors, each a little wider than the one before. erase? first
-;; paints them black, 2 wider than they are drawn now: lines are drawn anti-aliased, so a line drawn
-;; again over itself would grow bolder at every change, and a black line only 1 wider leaves a faint
-;; rim of the old colour (roads back to normal after the peak looked brownish).
-to draw-sections [ ids erase? ]
+;; The nodes at their place in the current view (they stay hidden) and the roads shown where both
+;; ends are in it: in the City centre view a road leaving the view is not drawn
+to place-network
+  ask nodes [
+    let p map-xy node-x node-y
+    set in-view? not empty? p
+    if in-view? [ setxy (item 0 p) (item 1 p) ]
+  ]
+  ask roads [ set hidden? not ([in-view?] of end1 and [in-view?] of end2) ]
+end
+
+;; road procedure: the grey and width of its frc, or, on the commuters' routes, the colour of the
+;; slowest grade of its sections (the two directions of a street are two sections on one road):
+;; normal in the road's grey, slow, heavy and jammed in grade-colors, each a little wider than the
+;; one before. Widths are in pixels, link thickness in patches.
+to style-road [ cc? ]
+  let g ifelse-value (empty? road-secs) [ -1 ] [ max map [ i -> item i speed-grade ] road-secs ]
+  set color ifelse-value (g <= 0) [ road-color road-frc ] [ item (g - 1) grade-colors ]
+  set thickness (ifelse-value (g < 0) [ road-width road-frc cc? ] [ section-width road-frc g cc? ]) / patch-size
+end
+
+;; recolour the roads of the sections at positions ids to their speed grade
+to draw-sections [ ids ]
   let cc? map-view = "City centre"
-  let feats ifelse-value cc? [ sec-feats-cc ] [ sec-feats ]
-  if erase? [
-    gis:set-drawing-color black
-    foreach ids [ i ->
-      let w (section-width (item i sec-frc) (item i grade-shown) cc?) + 2
-      foreach item i feats [ f -> gis:draw f w ]
-    ]
-  ]
   foreach ids [ i ->
-    let k item i sec-frc
-    let g item i speed-grade
-    gis:set-drawing-color ifelse-value (g = 0) [ road-color k ] [ item (g - 1) grade-colors ]
-    let w section-width k g cc?
-    foreach item i feats [ f -> gis:draw f w ]
-    set grade-shown replace-item i grade-shown g
+    ask link-set item i sec-links [ style-road cc? ]
+    set grade-shown replace-item i grade-shown (item i speed-grade)
   ]
 end
 
-;; sections redrawn per tick at most (about 0.1 ms each, with the erase, in the Auckland view), so
-;; that a 5-minute mark at which many roads change colour (about 07:25, 08:05, 08:45 and 09:15 to
-;; 09:20 in the canonical R-clock run: 1,000 to 2,100 sections)
-;; does not stall the animation
-to-report road-redraw-budget
-  report 60
-end
-
-;; Every 5 simulated minutes: grade the sections again (regrade-roads) and queue those whose colour
-;; changed; each tick redraws up to road-redraw-budget of the queue over the drawing (a view change
-;; redraws the whole map)
+;; Every 5 simulated minutes: grade the sections again (regrade-roads) and recolour the roads of
+;; those whose colour changed (a link's colour is cheap to set, so all at once)
 to update-road-colours
-  if empty? sec-feats [ stop ]
+  if empty? sec-links [ stop ]
   if 5 * floor (clock / 5) != grade-minute [ regrade-roads ]
-  draw-pending road-redraw-budget
+  draw-pending length grade-pending
 end
 
-;; redraw the first n queued sections
+;; recolour the first n queued sections
 to draw-pending [ n ]
   if empty? grade-pending [ stop ]
   let k min (list n length grade-pending)
-  draw-sections sublist grade-pending 0 k true
+  draw-sections sublist grade-pending 0 k
   set grade-pending sublist grade-pending k length grade-pending
-  draw-cordon
 end
 
 ;; grade every section at the last 5-minute mark of the clock (speed-grades-at) and queue, in
@@ -1492,7 +1474,7 @@ end
 ;; One tick = 15 simulated seconds. The day ends when every commuter has arrived; go then stops,
 ;; or with keep-going? on the next day of the days charge-on picks follows (next-day-to-show).
 to go
-  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not is-list? map-env [ user-message "Press setup first." stop ]
   if not day-running? [
     let d next-day-to-show
     if is-string? d [ user-message d  stop ]
@@ -1513,7 +1495,7 @@ end
 
 ;; the rest of today (or the whole next day) at once, without animation
 to finish-day
-  if not is-list? road-classes [ user-message "Press setup first." stop ]
+  if not is-list? map-env [ user-message "Press setup first." stop ]
   if not day-running? [
     let d next-day-to-show
     if is-string? d [ user-message d  stop ]
@@ -2453,7 +2435,7 @@ Routes. A commuter's gate is the prep gate of its origin (`../data/origins.csv`,
 
 Road traffic. A run folder made with road congestion on (road_sections.csv, agent_routes.csv, road_profile.csv and road_params.csv) splits each commuter's route to its gate into road sections. Each minute a section carries background traffic (from the AT/NZTA traffic counts, rising through the morning) plus the commuters' own cars that entered it in the last 15 minutes, each agent standing for about 20 cars (19,000 cars, 950 agents). The busier a section is for its capacity, the slower cars drive on it, so a car that leaves at 07:45 takes longer than one that leaves at 06:30, and fewer commuter cars ease the roads. This is the engine's procedure road-arrivals, the same as PyEngine, so every road delay equals the run's. Without these files (an older run folder, a synthetic folder) the roads are free-flow and the road delay is 0. The roads inside the cordon are never congested: the gate queue stands for that.
 
-Motorway breakdown. Auckland's motorways run over capacity for hours every morning, and their flow breaks down into stop-and-go traffic. In a run made with motorway breakdown on (road_params.csv `mwy_breakdown` 1), a motorway section (a motorway road of the TomTom network by class or by name, such as the Harbour Bridge, signed 70 km/h or more, not a ramp: road_sections.csv `mwy` 1) is broken down inside its usual breakdown window (`bd_on`, `bd_off`) and at any other minute when today's traffic, with the commuters' cars, reaches its capacity. Motorway jam timing comes from NZTA traffic counts: on a motorway with count sites, each section takes the window, the capacity, the morning traffic and the capacity drop that the counts of the nearest count site on the same motorway show (road_sections.csv `profile_id`, `cap_drop`; road_profile.csv has one time profile per site), so each motorway breaks down at its own time. The usual windows are: the Harbour Bridge from about 06:15 to 09:30; the Northern Motorway between Albany and Tristram Avenue from about 06:45 until about 09:30, and the Northern Motorway around Northcote from about 06:45 until 11:00; the Southern Motorway between the city and Mt Wellington from between 06:45 and 07:15 until 11:00, and the Southern Motorway south of Mt Wellington from about 07:15 until about 09:45; the Northwestern from between 06:30 and 07:15 until about 09:45. The counts around Northcote and between the city and Mt Wellington show no recovery before 11:00. Motorways with no count site of their own (the Upper Harbour Motorway and the roads to the airport) keep the default window, from about 07:10 to 10:00 (six Upper Harbour stretches, whose capacity is raised to the minimum for their road class, jam a little later and clear at about 09:20 to 09:40). The counts at the Northwestern's city end and on the Southwestern show no breakdown, so the Northwestern's city end and the whole Southwestern break down only when today's traffic fills them. Broken-down flow loses capacity (the drop the counts show, 6% to 26%, else 10%) and moves at no more than 45% of the free-flow speed (45 km/h on a 100 km/h motorway). The usual windows come from the traffic counts, so fewer commuter cars on charged days cannot shorten them: they can only prevent the breakdowns that today's traffic starts. This is part of road-arrivals, the same as in PyEngine.
+Motorway breakdown. Auckland's motorways run over capacity for hours every morning, and their flow breaks down into stop-and-go traffic. In a run made with motorway breakdown on (road_params.csv `mwy_breakdown` 1), a motorway section (a motorway road of the TomTom network by class or by name, such as the Harbour Bridge, signed 70 km/h or more, not a ramp: road_sections.csv `mwy` 1) is broken down inside its usual breakdown window (`bd_on`, `bd_off`) and at any other minute when today's traffic, with the commuters' cars, reaches its capacity. Motorway jam timing comes from NZTA traffic counts: on a motorway with count sites, each section takes the window, the capacity, the morning traffic and the capacity drop that the counts of the nearest count site on the same motorway show (road_sections.csv `profile_id`, `cap_drop`; road_profile.csv has one time profile per site), so each motorway breaks down at its own time. The usual windows are: the Harbour Bridge from about 06:15 to 09:30; the Northern Motorway between Albany and Tristram Avenue from about 06:45 until about 09:30, and the Northern Motorway around Northcote from about 06:45 until 11:00; the Southern Motorway between the city and Mt Wellington from between 06:45 and 07:15 until 11:00, and the Southern Motorway south of Mt Wellington from about 07:15 until about 09:45; the Northwestern from between 06:30 and 07:15 until about 09:45. The counts around Northcote and between the city and Mt Wellington show no recovery before 11:00. Motorways with no count site of their own (the Upper Harbour Motorway and the roads to the airport) keep the default window, from about 07:10 to 10:00 (seven Upper Harbour stretches, whose capacity is raised to the minimum for their road class, jam a little later and clear at about 09:15 to 09:30). The counts at the Northwestern's city end and on the Southwestern show no breakdown, so the Northwestern's city end and the whole Southwestern break down only when today's traffic fills them. Broken-down flow loses capacity (the drop the counts show, 6% to 26%, else 10%) and moves at no more than 45% of the free-flow speed (45 km/h on a 100 km/h motorway). The usual windows come from the traffic counts, so fewer commuter cars on charged days cannot shorten them: they can only prevent the breakdowns that today's traffic starts. This is part of road-arrivals, the same as in PyEngine.
 
 Clock. The minutes are those of the Cordon-Lite engine. Gate arrival = departure + free-flow minutes to the gate (agents.csv) + road delay (whole minutes). The queue is the engine's Vickrey point queue per corridor (procedure point-queues, the same FIFO order, carry and cap as PyEngine), so every gate-exit minute equals the run's. Arrival = gate exit + free-flow minutes from the gate. Before its gate a car follows its section times from road-arrivals: it covers each section's free-flow minutes of route in the minutes the traffic gives it, so it slows down on busy sections, and it reaches the gate point exactly at its gate arrival minute (its times are stretched by about a minute at most for that, as the engine counts whole minutes). Without road files, and after the gate, a car moves along its route at constant speed. Cars are drawn every 15 simulated seconds (one tick). A day lasts until the last commuter has arrived, then the next day can start. The workplace building therefore sets where a car parks, not when it arrives: the engine's gate-to-destination minutes refer to the single prep destination, not to the building. In a 950-agent R-clock run with road congestion and motorway breakdown the implied speeds to the gate (route length / (gate arrival - departure)) are a median of 42 km/h on days 6 and 25 (5-95%: 23-72 km/h); at free flow they would be a median of 78 km/h (5-95%: 50-95 km/h). From the gate to the parking node the median is 43 km/h (5-95%: 14-77 km/h; a few short engine legs give up to about 96 km/h). Queued cars are red and are drawn back along the approach road from the gate. Each agent stands for about 20 cars (agents_represented / agents: 19,000 / 950), so each takes up about 70 m of road (7 m per car, 2 lanes): the queue on the map is as long as the real queue. A queued car is drawn smaller than a moving one so that it fits its 70 m and the cars of a queue stand apart; in the Auckland view a whole queue is only a few patches long, so its cars still overlap there.
 

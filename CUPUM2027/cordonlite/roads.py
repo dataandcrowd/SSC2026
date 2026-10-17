@@ -870,7 +870,7 @@ LOS_BINS: tuple[tuple[str, int, int], ...] = (("06:00-07:00", 360, 420), ("07:00
                                               (LOS_PEAK_BIN, 420, 540))
 LOS_FIRST_MIN, LOS_END_MIN = 360, 600
 # (label, first day, last day): a run has a period when it has all its days; without any, "all" days
-LOS_PERIODS: tuple[tuple[str, int, int], ...] = (("d6-10", 6, 10), ("d21-30", 21, 30))
+LOS_PERIODS: tuple[tuple[str, int, int], ...] = (("d2-5", 2, 5), ("d6-10", 6, 10), ("d21-30", 21, 30))   # d2-5 added 2026-10-15: the uncharged days of the 10-day design
 LOS_ALL_PERIOD = "all"
 LOS_GROUPS_FIXED: tuple[str, ...] = ("motorway", "other", "all")
 ROAD_LOS_COLUMNS: tuple[str, ...] = (

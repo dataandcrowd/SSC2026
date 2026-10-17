@@ -105,6 +105,16 @@ class PrepConfig:
     map_sample_origins: int
     gate_rule: str = "first_entry"
     seed: int = 11
+    # Census OD (prep.build_od, 2026-10-16): car drivers into the cordon by home SA2 -> od_csv
+    census_od_csv: str = "../../gtfs-isochrone/data/census/2023-census-main-means-of-travel-to-work-by-statistical-area.csv"
+    sa2_gpkg: str = "../../gtfs-isochrone/data/sa2/auckland_sa2.gpkg"
+    sa2_code_field: str = "SA22026_V1_00"
+    sa2_name_field: str = "SA22026_V1_00_NAME_ASCII"
+    od_modes: tuple[str, ...] = ("2023_Drive_a_private_car_truck_or_van", "2023_Drive_a_company_car_truck_or_van")
+    od_suppressed_cap: float = 5.0
+    od_suppressed_total: float = 3.0
+    od_within_sa2: str = "proxy"
+    origin_draw: str = "unique"
     # road congestion inputs (prep.build_roads, 2026-10-07)
     roads_shp: str = "netlogo7/gis/tomtom_major_roads.shp"
     adt_geojson: str = "../../SSC2026/netlogo/Data/Average_Daily_Traffic_Counts.geojson"
@@ -363,7 +373,12 @@ _NESTED: dict[tuple[str, str], type] = {("llm", "mock"): MockLLMConfig}
 # limit). A section in _ADDED_SECTIONS may be missing as a whole. fees.peak_fee is derived from the
 # snapshot's own schedule instead (_migrate_fees). Every other key must be present.
 _ADDED_KEYS: tuple[tuple[str, str], ...] = (("run", "compress_csv_over_mb"),
-                                           ("wtt", "beta0"), ("wtt", "beta_clip"), ("wtt", "vot_ref"))
+                                           ("wtt", "beta0"), ("wtt", "beta_clip"), ("wtt", "vot_ref"),
+                                           ("prep", "census_od_csv"), ("prep", "sa2_gpkg"),
+                                           ("prep", "sa2_code_field"), ("prep", "sa2_name_field"),
+                                           ("prep", "od_modes"), ("prep", "od_suppressed_cap"),
+                                           ("prep", "od_suppressed_total"), ("prep", "od_within_sa2"),
+                                           ("prep", "origin_draw"))
 _ADDED_SECTIONS: tuple[str, ...] = ("wtt",)
 # Keys retired since (section path, key). An older config_snapshot.toml still has them; load_config drops
 # them, so it loads. 2026-10-09: SKIP removed (costs.skip_cost, costs.skip_vot_hours, llm.mock.w_skip);
@@ -547,6 +562,11 @@ def _validate(cfg: Config) -> None:
     check(1 <= t.off_level <= N_LEVELS, "traits.off_level out of range")
     check(len(cfg.clock.late_tolerance_by_F) == N_LEVELS, "clock.late_tolerance_by_F needs 5 entries")
     check(cfg.prep.gate_rule in ("last_entry", "first_entry"), "prep.gate_rule must be last_entry or first_entry")
+    check(cfg.prep.od_within_sa2 in ("proxy", "snap"), "prep.od_within_sa2 must be proxy or snap")
+    check(cfg.prep.origin_draw in ("unique", "iid"), "prep.origin_draw must be unique or iid")
+    check(len(cfg.prep.od_modes) >= 1, "prep.od_modes needs at least one Census mode column")
+    check(0 <= cfg.prep.od_suppressed_total <= cfg.prep.od_suppressed_cap,
+          "prep.od_suppressed_total must be in [0, od_suppressed_cap]")
     check(len(cfg.prep.frc_capacity_vph) == 5, "prep.frc_capacity_vph needs 5 entries (frc 0..4)")
     r = cfg.road
     check(r.bpr_beta == 4, "road.bpr_beta must be 4 (the engines compute (x*x)*(x*x))")
