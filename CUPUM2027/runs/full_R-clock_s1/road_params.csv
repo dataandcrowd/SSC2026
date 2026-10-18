@@ -1,0 +1,11 @@
+key,value
+bpr_alpha,0.15
+bpr_beta,4
+speed_floor,0.18
+flow_window_min,15
+vehicles_per_agent,20.0
+mwy_breakdown,1
+mwy_breakdown_vc,1.0
+mwy_recover_vc,0.95
+mwy_capacity_drop,0.1
+mwy_jam_speed,0.45
