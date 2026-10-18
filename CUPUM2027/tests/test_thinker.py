@@ -104,7 +104,8 @@ def test_offers_and_schema(ctxs: list[DecisionContext], tiny_cfg: Config) -> Non
         good = mock.complete(T.THINK_SYSTEM, "u", s, c)
         assert T.validate_reply(good, s) == (True, "")
         assert not T.validate_reply({**good, "what_i_do": "teleport"}, s)[0]
-        assert not T.validate_reply({**good, "trying_it_out_for_days": 7}, s)[0]
+        assert s["properties"]["trying_it_out_for_days"]["enum"] == [0, 2, 3]
+        assert not T.validate_reply({**good, "trying_it_out_for_days": 5}, s)[0]
         assert not T.validate_reply({**good, "in_my_words": " "}, s)[0]
         g = T.by_strategy(c.options)
         today = T.today_offers(g, lambda k: T._pick(c, g[k]))
@@ -131,13 +132,13 @@ def test_messages(ctxs: list[DecisionContext], tiny_cfg: Config, capsys: pytest.
     for c in ctxs:
         plan = _plan_for(c)
         texts = {"charge": T.render_think_prompt(c, "change", _offers(c, plan, "charge"), plan, "charge", cfg)}
-        mixed = replace(plan, other="work_from_home", other_days=1, review_day=6, made_on=1,
+        mixed = replace(plan, other="work_from_home", other_days=1, review_day=6, made_on=3,
                         words="I will see how it goes.")
         g = T.by_strategy(c.options)
         if "work_from_home" in g:
             texts["review"] = T.render_think_prompt(c, "change", _offers(c, mixed, "review"), mixed, "review", cfg)
             assert "you have had a mixed week" in texts["review"] and "as your main way" in texts["review"]
-            assert "- The 5 days you gave yourself to try this are up." in texts["review"]
+            assert "- The 3 days you gave yourself to try this are up." in texts["review"]
             assert "you said: \"I will see how it goes.\"" in texts["review"]
         noted = T.render_think_prompt(c, "change", _offers(c, plan, "late"), plan, "late", cfg,
                                       notes=((c.day - 1, "drive"), (c.day - 40, "work_from_home")))

@@ -44,7 +44,9 @@ Assumptions [A] (author decisions 2026-10-07, not calibrated):
       positions (OTHER_DAYS), so a mixed week is deterministic; a trial is reviewed once;
     - until the LLM has answered for a commuter, both "keeps arriving late" and "drive much longer"
       can raise a question; afterwards the commuter's own would_rethink_if list decides;
-    - a late or longer-drive question is not put again within 5 days of the last answer;
+    - a late or longer-drive question is not put again within 3 days of the last answer;
+    - a trial lasts 2 or 3 days (5 or 10 until 2026-10-18, for the 30-day run; changed for the 10-day
+      design with the charge from day 6, so that a trial started on the charge day is reviewed in the run);
     - drive_other_time, when the question is about the charge, is the model's choice among the
       departures with a lower charge than the usual one (none offered if there is none); otherwise it
       is the model's choice among all other departures.
@@ -85,7 +87,7 @@ RETHINK: tuple[str, ...] = ("late_twice_in_a_week", "trip_much_longer", "nothing
 DEFAULT_RETHINK: tuple[str, ...] = RETHINK[:2]
 BUS_ANYWAY = "bus_anyway"
 NOT_APPLICABLE = "not_applicable"
-ASK_AGAIN_AFTER = 5            # days before a late or longer-drive question is put again [A]
+ASK_AGAIN_AFTER = 3            # days before a late or longer-drive question is put again [A]
 OTHER_DAYS: dict[int, tuple[int, ...]] = {0: (), 1: (2,), 2: (1, 3), 3: (0, 2, 4), 4: (0, 1, 3, 4)}
 WEEK = 5
 # Reason tags of a reply; reason_tags() narrows them to the ones that can apply to the agent-day.
@@ -508,7 +510,7 @@ def render_think_prompt(ctx: DecisionContext, task: str, offers: Mapping[str, Op
                     "way on some days, give it (second_choice) and say on how many days out of 5 "
                     "(days_a_week_on_second); otherwise \"none\" and 0. Your answer replaces your present "
                     "arrangement, so repeat any part of it you want to keep.",
-                "Say too whether you are trying this out (trying_it_out_for_days: 5 or 10) or have decided "
+                "Say too whether you are trying this out (trying_it_out_for_days: 2 or 3) or have decided "
                 "(0); what you would do on a morning when buses and trains are disrupted (if_bus_disrupted; "
                 "\"not_applicable\" if you would not be using them); what would make you think again "
                 "(would_rethink_if); and how settled you feel (how_settled)."]
@@ -556,7 +558,7 @@ def think_schema(task: str, offers: Mapping[str, Option], ctx: DecisionContext) 
             "what_i_do": {"type": "string", "enum": ids},
             "second_choice": {"type": "string", "enum": ids + [NONE]},
             "days_a_week_on_second": {"type": "integer", "enum": [0, 1, 2, 3, 4]},
-            "trying_it_out_for_days": {"type": "integer", "enum": [0, 5, 10]},
+            "trying_it_out_for_days": {"type": "integer", "enum": [0, 2, 3]},
             "if_bus_disrupted": {"type": "string", "enum": backups},
             "would_rethink_if": {"type": "array", "items": {"type": "string", "enum": list(RETHINK)}},
             "how_settled": {"type": "string", "enum": ["firm", "leaning", "torn"]},
