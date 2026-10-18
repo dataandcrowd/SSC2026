@@ -4830,7 +4830,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 78,6,CAR_0715,CAR,435,llm,T2;T6,"The charge at my usual time is over what I'll pay, so I'll leave earlier and drive in before 07:30 for NZ$4. Arriving super early costs me little, and it's cheaper than the bus.",other_money;road_charge,31.9988,2,525,False,6,False
 79,6,PT,PT,,llm,T2,"The bus gets me there about the same time as driving, and it costs less than fuel plus the new charge, so I'll give it a go. Driving now costs about $15.57 a day, against $7 for the bus.",other_money;road_charge,39.6752,7,525,False,0,False
 80,6,CAR_0830,CAR,510,llm,T2,"I'd rather not take the bus, but WFH costs nothing and avoids the new charge, though rearranging my day is a nuisance. Driving now costs about $28 a day, so I'll work from home on some days and keep driving on others.",routine;road_charge,34.0298,2,525,False,0,False
-81,6,PT,PT,,llm,T2,"The bus has got me there on time for $7 a day, while driving would cost about $25 and not save anything. I'm happy to keep taking the bus and I've made up my mind.",other_money;arrival_time,24.7765,1,540,False,0,False
+81,6,PT,PT,,llm,T2,"The bus got me there on time and costs far less than driving, which now also carries a road charge on top of parking and fuel. I'll stay on the bus.",other_money;arrival_time,24.7765,1,540,False,0,False
 82,6,CAR_0745,CAR,465,llm,T2,"The charge is only about NZ$5.27 and driving is still much quicker and cheaper than the bus at NZ$7, so I'll keep driving the way I do now. Leaving earlier would save a dollar or so but costs me waiting time, so it isn't worth changing.",routine;travel_time,12.473,1,480,False,0,False
 83,6,PT,PT,,llm,T2,"Driving now costs about NZ$20 a day before my time, and the bus is NZ$7 for about the same arrival time. That's clearly worth switching for, so I'll try the bus and see how it goes.",other_money;road_charge,38.6159,5,525,False,0,False
 84,6,CAR_0830,CAR,510,llm,T2,"Driving still gets me there about on time and costs less than the bus even with the charge, and I'd rather not take the bus or change my hours. I'll keep driving and watch whether I start running late.",routine;road_charge,22.1971,1,525,False,0,False
@@ -4913,10 +4913,10 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 161,6,WFH,WFH,,llm,T2,"Working from home costs me nothing, no fuel and no charge, so it beats paying about $17 a day to drive or $7 for the bus. I can do it any day, so I'll work from home.",flexibility;other_money,24.7728,2,,False,0,False
 162,6,PT,PT,,llm,T2,"Driving now costs about $19 a day and I'd still get in 40 minutes early, while the bus is $7 and gets me there right on time. I'm comfortable on buses, so I'll switch and drive only if the bus is disrupted.",other_money;road_charge,26.3188,1,510,False,0,False
 163,6,CAR_0745,CAR,465,standing,T2,,,8.7853,1,480,False,0,False
-164,6,PT,PT,,llm,T2,"The bus has worked fine for three days, getting me in early for $7, which is cheaper than driving with fuel and the charge. I'll stick with it and not bother changing anything.",other_money;arrival_time,32.7175,12,525,False,0,False
+164,6,PT,PT,,llm,T2,"The bus gets me in before 08:45 for $7, while driving now costs $14.31 with the charge and still has a queue. I'll stay on the bus, since it's been working fine.",other_money;arrival_time,32.7175,12,525,False,0,False
 165,6,CAR_0615,CAR,375,llm,T2,"The $4 charge is annoying, but driving still costs me about $15.70 a day all up and gets me in early with no hassle. The bus is $7 and a lot longer, and working from home every day isn't something I want to do, so I'll stick with my usual drive.",routine;road_charge,24.7139,1,420,True,0,False
 166,6,PT,PT,,forced,T2;T6,Only feasible option.,work_constraint,37.7618,1,480,False,11,True
-167,6,PT,PT,,llm,T2,"The bus has got me there on time for $7 with no parking, fuel or charge to pay, so I'll keep doing it. Driving would cost far more and has made me late before.",other_money;arrival_time,34.5378,1,525,False,0,False
+167,6,PT,PT,,llm,T2,"The bus has worked for three days, getting me in at 08:44 for $7, and driving would now cost about $28.66 with the new charge, so I'm staying on the bus.",other_money;routine,34.5378,1,525,False,0,False
 168,6,PT,PT,,llm,T2,"Driving costs me about 24.24 a day with the charge, but the bus at 7.00 is far cheaper and gets me there at 08:44 with a minute to spare. I'm flexible on start time, and I'd use the bus since it's clearly worth it, though I'll see how it goes.",other_money;road_charge,30.7449,4,525,False,0,False
 169,6,CAR_0815,CAR,495,llm,T2,"I'll keep driving at my usual time. Leaving earlier is a real hassle and I'd rather not take the bus, and the extra dollars or two of charge don't change that enough.",routine;road_charge,19.4307,1,525,False,0,False
 170,6,CAR_0815,CAR,495,standing,T2,,,3.4732,1,510,False,0,False
@@ -4927,7 +4927,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 175,6,CAR_0630,CAR,390,standing,T2,,,11.452,1,420,True,0,False
 176,6,PT,PT,,forced,T2;T6,Only feasible option.,work_constraint,28.3302,1,450,False,9,True
 177,6,PT,PT,,standing,T2,,,33.8016,1,555,False,0,False
-178,6,PT,PT,,llm,T2,"The bus has worked: it's cheaper than driving, I arrive early and I skip the queue, so I'm sticking with it.",other_money;arrival_time,27.9957,1,525,False,0,False
+178,6,PT,PT,,llm,T2,"The bus has been working: it's cheap, gets me in early and skips the queue, and now driving costs an extra $6 on top of the fuel. I'll stay on the bus.",other_money;road_charge,27.9957,1,525,False,0,False
 179,6,PT,PT,,standing,T2,,,26.6652,1,540,False,0,False
 180,6,CAR_0645,CAR,405,standing,T2,,,1.1948,1,420,False,0,False
 181,6,PT,PT,,llm,T2,"Driving costs me about $28 a day with the charge, while the bus is $7 and gets me there a bit earlier, but I'd rather not take buses, and the extra charge is a small annoyance. Yet the saving is large, so I'll switch and see how it goes.",other_money;road_charge,43.861,6,600,False,0,False
@@ -5098,7 +5098,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 346,6,PT,PT,,llm,T2,"The bus costs $7 against about $22 to drive with the charge, and it gets me there on time, so I'll switch. Driving was already costing me a few minutes late, and the charge just tips it.",other_money;road_charge,31.4238,9,525,False,0,False
 347,6,CAR_0630,CAR,390,llm,T2,"The charge is only $4 a day and I don't mind it much, so I'll keep driving in early and working 7 to 3 like I have been. Buses aren't clearly better, and moving my hours is a nuisance.",routine;road_charge,25.6318,1,420,True,0,False
 348,6,PT,PT,,standing,T2,,,25.2465,1,465,False,0,False
-349,6,PT,PT,,llm,T2,"The bus has got me in on time for three days and costs NZ$7 against over NZ$34 to drive with the charge, so I'll stay on it and not change my hours.",other_money;arrival_time,40.0938,1,510,False,0,False
+349,6,PT,PT,,llm,T2,"The bus gets me in at 08:29 for $7, while driving now costs about $34 a day with the new charge and I was late driving before. I'll stay on the bus; nothing has gone wrong with it.",other_money;road_charge,40.0938,1,510,False,0,False
 350,6,CAR_0745,CAR,465,standing,T2,,,3.707,1,495,False,0,False
 351,6,PT,PT,,llm,T2,"Bus costs $7 for the day against about $24.73 to drive now (parking, fuel and the $6 charge), and I'd still get in 6 minutes early. Even though I usually just carry on, that gap is big enough to switch.",other_money;road_charge,36.6694,1,525,False,0,False
 352,6,CAR_0700,CAR,420,llm,T2,"I'm already arriving 45 minutes early, so leaving at 07:00 and crossing earlier saves me NZ$2 a day and a lot of traffic time. Working from home or the bus costs more or means a bigger change, so I'll shift my driving earlier.",road_charge;travel_time,29.263,6,540,False,0,False
@@ -5189,7 +5189,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 437,6,PT,PT,,standing,T2,,,37.4044,1,510,False,0,False
 438,6,PT,PT,,standing,T2,,,20.8287,1,525,False,0,False
 439,6,PT,PT,,standing,T2,,,24.9496,1,525,False,0,False
-440,6,PT,PT,,llm,T2,"The bus has got me in on time and costs far less than driving with parking, fuel and now a charge, so I'm sticking with it.",other_money;past_experience,23.3121,1,495,False,0,False
+440,6,PT,PT,,llm,T2,"The bus has got me there on time and costs $7 against about $22 for driving with parking, fuel and the new charge, so I'm staying on the bus.",other_money;road_charge,23.3121,1,495,False,0,False
 441,6,CAR_0830,CAR,510,standing,T2,,,16.0683,1,540,False,0,False
 442,6,CAR_0815,CAR,495,llm,T2,"I'll keep driving at my usual time. The extra $6 stings, but the bus costs more and takes longer, and leaving at a different time would upset my routine too much.",routine;other_money,16.71,1,510,False,0,False
 443,6,CAR_0730,CAR,450,standing,T2,,,6.3217,1,465,False,0,False
@@ -5536,7 +5536,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 784,6,PT,PT,,llm,T2,"The new charge on top of fuel makes driving cost noticeably more than the bus, and the bus still gets me there before 08:15, so I'll give it a go and see how it works.",road_charge;other_money,33.8,11,495,False,0,False
 785,6,CAR_0700,CAR,420,llm,T2,"The charge is only a bit more than a dollar extra for what I do now, and I'd arrive early either way, so leaving at 07:00 saves some money and costs me little. Work from home is free but I'll mostly keep driving.",road_charge;flexibility,24.8916,1,495,False,0,False
 786,6,PT,PT,,llm,T2,"Driving now costs me about $27 a day with the charge and I'd be 9 minutes late, while the bus is $7, gets me there 6 minutes early and is clearly better, so I'll switch even though I don't like buses.",arrival_time;other_money,57.6897,6,510,False,0,False
-787,6,PT,PT,,llm,T2,"The bus has worked: I'm arriving on time for $7, well under the $24 it would cost to drive with the charge, so I'm sticking with it.",other_money;arrival_time,42.2346,1,540,False,0,False
+787,6,PT,PT,,llm,T2,"The bus has been getting me there on time for $7, and driving now costs about $24 a day with the new charge, so I'll keep taking the bus and not change anything.",other_money;road_charge,42.2346,1,540,False,0,False
 788,6,CAR_0830,CAR,510,standing,T2,,,16.6579,4,525,False,0,False
 789,6,CAR_0630,CAR,390,llm,T2,"The charge is only $4 at my usual time and the drive is quick and cheap in time, so I'll keep driving in early and working 07:00 to 15:00 as I have been.",routine;travel_time,55.6932,3,420,True,0,False
 790,6,CAR_0945,CAR,585,llm,T2,"The charge is only $4 on top of my usual driving costs, and driving still costs about the same as the bus and gets me there on time with less hassle. I'd rather not take the bus, so I'll keep driving.",routine;bus_train_preference,23.8673,1,600,False,0,False
@@ -5654,7 +5654,7 @@ agent_id,day,option_id,mode,depart_min,decider,triggers,reason,factors,gc_of_cho
 902,6,CAR_0815,CAR,495,standing,T2,,,4.8506,1,510,False,0,False
 903,6,PT,PT,,standing,T2,,,19.0024,1,525,False,12,True
 904,6,PT,PT,,forced,T2;T6,Only feasible option.,work_constraint,32.2378,1,495,False,11,True
-905,6,PT,PT,,llm,T2,"The bus has worked for three days, getting me in on time for $7, and I'm happy with it. Driving would be free but the traffic and queue made me late before, so I'll stick with the bus.",routine;past_experience,20.9903,10,525,False,0,False
+905,6,PT,PT,,llm,T2,"The bus has been working fine, getting me there on time for $7, and the new charge isn't my cost since my employer pays it. Driving would be free but still has traffic and queues, so I'll stick with the bus.",routine;past_experience,20.9903,10,525,False,0,False
 906,6,PT,PT,,llm,T2,"The bus costs NZ$7 against about NZ$24 to drive with the charge, and it gets me there just before 08:15 with no real downside. Even though changing is a bother, the saving is large enough that I'll switch.",other_money;road_charge,25.3806,1,495,False,0,False
 907,6,PT,PT,,forced,T2;T6,Only feasible option.,work_constraint,31.508,1,495,False,11,True
 908,6,CAR_0700,CAR,420,standing,T2,,,4.2906,1,435,False,0,False

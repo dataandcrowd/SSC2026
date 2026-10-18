@@ -41,7 +41,7 @@
    "mwy_capacity_drop": 0.1,
    "mwy_jam_speed": 0.45
   },
-  "variant": "",
+  "variant": "_set-7606b9c2",
   "calls_total": {
    "rule": 950,
    "llm": 771,
@@ -66,19 +66,19 @@
   "revenue_total": 13247.6667,
   "llm": {
    "n_contexts": 771,
-   "n_calls": 771,
-   "n_cache_hits": 0,
+   "n_calls": 8,
+   "n_cache_hits": 763,
    "n_shared": 0,
    "n_invalid": 0,
    "n_api_errors": 0,
    "n_refusals": 0,
    "n_fallback": 0,
-   "prompt_chars": 4483477,
-   "input_tokens": 1002396,
-   "output_tokens": 169986,
-   "cache_creation_input_tokens": 43808,
-   "cache_read_input_tokens": 1221995,
-   "approx_input_tokens": 1120870,
+   "prompt_chars": 4486648,
+   "input_tokens": 11000,
+   "output_tokens": 1525,
+   "cache_creation_input_tokens": 0,
+   "cache_read_input_tokens": 13063,
+   "approx_input_tokens": 1121662,
    "approx_note": "approximate: prompt characters / 4"
   }
  },

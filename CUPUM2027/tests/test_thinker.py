@@ -152,6 +152,10 @@ def test_messages(ctxs: list[DecisionContext], tiny_cfg: Config, capsys: pytest.
         tol = cfg.clock.late_tolerance_by_F[c.persona.F - 1]
         assert f"- You keep arriving more than {tol:g} min after your start time." in texts["late"]
         assert "WHAT YOU COULD DO THIS MORNING" in texts["today"]
+        # the charge starts today (fixture): a question asked for another reason says so too
+        for name in ("late", "trip", "today") + (("review",) if "review" in texts else ()):
+            assert "- From today there is a charge for driving into the city centre." in texts[name], name
+            assert "is still in place" not in texts[name], name
         for name, text in texts.items():
             for head in ("WHO YOU ARE", "WHAT YOU HAVE BEEN DOING", "WHAT YOU COULD DO"):
                 assert head in text, (c.agent_id, name, head)

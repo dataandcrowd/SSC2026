@@ -463,8 +463,19 @@ def _happened(ctx: DecisionContext, task: str, why: str, plan: Plan, keep: Optio
     """Heading and lines of the section that says why the commuter is thinking now."""
     t, p = ctx.today, ctx.persona
     limit = _would_not_pay(ctx, plan, keep)
-    still = (["- The charge for driving into the city centre is still in place."]
-             if (t.fee_active and not t.fee_changed_today) else []) + limit
+    # the charge, for a question asked for another reason: on the day it starts or changes the
+    # commuter is told so, with the schedule, as in a charge question (until 2026-10-18 nothing was said)
+    if t.fee_active and t.fee_changed_today:
+        lead = ("- From today the charge for driving into the city centre changes."
+                if charged_before else "- From today there is a charge for driving into the city centre.")
+        news = [lead + " It depends on the time you cross into the city centre:"] + _charge_lines(ctx, cfg)
+    elif t.fee_active:
+        news = ["- The charge for driving into the city centre is still in place."]
+    elif t.fee_changed_today:
+        news = ["- From today the charge for driving into the city centre no longer applies."]
+    else:
+        news = []
+    still = news + limit
     if task == "today":
         return ["WHAT IS DIFFERENT TODAY",
                 "- Buses and trains from your area are disrupted today: trips are taking about "
