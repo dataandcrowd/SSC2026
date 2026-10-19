@@ -1,0 +1,497 @@
+scenario,arm,circumstance,level,drivers,bus or train,kept time,mixed week,retimed,work from home
+NZ6_s1,H-clock,routine (H),1,31,45.2,41.9,9.7,3.2,0.0
+NZ6_s1,H-clock,routine (H),2,90,35.6,45.6,10.0,5.6,3.3
+NZ6_s1,H-clock,routine (H),3,199,31.2,57.8,4.5,5.5,1.0
+NZ6_s1,H-clock,routine (H),4,278,28.1,62.6,4.3,4.0,1.1
+NZ6_s1,H-clock,routine (H),5,204,22.5,68.1,1.0,6.4,2.0
+NZ6_s1,H-clock,flexibility (F),1,79,21.5,73.4,2.5,1.3,1.3
+NZ6_s1,H-clock,flexibility (F),2,149,30.2,67.8,1.3,0.0,0.7
+NZ6_s1,H-clock,flexibility (F),3,339,29.8,61.4,2.7,4.4,1.8
+NZ6_s1,H-clock,flexibility (F),4,160,27.5,56.9,3.1,11.9,0.6
+NZ6_s1,H-clock,flexibility (F),5,75,33.3,32.0,22.7,8.0,4.0
+NZ6_s1,H-clock,attitude to bus/train (P),1,82,8.5,80.5,1.2,8.5,1.2
+NZ6_s1,H-clock,attitude to bus/train (P),2,180,17.2,70.6,5.0,4.4,2.8
+NZ6_s1,H-clock,attitude to bus/train (P),3,361,38.0,51.8,4.4,4.4,1.4
+NZ6_s1,H-clock,attitude to bus/train (P),4,133,32.3,57.1,4.5,5.3,0.8
+NZ6_s1,H-clock,attitude to bus/train (P),5,46,30.4,56.5,6.5,6.5,0.0
+NZ6_s1,H-clock,charge sensitivity (S),1,88,21.6,64.8,8.0,3.4,2.3
+NZ6_s1,H-clock,charge sensitivity (S),2,159,32.7,57.9,2.5,5.7,1.3
+NZ6_s1,H-clock,charge sensitivity (S),3,326,28.2,61.3,5.5,3.7,1.2
+NZ6_s1,H-clock,charge sensitivity (S),4,148,30.4,58.1,1.4,8.1,2.0
+NZ6_s1,H-clock,charge sensitivity (S),5,81,29.6,58.0,4.9,6.2,1.2
+NZ6_s1,H-clock,pays parking,no,487,18.7,69.4,4.7,5.7,1.4
+NZ6_s1,H-clock,pays parking,yes,315,44.8,45.7,3.8,4.1,1.6
+NZ6_s1,H-clock,employer pays charge,no,677,34.3,52.7,5.2,6.1,1.8
+NZ6_s1,H-clock,employer pays charge,yes,125,0.0,100.0,0.0,0.0,0.0
+NZ6_s1,H-clock,can work from home,no,558,35.3,61.3,0.0,3.4,0.0
+NZ6_s1,H-clock,can work from home,yes,244,14.3,57.4,14.3,9.0,4.9
+NZ6_s1,H-clock,bus slower than free-flow drive,15-30 min,429,36.6,51.0,5.1,6.1,1.2
+NZ6_s1,H-clock,bus slower than free-flow drive,no bus or train,149,0.0,98.0,0.0,2.0,0.0
+NZ6_s1,H-clock,bus slower than free-flow drive,up to 15 min,224,33.5,52.2,5.8,5.4,3.1
+NZ6_s1,H-clock,late before the charge,no,749,27.6,62.8,3.7,4.3,1.6
+NZ6_s1,H-clock,late before the charge,yes,53,47.2,22.6,13.2,17.0,0.0
+NZ6_s1,R-clock,routine (H),1,32,31.2,31.2,0.0,34.4,3.1
+NZ6_s1,R-clock,routine (H),2,90,23.3,36.7,0.0,37.8,2.2
+NZ6_s1,R-clock,routine (H),3,203,23.6,48.3,0.0,26.6,1.5
+NZ6_s1,R-clock,routine (H),4,282,22.0,57.1,0.0,19.5,1.4
+NZ6_s1,R-clock,routine (H),5,205,15.1,72.2,0.0,10.2,2.4
+NZ6_s1,R-clock,flexibility (F),1,81,16.0,72.8,0.0,11.1,0.0
+NZ6_s1,R-clock,flexibility (F),2,157,24.2,63.1,0.0,12.7,0.0
+NZ6_s1,R-clock,flexibility (F),3,339,19.5,55.2,0.0,23.9,1.5
+NZ6_s1,R-clock,flexibility (F),4,160,23.1,48.8,0.0,26.9,1.2
+NZ6_s1,R-clock,flexibility (F),5,75,24.0,36.0,0.0,29.3,10.7
+NZ6_s1,R-clock,attitude to bus/train (P),1,82,8.5,54.9,0.0,34.1,2.4
+NZ6_s1,R-clock,attitude to bus/train (P),2,180,10.0,66.7,0.0,18.9,4.4
+NZ6_s1,R-clock,attitude to bus/train (P),3,366,22.7,55.2,0.0,21.3,0.8
+NZ6_s1,R-clock,attitude to bus/train (P),4,137,35.8,44.5,0.0,19.0,0.7
+NZ6_s1,R-clock,attitude to bus/train (P),5,47,31.9,46.8,0.0,19.1,2.1
+NZ6_s1,R-clock,charge sensitivity (S),1,89,21.3,60.7,0.0,16.9,1.1
+NZ6_s1,R-clock,charge sensitivity (S),2,160,16.9,59.4,0.0,23.1,0.6
+NZ6_s1,R-clock,charge sensitivity (S),3,328,22.6,56.7,0.0,18.3,2.4
+NZ6_s1,R-clock,charge sensitivity (S),4,150,18.0,52.0,0.0,27.3,2.7
+NZ6_s1,R-clock,charge sensitivity (S),5,85,29.4,43.5,0.0,25.9,1.2
+NZ6_s1,R-clock,pays parking,no,493,7.7,65.5,0.0,24.7,2.0
+NZ6_s1,R-clock,pays parking,yes,319,42.0,39.8,0.0,16.6,1.6
+NZ6_s1,R-clock,employer pays charge,no,686,25.1,50.0,0.0,22.7,2.2
+NZ6_s1,R-clock,employer pays charge,yes,126,0.0,84.9,0.0,15.1,0.0
+NZ6_s1,R-clock,can work from home,no,561,22.3,61.5,0.0,16.2,0.0
+NZ6_s1,R-clock,can work from home,yes,251,18.7,41.8,0.0,33.5,6.0
+NZ6_s1,R-clock,bus slower than free-flow drive,15-30 min,438,26.3,46.6,0.0,24.9,2.3
+NZ6_s1,R-clock,bus slower than free-flow drive,no bus or train,149,0.0,85.9,0.0,14.1,0.0
+NZ6_s1,R-clock,bus slower than free-flow drive,up to 15 min,225,25.3,52.4,0.0,20.0,2.2
+NZ6_s1,R-clock,late before the charge,no,759,21.2,58.4,0.0,18.4,2.0
+NZ6_s1,R-clock,late before the charge,yes,53,20.8,13.2,0.0,66.0,0.0
+NZ18_s1,H-clock,routine (H),1,31,64.5,22.6,9.7,3.2,0.0
+NZ18_s1,H-clock,routine (H),2,90,65.6,16.7,11.1,4.4,2.2
+NZ18_s1,H-clock,routine (H),3,199,55.8,31.2,10.1,2.5,0.5
+NZ18_s1,H-clock,routine (H),4,278,65.8,26.6,3.6,3.2,0.7
+NZ18_s1,H-clock,routine (H),5,204,67.6,24.5,3.9,2.9,1.0
+NZ18_s1,H-clock,flexibility (F),1,79,62.0,34.2,1.3,0.0,2.5
+NZ18_s1,H-clock,flexibility (F),2,149,67.1,30.9,1.3,0.7,0.0
+NZ18_s1,H-clock,flexibility (F),3,339,64.6,26.0,4.4,3.8,1.2
+NZ18_s1,H-clock,flexibility (F),4,160,63.1,21.9,8.8,6.2,0.0
+NZ18_s1,H-clock,flexibility (F),5,75,56.0,16.0,25.3,1.3,1.3
+NZ18_s1,H-clock,attitude to bus/train (P),1,82,24.4,47.6,9.8,15.9,2.4
+NZ18_s1,H-clock,attitude to bus/train (P),2,180,54.4,27.2,12.8,2.8,2.8
+NZ18_s1,H-clock,attitude to bus/train (P),3,361,73.7,21.1,4.4,0.8,0.0
+NZ18_s1,H-clock,attitude to bus/train (P),4,133,74.4,21.1,1.5,3.0,0.0
+NZ18_s1,H-clock,attitude to bus/train (P),5,46,60.9,34.8,4.3,0.0,0.0
+NZ18_s1,H-clock,charge sensitivity (S),1,88,61.4,30.7,5.7,1.1,1.1
+NZ18_s1,H-clock,charge sensitivity (S),2,159,63.5,25.8,4.4,5.0,1.3
+NZ18_s1,H-clock,charge sensitivity (S),3,326,67.2,22.7,6.7,2.8,0.6
+NZ18_s1,H-clock,charge sensitivity (S),4,148,57.4,29.7,7.4,4.1,1.4
+NZ18_s1,H-clock,charge sensitivity (S),5,81,64.2,27.2,7.4,1.2,0.0
+NZ18_s1,H-clock,pays parking,no,487,54.4,35.5,6.0,3.1,1.0
+NZ18_s1,H-clock,pays parking,yes,315,78.1,11.1,7.0,3.2,0.6
+NZ18_s1,H-clock,employer pays charge,no,677,75.5,12.3,7.5,3.7,1.0
+NZ18_s1,H-clock,employer pays charge,yes,125,0.0,100.0,0.0,0.0,0.0
+NZ18_s1,H-clock,can work from home,no,558,65.4,31.9,0.0,2.7,0.0
+NZ18_s1,H-clock,can work from home,yes,244,59.8,12.3,20.9,4.1,2.9
+NZ18_s1,H-clock,bus slower than free-flow drive,15-30 min,429,75.1,11.2,9.8,3.0,0.9
+NZ18_s1,H-clock,bus slower than free-flow drive,no bus or train,149,0.0,96.0,0.0,4.0,0.0
+NZ18_s1,H-clock,bus slower than free-flow drive,up to 15 min,224,84.4,7.6,4.0,2.7,1.3
+NZ18_s1,H-clock,late before the charge,no,749,62.3,27.2,6.4,3.1,0.9
+NZ18_s1,H-clock,late before the charge,yes,53,83.0,7.5,5.7,3.8,0.0
+NZ18_s1,R-clock,routine (H),1,32,50.0,25.0,0.0,15.6,9.4
+NZ18_s1,R-clock,routine (H),2,90,50.0,14.4,0.0,15.6,20.0
+NZ18_s1,R-clock,routine (H),3,203,39.9,27.6,0.0,16.7,15.8
+NZ18_s1,R-clock,routine (H),4,282,47.9,26.6,0.0,11.0,14.5
+NZ18_s1,R-clock,routine (H),5,205,53.7,24.4,0.0,10.2,11.7
+NZ18_s1,R-clock,flexibility (F),1,81,48.1,30.9,0.0,21.0,0.0
+NZ18_s1,R-clock,flexibility (F),2,157,49.7,29.3,0.0,15.9,5.1
+NZ18_s1,R-clock,flexibility (F),3,339,46.6,24.2,0.0,12.7,16.5
+NZ18_s1,R-clock,flexibility (F),4,160,47.5,22.5,0.0,9.4,20.6
+NZ18_s1,R-clock,flexibility (F),5,75,48.0,17.3,0.0,6.7,28.0
+NZ18_s1,R-clock,attitude to bus/train (P),1,82,23.2,29.3,0.0,24.4,23.2
+NZ18_s1,R-clock,attitude to bus/train (P),2,180,31.1,28.9,0.0,21.7,18.3
+NZ18_s1,R-clock,attitude to bus/train (P),3,366,53.8,23.0,0.0,9.3,13.9
+NZ18_s1,R-clock,attitude to bus/train (P),4,137,63.5,20.4,0.0,6.6,9.5
+NZ18_s1,R-clock,attitude to bus/train (P),5,47,59.6,29.8,0.0,6.4,4.3
+NZ18_s1,R-clock,charge sensitivity (S),1,89,43.8,34.8,0.0,11.2,10.1
+NZ18_s1,R-clock,charge sensitivity (S),2,160,42.5,30.0,0.0,13.1,14.4
+NZ18_s1,R-clock,charge sensitivity (S),3,328,50.0,22.0,0.0,13.4,14.6
+NZ18_s1,R-clock,charge sensitivity (S),4,150,48.0,22.0,0.0,13.3,16.7
+NZ18_s1,R-clock,charge sensitivity (S),5,85,51.8,21.2,0.0,11.8,15.3
+NZ18_s1,R-clock,pays parking,no,493,29.4,35.7,0.0,16.4,18.5
+NZ18_s1,R-clock,pays parking,yes,319,75.9,8.2,0.0,7.5,8.5
+NZ18_s1,R-clock,employer pays charge,no,686,56.4,13.8,0.0,12.5,17.2
+NZ18_s1,R-clock,employer pays charge,yes,126,0.0,84.9,0.0,15.1,0.0
+NZ18_s1,R-clock,can work from home,no,561,51.3,33.3,0.0,15.3,0.0
+NZ18_s1,R-clock,can work from home,yes,251,39.4,6.0,0.0,7.6,47.0
+NZ18_s1,R-clock,bus slower than free-flow drive,15-30 min,438,59.8,10.0,0.0,10.7,19.4
+NZ18_s1,R-clock,bus slower than free-flow drive,no bus or train,149,0.0,80.5,0.0,19.5,0.0
+NZ18_s1,R-clock,bus slower than free-flow drive,up to 15 min,225,55.6,16.9,0.0,12.9,14.7
+NZ18_s1,R-clock,late before the charge,no,759,47.2,26.4,0.0,12.9,13.6
+NZ18_s1,R-clock,late before the charge,yes,53,54.7,3.8,0.0,13.2,28.3
+NZ6_s1_disrupted,H-clock,routine (H),1,32,37.5,37.5,18.8,3.1,3.1
+NZ6_s1_disrupted,H-clock,routine (H),2,90,27.8,46.7,17.8,4.4,3.3
+NZ6_s1_disrupted,H-clock,routine (H),3,200,24.0,57.5,12.0,5.5,1.0
+NZ6_s1_disrupted,H-clock,routine (H),4,280,18.9,62.1,12.9,4.3,1.8
+NZ6_s1_disrupted,H-clock,routine (H),5,204,14.2,67.6,9.8,6.4,2.0
+NZ6_s1_disrupted,H-clock,flexibility (F),1,80,17.5,73.8,6.2,1.2,1.2
+NZ6_s1_disrupted,H-clock,flexibility (F),2,152,21.1,66.4,11.8,0.0,0.7
+NZ6_s1_disrupted,H-clock,flexibility (F),3,339,21.2,60.5,11.5,4.7,2.1
+NZ6_s1_disrupted,H-clock,flexibility (F),4,160,18.8,56.9,11.9,11.9,0.6
+NZ6_s1_disrupted,H-clock,flexibility (F),5,75,25.3,33.3,28.0,6.7,6.7
+NZ6_s1_disrupted,H-clock,attitude to bus/train (P),1,82,8.5,81.7,1.2,7.3,1.2
+NZ6_s1_disrupted,H-clock,attitude to bus/train (P),2,180,12.8,69.4,10.0,4.4,3.3
+NZ6_s1_disrupted,H-clock,attitude to bus/train (P),3,364,27.2,51.9,14.6,4.4,1.9
+NZ6_s1_disrupted,H-clock,attitude to bus/train (P),4,134,20.1,55.2,17.9,6.0,0.7
+NZ6_s1_disrupted,H-clock,attitude to bus/train (P),5,46,23.9,56.5,13.0,6.5,0.0
+NZ6_s1_disrupted,H-clock,charge sensitivity (S),1,89,18.0,62.9,12.4,3.4,3.4
+NZ6_s1_disrupted,H-clock,charge sensitivity (S),2,159,22.0,57.9,12.6,6.3,1.3
+NZ6_s1_disrupted,H-clock,charge sensitivity (S),3,329,20.1,60.8,13.7,3.6,1.8
+NZ6_s1_disrupted,H-clock,charge sensitivity (S),4,148,20.9,58.1,11.5,7.4,2.0
+NZ6_s1_disrupted,H-clock,charge sensitivity (S),5,81,23.5,58.0,11.1,6.2,1.2
+NZ6_s1_disrupted,H-clock,pays parking,no,489,14.3,68.7,9.6,5.9,1.4
+NZ6_s1_disrupted,H-clock,pays parking,yes,317,30.6,45.7,17.4,3.8,2.5
+NZ6_s1_disrupted,H-clock,employer pays charge,no,681,24.5,52.3,15.0,6.0,2.2
+NZ6_s1_disrupted,H-clock,employer pays charge,yes,125,0.0,100.0,0.0,0.0,0.0
+NZ6_s1_disrupted,H-clock,can work from home,no,559,26.5,61.0,9.3,3.2,0.0
+NZ6_s1_disrupted,H-clock,can work from home,yes,247,7.7,56.7,20.2,9.3,6.1
+NZ6_s1_disrupted,H-clock,bus slower than free-flow drive,15-30 min,433,27.7,50.3,13.9,6.2,1.8
+NZ6_s1_disrupted,H-clock,bus slower than free-flow drive,no bus or train,149,0.0,98.0,0.0,2.0,0.0
+NZ6_s1_disrupted,H-clock,bus slower than free-flow drive,up to 15 min,224,21.0,52.2,18.8,4.9,3.1
+NZ6_s1_disrupted,H-clock,late before the charge,no,748,20.2,62.7,11.1,4.3,1.7
+NZ6_s1_disrupted,H-clock,late before the charge,yes,58,27.6,20.7,32.8,15.5,3.4
+NZ6_s1_disrupted,R-clock,routine (H),1,32,31.2,31.2,0.0,34.4,3.1
+NZ6_s1_disrupted,R-clock,routine (H),2,90,18.9,36.7,4.4,37.8,2.2
+NZ6_s1_disrupted,R-clock,routine (H),3,205,21.0,47.3,3.4,26.8,1.5
+NZ6_s1_disrupted,R-clock,routine (H),4,285,19.3,56.5,3.5,19.3,1.4
+NZ6_s1_disrupted,R-clock,routine (H),5,207,14.0,71.0,1.9,10.6,2.4
+NZ6_s1_disrupted,R-clock,flexibility (F),1,83,16.9,71.1,1.2,10.8,0.0
+NZ6_s1_disrupted,R-clock,flexibility (F),2,160,20.6,61.3,5.0,13.1,0.0
+NZ6_s1_disrupted,R-clock,flexibility (F),3,341,17.6,54.5,2.3,24.0,1.5
+NZ6_s1_disrupted,R-clock,flexibility (F),4,160,18.8,48.8,4.4,26.9,1.2
+NZ6_s1_disrupted,R-clock,flexibility (F),5,75,22.7,36.0,1.3,29.3,10.7
+NZ6_s1_disrupted,R-clock,attitude to bus/train (P),1,82,8.5,54.9,0.0,34.1,2.4
+NZ6_s1_disrupted,R-clock,attitude to bus/train (P),2,180,10.0,65.6,0.0,20.0,4.4
+NZ6_s1_disrupted,R-clock,attitude to bus/train (P),3,370,18.9,54.6,4.6,21.1,0.8
+NZ6_s1_disrupted,R-clock,attitude to bus/train (P),4,138,31.2,44.2,5.1,18.8,0.7
+NZ6_s1_disrupted,R-clock,attitude to bus/train (P),5,49,32.7,44.9,2.0,18.4,2.0
+NZ6_s1_disrupted,R-clock,charge sensitivity (S),1,89,19.1,60.7,2.2,16.9,1.1
+NZ6_s1_disrupted,R-clock,charge sensitivity (S),2,160,16.2,58.8,0.6,23.8,0.6
+NZ6_s1_disrupted,R-clock,charge sensitivity (S),3,332,20.5,55.1,3.0,19.0,2.4
+NZ6_s1_disrupted,R-clock,charge sensitivity (S),4,152,13.2,52.0,5.9,26.3,2.6
+NZ6_s1_disrupted,R-clock,charge sensitivity (S),5,86,26.7,44.2,3.5,24.4,1.2
+NZ6_s1_disrupted,R-clock,pays parking,no,493,6.9,65.3,0.8,24.9,2.0
+NZ6_s1_disrupted,R-clock,pays parking,yes,326,36.8,38.7,6.4,16.6,1.5
+NZ6_s1_disrupted,R-clock,employer pays charge,no,693,22.2,49.2,3.6,22.8,2.2
+NZ6_s1_disrupted,R-clock,employer pays charge,yes,126,0.0,84.9,0.0,15.1,0.0
+NZ6_s1_disrupted,R-clock,can work from home,no,566,20.7,60.4,2.3,16.6,0.0
+NZ6_s1_disrupted,R-clock,can work from home,yes,253,14.6,41.9,4.7,32.8,5.9
+NZ6_s1_disrupted,R-clock,bus slower than free-flow drive,15-30 min,443,23.3,45.8,3.8,24.8,2.3
+NZ6_s1_disrupted,R-clock,bus slower than free-flow drive,no bus or train,149,0.0,85.2,0.0,14.8,0.0
+NZ6_s1_disrupted,R-clock,bus slower than free-flow drive,up to 15 min,227,22.5,52.0,3.5,19.8,2.2
+NZ6_s1_disrupted,R-clock,late before the charge,no,761,18.8,57.6,3.2,18.7,1.8
+NZ6_s1_disrupted,R-clock,late before the charge,yes,58,19.0,17.2,1.7,60.3,1.7
+NZ18_s1_disrupted,H-clock,routine (H),1,32,53.1,21.9,21.9,3.1,0.0
+NZ18_s1_disrupted,H-clock,routine (H),2,90,50.0,16.7,25.6,4.4,3.3
+NZ18_s1_disrupted,H-clock,routine (H),3,200,40.0,31.5,24.5,3.0,1.0
+NZ18_s1_disrupted,H-clock,routine (H),4,280,47.1,26.4,22.1,3.2,1.1
+NZ18_s1_disrupted,H-clock,routine (H),5,204,45.1,23.5,27.0,3.4,1.0
+NZ18_s1_disrupted,H-clock,flexibility (F),1,80,45.0,32.5,20.0,0.0,2.5
+NZ18_s1_disrupted,H-clock,flexibility (F),2,152,45.4,30.9,22.4,1.3,0.0
+NZ18_s1_disrupted,H-clock,flexibility (F),3,339,46.6,26.0,21.8,3.8,1.8
+NZ18_s1_disrupted,H-clock,flexibility (F),4,160,45.0,21.2,26.9,6.9,0.0
+NZ18_s1_disrupted,H-clock,flexibility (F),5,75,41.3,16.0,38.7,1.3,2.7
+NZ18_s1_disrupted,H-clock,attitude to bus/train (P),1,82,23.2,47.6,8.5,18.3,2.4
+NZ18_s1_disrupted,H-clock,attitude to bus/train (P),2,180,39.4,26.7,27.2,2.8,3.9
+NZ18_s1_disrupted,H-clock,attitude to bus/train (P),3,364,51.4,20.9,26.6,0.8,0.3
+NZ18_s1_disrupted,H-clock,attitude to bus/train (P),4,134,48.5,20.9,27.6,3.0,0.0
+NZ18_s1_disrupted,H-clock,attitude to bus/train (P),5,46,52.2,34.8,13.0,0.0,0.0
+NZ18_s1_disrupted,H-clock,charge sensitivity (S),1,89,46.1,30.3,21.3,1.1,1.1
+NZ18_s1_disrupted,H-clock,charge sensitivity (S),2,159,47.2,25.8,19.5,5.7,1.9
+NZ18_s1_disrupted,H-clock,charge sensitivity (S),3,329,46.8,22.2,27.4,2.7,0.9
+NZ18_s1_disrupted,H-clock,charge sensitivity (S),4,148,37.2,30.4,26.4,4.1,2.0
+NZ18_s1_disrupted,H-clock,charge sensitivity (S),5,81,50.6,25.9,21.0,2.5,0.0
+NZ18_s1_disrupted,H-clock,pays parking,no,489,39.9,35.4,20.4,3.1,1.2
+NZ18_s1_disrupted,H-clock,pays parking,yes,317,53.9,10.7,30.3,3.8,1.3
+NZ18_s1_disrupted,H-clock,employer pays charge,no,681,53.7,12.0,28.8,4.0,1.5
+NZ18_s1_disrupted,H-clock,employer pays charge,yes,125,0.0,100.0,0.0,0.0,0.0
+NZ18_s1_disrupted,H-clock,can work from home,no,559,49.6,31.7,15.7,3.0,0.0
+NZ18_s1_disrupted,H-clock,can work from home,yes,247,36.0,12.1,43.7,4.0,4.0
+NZ18_s1_disrupted,H-clock,bus slower than free-flow drive,15-30 min,433,55.4,10.9,29.3,3.2,1.2
+NZ18_s1_disrupted,H-clock,bus slower than free-flow drive,no bus or train,149,0.0,96.0,0.0,4.0,0.0
+NZ18_s1_disrupted,H-clock,bus slower than free-flow drive,up to 15 min,224,56.2,7.6,30.8,3.1,2.2
+NZ18_s1_disrupted,H-clock,late before the charge,no,748,45.1,27.0,23.4,3.3,1.2
+NZ18_s1_disrupted,H-clock,late before the charge,yes,58,50.0,8.6,36.2,3.4,1.7
+NZ18_s1_disrupted,R-clock,routine (H),1,32,40.6,25.0,9.4,15.6,9.4
+NZ18_s1_disrupted,R-clock,routine (H),2,90,46.7,14.4,3.3,15.6,20.0
+NZ18_s1_disrupted,R-clock,routine (H),3,205,36.1,26.8,4.4,17.1,15.6
+NZ18_s1_disrupted,R-clock,routine (H),4,285,42.8,26.3,5.6,10.9,14.4
+NZ18_s1_disrupted,R-clock,routine (H),5,207,47.8,24.2,6.3,10.1,11.6
+NZ18_s1_disrupted,R-clock,flexibility (F),1,83,41.0,30.1,8.4,20.5,0.0
+NZ18_s1_disrupted,R-clock,flexibility (F),2,160,46.9,28.1,3.8,16.2,5.0
+NZ18_s1_disrupted,R-clock,flexibility (F),3,341,41.1,24.0,5.9,12.6,16.4
+NZ18_s1_disrupted,R-clock,flexibility (F),4,160,43.1,22.5,4.4,9.4,20.6
+NZ18_s1_disrupted,R-clock,flexibility (F),5,75,42.7,17.3,5.3,6.7,28.0
+NZ18_s1_disrupted,R-clock,attitude to bus/train (P),1,82,22.0,29.3,1.2,24.4,23.2
+NZ18_s1_disrupted,R-clock,attitude to bus/train (P),2,180,26.1,28.3,5.0,22.2,18.3
+NZ18_s1_disrupted,R-clock,attitude to bus/train (P),3,370,48.4,22.7,5.9,9.2,13.8
+NZ18_s1_disrupted,R-clock,attitude to bus/train (P),4,138,57.2,20.3,6.5,6.5,9.4
+NZ18_s1_disrupted,R-clock,attitude to bus/train (P),5,49,55.1,28.6,6.1,6.1,4.1
+NZ18_s1_disrupted,R-clock,charge sensitivity (S),1,89,41.6,34.8,2.2,11.2,10.1
+NZ18_s1_disrupted,R-clock,charge sensitivity (S),2,160,38.1,29.4,4.4,13.8,14.4
+NZ18_s1_disrupted,R-clock,charge sensitivity (S),3,332,45.5,21.1,5.1,13.9,14.5
+NZ18_s1_disrupted,R-clock,charge sensitivity (S),4,152,39.5,22.4,9.2,12.5,16.4
+NZ18_s1_disrupted,R-clock,charge sensitivity (S),5,86,47.7,22.1,4.7,10.5,15.1
+NZ18_s1_disrupted,R-clock,pays parking,no,493,24.7,35.5,4.7,16.6,18.5
+NZ18_s1_disrupted,R-clock,pays parking,yes,326,69.9,8.0,6.4,7.4,8.3
+NZ18_s1_disrupted,R-clock,employer pays charge,no,693,50.5,13.6,6.3,12.6,17.0
+NZ18_s1_disrupted,R-clock,employer pays charge,yes,126,0.0,84.9,0.0,15.1,0.0
+NZ18_s1_disrupted,R-clock,can work from home,no,566,47.2,32.7,4.6,15.5,0.0
+NZ18_s1_disrupted,R-clock,can work from home,yes,253,32.8,6.3,7.1,7.1,46.6
+NZ18_s1_disrupted,R-clock,bus slower than free-flow drive,15-30 min,443,53.3,9.9,7.0,10.6,19.2
+NZ18_s1_disrupted,R-clock,bus slower than free-flow drive,no bus or train,149,0.0,79.9,0.0,20.1,0.0
+NZ18_s1_disrupted,R-clock,bus slower than free-flow drive,up to 15 min,227,50.2,16.7,5.7,12.8,14.5
+NZ18_s1_disrupted,R-clock,late before the charge,no,761,42.2,26.0,5.4,13.0,13.4
+NZ18_s1_disrupted,R-clock,late before the charge,yes,58,50.0,5.2,5.2,12.1,27.6
+NZ6_s2,H-clock,routine (H),1,31,45.2,25.8,16.1,9.7,3.2
+NZ6_s2,H-clock,routine (H),2,66,42.4,47.0,6.1,3.0,1.5
+NZ6_s2,H-clock,routine (H),3,184,34.8,55.4,4.9,3.3,1.6
+NZ6_s2,H-clock,routine (H),4,280,25.0,65.4,1.8,6.4,1.4
+NZ6_s2,H-clock,routine (H),5,211,24.6,67.3,2.8,3.3,1.9
+NZ6_s2,H-clock,flexibility (F),1,101,27.7,66.3,0.0,5.9,0.0
+NZ6_s2,H-clock,flexibility (F),2,147,23.8,73.5,2.0,0.7,0.0
+NZ6_s2,H-clock,flexibility (F),3,299,32.4,60.9,3.0,2.0,1.7
+NZ6_s2,H-clock,flexibility (F),4,136,29.4,58.1,3.7,8.1,0.7
+NZ6_s2,H-clock,flexibility (F),5,89,31.5,33.7,13.5,13.5,7.9
+NZ6_s2,H-clock,attitude to bus/train (P),1,87,8.0,81.6,1.1,5.7,3.4
+NZ6_s2,H-clock,attitude to bus/train (P),2,197,17.8,72.6,3.0,4.6,2.0
+NZ6_s2,H-clock,attitude to bus/train (P),3,311,43.7,46.3,5.1,3.5,1.3
+NZ6_s2,H-clock,attitude to bus/train (P),4,128,26.6,62.5,3.9,5.5,1.6
+NZ6_s2,H-clock,attitude to bus/train (P),5,49,32.7,57.1,2.0,8.2,0.0
+NZ6_s2,H-clock,charge sensitivity (S),1,75,17.3,76.0,4.0,1.3,1.3
+NZ6_s2,H-clock,charge sensitivity (S),2,135,24.4,65.9,3.7,3.7,2.2
+NZ6_s2,H-clock,charge sensitivity (S),3,341,32.6,56.9,3.5,5.6,1.5
+NZ6_s2,H-clock,charge sensitivity (S),4,148,29.7,58.8,3.4,5.4,2.7
+NZ6_s2,H-clock,charge sensitivity (S),5,73,37.0,53.4,5.5,4.1,0.0
+NZ6_s2,H-clock,pays parking,no,450,17.1,72.7,3.6,4.9,1.8
+NZ6_s2,H-clock,pays parking,yes,322,46.9,43.2,4.0,4.3,1.6
+NZ6_s2,H-clock,employer pays charge,no,653,34.9,53.3,4.4,5.4,2.0
+NZ6_s2,H-clock,employer pays charge,yes,119,0.0,99.2,0.0,0.8,0.0
+NZ6_s2,H-clock,can work from home,no,503,38.2,56.5,0.4,5.0,0.0
+NZ6_s2,H-clock,can work from home,yes,269,13.4,67.7,10.0,4.1,4.8
+NZ6_s2,H-clock,bus slower than free-flow drive,15-30 min,461,36.9,53.4,4.3,3.9,1.5
+NZ6_s2,H-clock,bus slower than free-flow drive,no bus or train,128,0.0,96.1,0.0,3.9,0.0
+NZ6_s2,H-clock,bus slower than free-flow drive,up to 15 min,183,31.7,53.0,4.9,7.1,3.3
+NZ6_s2,H-clock,late before the charge,no,713,28.3,62.3,3.9,3.8,1.7
+NZ6_s2,H-clock,late before the charge,yes,59,44.1,37.3,1.7,15.3,1.7
+NZ6_s2,R-clock,routine (H),1,31,25.8,32.3,0.0,32.3,9.7
+NZ6_s2,R-clock,routine (H),2,72,34.7,27.8,0.0,36.1,1.4
+NZ6_s2,R-clock,routine (H),3,192,25.5,43.8,0.0,28.6,2.1
+NZ6_s2,R-clock,routine (H),4,288,18.8,60.4,0.0,18.1,2.8
+NZ6_s2,R-clock,routine (H),5,219,19.2,71.2,0.0,6.4,3.2
+NZ6_s2,R-clock,flexibility (F),1,106,21.7,67.9,0.0,10.4,0.0
+NZ6_s2,R-clock,flexibility (F),2,159,19.5,65.4,0.0,15.1,0.0
+NZ6_s2,R-clock,flexibility (F),3,308,26.0,51.0,0.0,21.1,1.9
+NZ6_s2,R-clock,flexibility (F),4,140,22.9,52.1,0.0,20.7,4.3
+NZ6_s2,R-clock,flexibility (F),5,89,13.5,42.7,0.0,31.5,12.4
+NZ6_s2,R-clock,attitude to bus/train (P),1,87,8.0,58.6,0.0,29.9,3.4
+NZ6_s2,R-clock,attitude to bus/train (P),2,202,8.4,60.4,0.0,27.7,3.5
+NZ6_s2,R-clock,attitude to bus/train (P),3,330,27.6,52.4,0.0,16.4,3.6
+NZ6_s2,R-clock,attitude to bus/train (P),4,134,32.8,56.0,0.0,11.2,0.0
+NZ6_s2,R-clock,attitude to bus/train (P),5,49,38.8,46.9,0.0,12.2,2.0
+NZ6_s2,R-clock,charge sensitivity (S),1,77,13.0,63.6,0.0,20.8,2.6
+NZ6_s2,R-clock,charge sensitivity (S),2,142,18.3,63.4,0.0,16.2,2.1
+NZ6_s2,R-clock,charge sensitivity (S),3,352,25.6,52.6,0.0,19.6,2.3
+NZ6_s2,R-clock,charge sensitivity (S),4,157,21.0,52.2,0.0,22.3,4.5
+NZ6_s2,R-clock,charge sensitivity (S),5,74,25.7,51.4,0.0,18.9,4.1
+NZ6_s2,R-clock,pays parking,no,466,8.4,66.5,0.0,22.1,3.0
+NZ6_s2,R-clock,pays parking,yes,336,41.4,39.9,0.0,16.1,2.7
+NZ6_s2,R-clock,employer pays charge,no,682,26.1,50.3,0.0,20.2,3.4
+NZ6_s2,R-clock,employer pays charge,yes,120,0.0,84.2,0.0,15.8,0.0
+NZ6_s2,R-clock,can work from home,no,520,22.5,58.8,0.0,18.7,0.0
+NZ6_s2,R-clock,can work from home,yes,282,21.6,48.9,0.0,21.3,8.2
+NZ6_s2,R-clock,bus slower than free-flow drive,15-30 min,481,28.1,49.3,0.0,19.1,3.5
+NZ6_s2,R-clock,bus slower than free-flow drive,no bus or train,128,0.0,82.8,0.0,17.2,0.0
+NZ6_s2,R-clock,bus slower than free-flow drive,up to 15 min,193,22.3,52.3,0.0,22.3,3.1
+NZ6_s2,R-clock,late before the charge,no,738,21.1,56.9,0.0,19.0,3.0
+NZ6_s2,R-clock,late before the charge,yes,64,34.4,37.5,0.0,26.6,1.6
+NZ6_s3,H-clock,routine (H),1,41,46.3,41.5,12.2,0.0,0.0
+NZ6_s3,H-clock,routine (H),2,71,23.9,57.7,9.9,8.5,0.0
+NZ6_s3,H-clock,routine (H),3,188,28.7,61.2,3.7,4.8,1.6
+NZ6_s3,H-clock,routine (H),4,300,30.3,60.3,3.3,4.7,1.3
+NZ6_s3,H-clock,routine (H),5,197,29.4,64.5,0.0,4.1,2.0
+NZ6_s3,H-clock,flexibility (F),1,68,25.0,69.1,2.9,1.5,1.5
+NZ6_s3,H-clock,flexibility (F),2,156,28.2,68.6,1.3,0.6,1.3
+NZ6_s3,H-clock,flexibility (F),3,347,30.0,63.1,2.6,3.7,0.6
+NZ6_s3,H-clock,flexibility (F),4,150,33.3,54.0,2.7,8.7,1.3
+NZ6_s3,H-clock,flexibility (F),5,76,31.6,35.5,15.8,11.8,5.3
+NZ6_s3,H-clock,attitude to bus/train (P),1,96,3.1,84.4,1.0,9.4,2.1
+NZ6_s3,H-clock,attitude to bus/train (P),2,188,20.7,71.8,1.6,4.3,1.6
+NZ6_s3,H-clock,attitude to bus/train (P),3,339,40.1,48.7,5.9,3.8,1.5
+NZ6_s3,H-clock,attitude to bus/train (P),4,130,35.4,56.2,3.1,4.6,0.8
+NZ6_s3,H-clock,attitude to bus/train (P),5,44,34.1,61.4,2.3,2.3,0.0
+NZ6_s3,H-clock,charge sensitivity (S),1,84,23.8,67.9,3.6,3.6,1.2
+NZ6_s3,H-clock,charge sensitivity (S),2,166,29.5,62.7,3.0,3.0,1.8
+NZ6_s3,H-clock,charge sensitivity (S),3,338,31.1,60.4,3.0,4.4,1.2
+NZ6_s3,H-clock,charge sensitivity (S),4,146,33.6,53.4,5.5,6.8,0.7
+NZ6_s3,H-clock,charge sensitivity (S),5,63,25.4,60.3,4.8,6.3,3.2
+NZ6_s3,H-clock,pays parking,no,487,20.9,69.4,3.7,4.9,1.0
+NZ6_s3,H-clock,pays parking,yes,310,44.2,46.1,3.5,4.2,1.9
+NZ6_s3,H-clock,employer pays charge,no,672,35.6,53.3,4.3,5.2,1.6
+NZ6_s3,H-clock,employer pays charge,yes,125,0.0,98.4,0.0,1.6,0.0
+NZ6_s3,H-clock,can work from home,no,526,37.3,58.9,0.2,3.6,0.0
+NZ6_s3,H-clock,can work from home,yes,271,15.9,63.1,10.3,6.6,4.1
+NZ6_s3,H-clock,bus slower than free-flow drive,15-30 min,495,36.4,54.1,3.8,4.4,1.2
+NZ6_s3,H-clock,bus slower than free-flow drive,no bus or train,135,0.0,97.0,0.0,3.0,0.0
+NZ6_s3,H-clock,bus slower than free-flow drive,up to 15 min,167,35.3,49.1,6.0,6.6,3.0
+NZ6_s3,H-clock,late before the charge,no,746,28.6,62.7,3.2,4.0,1.5
+NZ6_s3,H-clock,late before the charge,yes,51,51.0,25.5,9.8,13.7,0.0
+NZ6_s3,R-clock,routine (H),1,45,20.0,37.8,0.0,37.8,4.4
+NZ6_s3,R-clock,routine (H),2,76,15.8,53.9,0.0,27.6,2.6
+NZ6_s3,R-clock,routine (H),3,193,20.7,49.7,0.0,26.4,3.1
+NZ6_s3,R-clock,routine (H),4,303,26.4,55.4,0.0,14.9,3.3
+NZ6_s3,R-clock,routine (H),5,200,20.5,66.0,0.0,11.0,2.5
+NZ6_s3,R-clock,flexibility (F),1,76,26.3,67.1,0.0,6.6,0.0
+NZ6_s3,R-clock,flexibility (F),2,165,18.8,67.9,0.0,12.7,0.6
+NZ6_s3,R-clock,flexibility (F),3,350,23.1,56.6,0.0,19.7,0.6
+NZ6_s3,R-clock,flexibility (F),4,150,24.7,40.7,0.0,30.0,4.7
+NZ6_s3,R-clock,flexibility (F),5,76,17.1,42.1,0.0,21.1,19.7
+NZ6_s3,R-clock,attitude to bus/train (P),1,96,2.1,67.7,0.0,21.9,8.3
+NZ6_s3,R-clock,attitude to bus/train (P),2,194,3.6,67.0,0.0,27.3,2.1
+NZ6_s3,R-clock,attitude to bus/train (P),3,347,30.3,51.6,0.0,15.6,2.6
+NZ6_s3,R-clock,attitude to bus/train (P),4,136,39.7,41.2,0.0,16.2,2.9
+NZ6_s3,R-clock,attitude to bus/train (P),5,44,31.8,54.5,0.0,13.6,0.0
+NZ6_s3,R-clock,charge sensitivity (S),1,87,19.5,57.5,0.0,21.8,1.1
+NZ6_s3,R-clock,charge sensitivity (S),2,169,20.1,59.2,0.0,18.3,2.4
+NZ6_s3,R-clock,charge sensitivity (S),3,344,22.7,56.7,0.0,18.3,2.3
+NZ6_s3,R-clock,charge sensitivity (S),4,148,24.3,51.4,0.0,19.6,4.7
+NZ6_s3,R-clock,charge sensitivity (S),5,69,24.6,47.8,0.0,20.3,7.2
+NZ6_s3,R-clock,pays parking,no,502,10.4,64.5,0.0,21.7,3.4
+NZ6_s3,R-clock,pays parking,yes,315,41.3,41.3,0.0,14.9,2.5
+NZ6_s3,R-clock,employer pays charge,no,692,26.3,50.4,0.0,19.7,3.6
+NZ6_s3,R-clock,employer pays charge,yes,125,0.0,84.0,0.0,16.0,0.0
+NZ6_s3,R-clock,can work from home,no,538,22.1,59.9,0.0,18.0,0.0
+NZ6_s3,R-clock,can work from home,yes,279,22.6,47.3,0.0,21.1,9.0
+NZ6_s3,R-clock,bus slower than free-flow drive,15-30 min,510,27.1,50.2,0.0,19.4,3.3
+NZ6_s3,R-clock,bus slower than free-flow drive,no bus or train,135,0.0,83.0,0.0,17.0,0.0
+NZ6_s3,R-clock,bus slower than free-flow drive,up to 15 min,172,25.6,50.0,0.0,19.8,4.7
+NZ6_s3,R-clock,late before the charge,no,765,22.1,57.8,0.0,17.3,2.9
+NZ6_s3,R-clock,late before the charge,yes,52,25.0,23.1,0.0,46.2,5.8
+NZ18_s2,H-clock,routine (H),1,31,71.0,16.1,9.7,0.0,3.2
+NZ18_s2,H-clock,routine (H),2,66,66.7,19.7,6.1,6.1,1.5
+NZ18_s2,H-clock,routine (H),3,184,66.3,26.1,5.4,1.6,0.5
+NZ18_s2,H-clock,routine (H),4,280,61.4,26.1,5.0,3.9,3.6
+NZ18_s2,H-clock,routine (H),5,211,61.6,26.5,4.3,4.7,2.8
+NZ18_s2,H-clock,flexibility (F),1,101,68.3,25.7,1.0,3.0,2.0
+NZ18_s2,H-clock,flexibility (F),2,147,61.2,33.3,3.4,0.0,2.0
+NZ18_s2,H-clock,flexibility (F),3,299,66.2,24.4,4.3,3.7,1.3
+NZ18_s2,H-clock,flexibility (F),4,136,61.8,20.6,9.6,6.6,1.5
+NZ18_s2,H-clock,flexibility (F),5,89,55.1,21.3,9.0,5.6,9.0
+NZ18_s2,H-clock,attitude to bus/train (P),1,87,20.7,49.4,9.2,10.3,10.3
+NZ18_s2,H-clock,attitude to bus/train (P),2,197,57.9,21.8,11.2,4.6,4.6
+NZ18_s2,H-clock,attitude to bus/train (P),3,311,79.1,17.0,1.6,1.9,0.3
+NZ18_s2,H-clock,attitude to bus/train (P),4,128,63.3,30.5,3.9,2.3,0.0
+NZ18_s2,H-clock,attitude to bus/train (P),5,49,63.3,34.7,0.0,2.0,0.0
+NZ18_s2,H-clock,charge sensitivity (S),1,75,52.0,41.3,1.3,0.0,5.3
+NZ18_s2,H-clock,charge sensitivity (S),2,135,61.5,28.1,5.9,3.0,1.5
+NZ18_s2,H-clock,charge sensitivity (S),3,341,67.2,20.8,5.3,4.4,2.3
+NZ18_s2,H-clock,charge sensitivity (S),4,148,59.5,26.4,7.4,4.1,2.7
+NZ18_s2,H-clock,charge sensitivity (S),5,73,69.9,21.9,2.7,4.1,1.4
+NZ18_s2,H-clock,pays parking,no,450,52.9,36.2,6.2,2.9,1.8
+NZ18_s2,H-clock,pays parking,yes,322,78.3,9.9,3.7,4.7,3.4
+NZ18_s2,H-clock,employer pays charge,no,653,75.0,11.6,6.1,4.3,2.9
+NZ18_s2,H-clock,employer pays charge,yes,119,0.0,100.0,0.0,0.0,0.0
+NZ18_s2,H-clock,can work from home,no,503,66.6,29.4,0.2,3.8,0.0
+NZ18_s2,H-clock,can work from home,yes,269,57.6,17.5,14.5,3.3,7.1
+NZ18_s2,H-clock,bus slower than free-flow drive,15-30 min,461,75.5,12.4,5.9,3.3,3.0
+NZ18_s2,H-clock,bus slower than free-flow drive,no bus or train,128,0.0,92.2,0.0,7.8,0.0
+NZ18_s2,H-clock,bus slower than free-flow drive,up to 15 min,183,77.6,10.9,7.1,1.6,2.7
+NZ18_s2,H-clock,late before the charge,no,713,63.0,26.1,5.0,3.5,2.4
+NZ18_s2,H-clock,late before the charge,yes,59,69.5,15.3,6.8,5.1,3.4
+NZ18_s2,R-clock,routine (H),1,31,54.8,9.7,0.0,16.1,19.4
+NZ18_s2,R-clock,routine (H),2,72,55.6,12.5,1.4,18.1,12.5
+NZ18_s2,R-clock,routine (H),3,192,52.6,20.3,0.0,14.6,12.5
+NZ18_s2,R-clock,routine (H),4,288,43.8,25.0,0.0,13.2,18.1
+NZ18_s2,R-clock,routine (H),5,219,47.5,25.6,0.0,11.4,15.5
+NZ18_s2,R-clock,flexibility (F),1,106,61.3,26.4,0.0,10.4,1.9
+NZ18_s2,R-clock,flexibility (F),2,159,45.9,29.6,0.0,15.1,9.4
+NZ18_s2,R-clock,flexibility (F),3,308,50.6,20.1,0.3,12.3,16.6
+NZ18_s2,R-clock,flexibility (F),4,140,45.7,17.1,0.0,15.0,22.1
+NZ18_s2,R-clock,flexibility (F),5,89,33.7,20.2,0.0,16.9,29.2
+NZ18_s2,R-clock,attitude to bus/train (P),1,87,20.7,26.4,0.0,23.0,29.9
+NZ18_s2,R-clock,attitude to bus/train (P),2,202,33.2,21.8,0.5,21.8,22.8
+NZ18_s2,R-clock,attitude to bus/train (P),3,330,59.4,17.3,0.0,10.0,13.3
+NZ18_s2,R-clock,attitude to bus/train (P),4,134,56.7,31.3,0.0,6.0,6.0
+NZ18_s2,R-clock,attitude to bus/train (P),5,49,63.3,26.5,0.0,8.2,2.0
+NZ18_s2,R-clock,charge sensitivity (S),1,77,33.8,31.2,1.3,20.8,13.0
+NZ18_s2,R-clock,charge sensitivity (S),2,142,40.8,27.5,0.0,17.6,14.1
+NZ18_s2,R-clock,charge sensitivity (S),3,352,52.3,19.9,0.0,11.6,16.2
+NZ18_s2,R-clock,charge sensitivity (S),4,157,50.3,21.7,0.0,12.1,15.9
+NZ18_s2,R-clock,charge sensitivity (S),5,74,55.4,16.2,0.0,10.8,17.6
+NZ18_s2,R-clock,pays parking,no,466,29.4,35.0,0.2,18.0,17.4
+NZ18_s2,R-clock,pays parking,yes,336,74.7,4.8,0.0,7.4,13.1
+NZ18_s2,R-clock,employer pays charge,no,682,56.9,11.4,0.1,13.2,18.3
+NZ18_s2,R-clock,employer pays charge,yes,120,0.0,84.2,0.0,15.8,0.0
+NZ18_s2,R-clock,can work from home,no,520,52.3,28.7,0.0,19.0,0.0
+NZ18_s2,R-clock,can work from home,yes,282,41.1,10.6,0.4,3.5,44.3
+NZ18_s2,R-clock,bus slower than free-flow drive,15-30 min,481,61.5,11.9,0.2,8.3,18.1
+NZ18_s2,R-clock,bus slower than free-flow drive,no bus or train,128,0.0,75.0,0.0,25.0,0.0
+NZ18_s2,R-clock,bus slower than free-flow drive,up to 15 min,193,47.7,13.5,0.0,19.2,19.7
+NZ18_s2,R-clock,late before the charge,no,738,47.6,23.3,0.1,14.0,15.0
+NZ18_s2,R-clock,late before the charge,yes,64,57.8,10.9,0.0,9.4,21.9
+NZ18_s3,H-clock,routine (H),1,41,70.7,12.2,7.3,2.4,7.3
+NZ18_s3,H-clock,routine (H),2,71,52.1,32.4,12.7,2.8,0.0
+NZ18_s3,H-clock,routine (H),3,188,62.2,28.7,4.3,3.2,1.6
+NZ18_s3,H-clock,routine (H),4,300,59.7,28.7,6.3,3.3,2.0
+NZ18_s3,H-clock,routine (H),5,197,66.5,27.9,1.0,3.6,1.0
+NZ18_s3,H-clock,flexibility (F),1,68,70.6,23.5,4.4,0.0,1.5
+NZ18_s3,H-clock,flexibility (F),2,156,59.6,35.9,1.3,1.9,1.3
+NZ18_s3,H-clock,flexibility (F),3,347,60.5,30.0,3.7,3.7,2.0
+NZ18_s3,H-clock,flexibility (F),4,150,66.7,20.7,8.7,3.3,0.7
+NZ18_s3,H-clock,flexibility (F),5,76,55.3,21.1,13.2,6.6,3.9
+NZ18_s3,H-clock,attitude to bus/train (P),1,96,9.4,62.5,10.4,11.5,6.2
+NZ18_s3,H-clock,attitude to bus/train (P),2,188,57.4,26.1,8.5,3.7,4.3
+NZ18_s3,H-clock,attitude to bus/train (P),3,339,75.5,19.8,3.2,1.5,0.0
+NZ18_s3,H-clock,attitude to bus/train (P),4,130,73.1,22.3,3.1,1.5,0.0
+NZ18_s3,H-clock,attitude to bus/train (P),5,44,56.8,40.9,0.0,2.3,0.0
+NZ18_s3,H-clock,charge sensitivity (S),1,84,52.4,41.7,2.4,3.6,0.0
+NZ18_s3,H-clock,charge sensitivity (S),2,166,60.8,28.3,6.0,2.4,2.4
+NZ18_s3,H-clock,charge sensitivity (S),3,338,66.9,25.1,3.0,2.7,2.4
+NZ18_s3,H-clock,charge sensitivity (S),4,146,58.9,25.3,9.6,5.5,0.7
+NZ18_s3,H-clock,charge sensitivity (S),5,63,57.1,30.2,7.9,3.2,1.6
+NZ18_s3,H-clock,pays parking,no,487,52.6,38.2,4.7,3.3,1.2
+NZ18_s3,H-clock,pays parking,yes,310,76.5,11.9,5.8,3.2,2.6
+NZ18_s3,H-clock,employer pays charge,no,672,73.4,14.9,6.1,3.6,2.1
+NZ18_s3,H-clock,employer pays charge,yes,125,0.0,98.4,0.0,1.6,0.0
+NZ18_s3,H-clock,can work from home,no,526,63.3,33.5,0.0,3.2,0.0
+NZ18_s3,H-clock,can work from home,yes,271,59.0,17.3,15.1,3.3,5.2
+NZ18_s3,H-clock,bus slower than free-flow drive,15-30 min,495,72.9,15.8,6.5,2.8,2.0
+NZ18_s3,H-clock,bus slower than free-flow drive,no bus or train,135,0.0,91.9,0.0,8.1,0.0
+NZ18_s3,H-clock,bus slower than free-flow drive,up to 15 min,167,79.0,12.6,5.4,0.6,2.4
+NZ18_s3,H-clock,late before the charge,no,746,61.7,28.7,4.8,2.9,1.9
+NZ18_s3,H-clock,late before the charge,yes,51,64.7,17.6,9.8,7.8,0.0
+NZ18_s3,R-clock,routine (H),1,45,48.9,15.6,0.0,22.2,13.3
+NZ18_s3,R-clock,routine (H),2,76,39.5,22.4,0.0,14.5,23.7
+NZ18_s3,R-clock,routine (H),3,193,49.2,23.8,0.0,16.6,10.4
+NZ18_s3,R-clock,routine (H),4,303,46.5,22.8,0.0,12.2,18.5
+NZ18_s3,R-clock,routine (H),5,200,47.5,26.5,0.0,14.0,12.0
+NZ18_s3,R-clock,flexibility (F),1,76,60.5,28.9,0.0,9.2,1.3
+NZ18_s3,R-clock,flexibility (F),2,165,48.5,30.3,0.0,13.3,7.9
+NZ18_s3,R-clock,flexibility (F),3,350,44.9,24.3,0.0,14.6,16.3
+NZ18_s3,R-clock,flexibility (F),4,150,47.3,14.7,0.0,17.3,20.7
+NZ18_s3,R-clock,flexibility (F),5,76,38.2,17.1,0.0,15.8,28.9
+NZ18_s3,R-clock,attitude to bus/train (P),1,96,9.4,33.3,0.0,28.1,29.2
+NZ18_s3,R-clock,attitude to bus/train (P),2,194,29.4,27.3,0.0,23.7,19.6
+NZ18_s3,R-clock,attitude to bus/train (P),3,347,57.1,19.0,0.0,10.4,13.5
+NZ18_s3,R-clock,attitude to bus/train (P),4,136,69.9,18.4,0.0,4.4,7.4
+NZ18_s3,R-clock,attitude to bus/train (P),5,44,54.5,36.4,0.0,6.8,2.3
+NZ18_s3,R-clock,charge sensitivity (S),1,87,43.7,27.6,0.0,19.5,9.2
+NZ18_s3,R-clock,charge sensitivity (S),2,169,40.2,27.8,0.0,17.2,14.8
+NZ18_s3,R-clock,charge sensitivity (S),3,344,48.5,23.0,0.0,14.2,14.2
+NZ18_s3,R-clock,charge sensitivity (S),4,148,51.4,17.6,0.0,11.5,19.6
+NZ18_s3,R-clock,charge sensitivity (S),5,69,49.3,23.2,0.0,8.7,18.8
+NZ18_s3,R-clock,pays parking,no,502,29.5,34.7,0.0,17.9,17.9
+NZ18_s3,R-clock,pays parking,yes,315,74.6,5.7,0.0,8.9,10.8
+NZ18_s3,R-clock,employer pays charge,no,692,55.3,12.6,0.0,14.2,17.9
+NZ18_s3,R-clock,employer pays charge,yes,125,0.0,84.0,0.0,16.0,0.0
+NZ18_s3,R-clock,can work from home,no,538,49.8,31.4,0.0,18.8,0.0
+NZ18_s3,R-clock,can work from home,yes,279,41.2,8.2,0.0,6.1,44.4
+NZ18_s3,R-clock,bus slower than free-flow drive,15-30 min,510,56.1,14.3,0.0,11.6,18.0
+NZ18_s3,R-clock,bus slower than free-flow drive,no bus or train,135,0.0,74.1,0.0,25.9,0.0
+NZ18_s3,R-clock,bus slower than free-flow drive,up to 15 min,172,56.4,11.0,0.0,14.0,18.6
+NZ18_s3,R-clock,late before the charge,no,765,46.8,24.6,0.0,13.5,15.2
+NZ18_s3,R-clock,late before the charge,yes,52,48.1,7.7,0.0,28.8,15.4
